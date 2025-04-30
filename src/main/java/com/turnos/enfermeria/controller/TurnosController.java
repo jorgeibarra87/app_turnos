@@ -1,0 +1,120 @@
+package com.turnos.enfermeria.controller;
+
+import com.turnos.enfermeria.model.dto.CambiosTurnoDTO;
+import com.turnos.enfermeria.model.dto.TurnoDTO;
+import com.turnos.enfermeria.model.entity.CambiosTurno;
+import com.turnos.enfermeria.model.entity.Turnos;
+import com.turnos.enfermeria.service.TurnosService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+
+import jakarta.validation.Valid;
+import java.util.List;
+
+@Validated
+@RestController
+@RequestMapping("/turnos")
+@AllArgsConstructor
+@Tag(name = "Turnos", description = "API para la gestión de turnos y su historial de cambios")
+public class TurnosController {
+
+    private final TurnosService turnosService;
+
+    @GetMapping
+    @Operation(summary = "Obtener todos los turnos", description = "Devuelve una lista de todos los turnos registrados.",
+            tags={"Turnos"})
+    public ResponseEntity<List<TurnoDTO>> findAll() {
+        List<TurnoDTO> turnos = turnosService.findAll();
+        return turnos.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(turnos);
+    }
+
+    @PostMapping
+    @Operation(summary = "Crear un nuevo turno", description = "Crea un nuevo turno con la información proporcionada.",
+            tags={"Turnos"})
+    public ResponseEntity<TurnoDTO> create(@RequestBody TurnoDTO turno) {
+        TurnoDTO nuevoTurno = turnosService.create(turno);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTurno);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un turno", description = "Actualiza los datos de un turno existente identificado por su ID.",
+            tags={"Turnos"})
+    public ResponseEntity<TurnoDTO> actualizarTurno(@PathVariable Long id, @Valid @RequestBody TurnoDTO nuevoTurno) {
+        return turnosService.findById(id)
+                .map(turnoExistente -> ResponseEntity.ok(turnosService.actualizarTurno(id, nuevoTurno)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener un turno por ID", description = "Busca un turno por su identificador único.",
+            tags={"Turnos"})
+    public ResponseEntity<TurnoDTO> findById(@PathVariable Long id) {
+        return turnosService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
+    /** 📌 Eliminar un turno */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar un turno", description = "Elimina un turno específico a partir de su ID.",
+            tags={"Turnos"})
+    public ResponseEntity<Object> delete(@PathVariable Long id) {
+        return turnosService.findById(id)
+                .map(turno -> {
+                    turnosService.eliminarTurno(id);
+                    return ResponseEntity.noContent().build();
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/cambios/{idTurno}")
+    @Operation(summary = "Obtener cambios de un turno", description = "Devuelve los cambios registrados asociados a un turno específico.",
+            tags={"Turnos"})
+    public ResponseEntity<List<CambiosTurnoDTO>> obtenerCambiosDeTurno(@PathVariable Long idTurno) {
+        List<CambiosTurnoDTO> cambios = turnosService.obtenerCambiosPorTurno(idTurno);
+        return cambios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(cambios);
+    }
+
+    @GetMapping("/{id}/historial")
+    @Operation(summary = "Obtener historial de un turno", description = "Muestra el historial completo de versiones y cambios de un turno.",
+            tags={"Turnos"})
+    public ResponseEntity<List<CambiosTurnoDTO>> obtenerHistorial(@PathVariable Long id) {
+        List<CambiosTurnoDTO> historial = turnosService.obtenerHistorialTurno(id);
+        return historial.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(historial);
+    }
+
+    @PostMapping("/restaurar/{idCambio}")
+    @Operation(summary = "Restaurar un turno a una versión anterior", description = "Restaura un turno utilizando el ID del cambio de versión.",
+            tags={"Turnos"})
+    public ResponseEntity<TurnoDTO> restaurarTurno(@PathVariable Long idCambio) {
+        return ResponseEntity.ok(turnosService.restaurarTurno(idCambio));
+    }
+
+    @GetMapping("/restaurar-turnos/{version}")
+    @Operation(summary = "Restaurar turnos por versión", description = "Restaura todos los turnos que pertenezcan a una versión específica.",
+            tags={"Turnos"})
+    public ResponseEntity<List<TurnoDTO>> restaurarTurnos(@PathVariable String version) {
+        List<TurnoDTO> turnosRestaurados = turnosService.restaurarTurnosPorVersion(version);
+        return ResponseEntity.ok(turnosRestaurados);
+    }
+
+    @PutMapping("/cambiar-estado")
+    @Operation(summary = "Cambiar estado de todos los turnos", description = "Modifica el estado de todos los turnos que coincidan con el estado actual proporcionado.",
+            tags={"Turnos"})
+    public ResponseEntity<String> cambiarEstadoTurnos(
+            @RequestParam String estadoActual,
+            @RequestParam String nuevoEstado) {
+
+        turnosService.cambiarEstadoDeTodosLosTurnos(estadoActual, nuevoEstado);
+        return ResponseEntity.ok("Todos los turnos con estado '" + estadoActual + "' fueron cambiados a '" + nuevoEstado + "'.");
+    }
+}
+

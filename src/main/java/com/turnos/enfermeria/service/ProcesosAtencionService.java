@@ -1,0 +1,95 @@
+package com.turnos.enfermeria.service;
+
+import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
+import com.turnos.enfermeria.model.dto.ProcesosAtencionDTO;
+import com.turnos.enfermeria.model.entity.BloqueServicio;
+import com.turnos.enfermeria.model.entity.Procesos;
+import com.turnos.enfermeria.model.entity.ProcesosAtencion;
+import com.turnos.enfermeria.repository.ProcesosAtencionRepository;
+import com.turnos.enfermeria.repository.ProcesosRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@AllArgsConstructor
+@Service
+public class ProcesosAtencionService {
+
+    private  final ProcesosAtencionRepository procesosAtencionRepo;
+    private final ProcesosRepository procesosRepository;
+    private final ModelMapper modelMapper;
+
+    public ProcesosAtencionDTO create(ProcesosAtencionDTO procesosAtencionDTO) {
+
+        Procesos procesos = procesosRepository.findById(procesosAtencionDTO.getIdProceso())
+                .orElseThrow(() -> new RuntimeException("Proceso no encontrado."));
+
+        ProcesosAtencion procesosAtencion = modelMapper.map(procesosAtencionDTO, ProcesosAtencion.class);
+        procesosAtencion.setIdProcesoAtencion(procesosAtencionDTO.getIdProcesoAtencion());
+        procesosAtencion.setNombre(procesosAtencionDTO.getNombre());
+        procesosAtencion.setProcesos(procesos);
+
+        ProcesosAtencion procesosAtencionGuardado = procesosAtencionRepo.save(procesosAtencion);
+
+        return modelMapper.map(procesosAtencionGuardado, ProcesosAtencionDTO.class);
+
+    }
+
+    public ProcesosAtencionDTO ***REMOVED***(ProcesosAtencionDTO detalleProcesosAtencionDTO, Long id) {
+
+        Procesos procesos = procesosRepository.findById(detalleProcesosAtencionDTO.getIdProceso())
+                .orElseThrow(() -> new RuntimeException("Proceso no encontrado."));
+
+        ProcesosAtencion procesosAtencionoExistente = procesosAtencionRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado"));
+
+        ProcesosAtencionDTO procesosAtencionDTO = modelMapper.map(procesosAtencionoExistente, ProcesosAtencionDTO.class);
+
+        // Actualizar los campos si no son nulos
+        if (detalleProcesosAtencionDTO.getIdProcesoAtencion()!= null) {
+            procesosAtencionoExistente.setIdProcesoAtencion(detalleProcesosAtencionDTO.getIdProcesoAtencion());
+        }
+        if (detalleProcesosAtencionDTO.getNombre() != null) {
+            procesosAtencionoExistente.setNombre(detalleProcesosAtencionDTO.getNombre());
+        }
+        if (detalleProcesosAtencionDTO.getNombre() != null) {
+            procesosAtencionoExistente.setNombre(detalleProcesosAtencionDTO.getNombre());
+        }
+
+        // Guardar en la base de datos
+        ProcesosAtencion procesosAtencionActualizado = procesosAtencionRepo.save(procesosAtencionoExistente);
+
+        // Convertir a DTO antes de retornar
+        return modelMapper.map(procesosAtencionActualizado, ProcesosAtencionDTO.class);
+    }
+
+    public Optional<ProcesosAtencionDTO> findById(Long idProcesoAtencion) {
+        return procesosAtencionRepo.findById(idProcesoAtencion)
+                .map(procesosAtencion -> modelMapper.map(procesosAtencion, ProcesosAtencionDTO.class)); // Convertir a DTO
+    }
+
+    public List<ProcesosAtencionDTO> findAll() {
+        return procesosAtencionRepo.findAll()
+                .stream()
+                .map(procesosAtencion -> modelMapper.map(procesosAtencion, ProcesosAtencionDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public void delete(@PathVariable Long idProcesoAtencion) {
+        // Buscar el bloque en la base de datos
+        ProcesosAtencion procesosAtencionEliminar = procesosAtencionRepo.findById(idProcesoAtencion)
+                .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada"));
+
+        // Convertir la entidad a DTO
+        ProcesosAtencionDTO procesosAtencionDTO = modelMapper.map(procesosAtencionEliminar, ProcesosAtencionDTO.class);
+
+        procesosAtencionRepo.deleteById(idProcesoAtencion);
+    }
+}
