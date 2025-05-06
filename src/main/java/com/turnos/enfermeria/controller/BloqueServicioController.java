@@ -1,9 +1,13 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.service.BloqueServicioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.catalina.connector.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,8 @@ public class BloqueServicioController {
 
     @Autowired
     private BloqueServicioService bloqueServicioService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(summary = "Crear un nuevo bloque de servicio", description = "Crea un nuevo bloque de servicio y lo guarda en la base de datos.",
@@ -43,8 +49,18 @@ public class BloqueServicioController {
     public ResponseEntity<BloqueServicioDTO> findById(@PathVariable("idBloqueServicio") Long idBloqueServicio){
         return bloqueServicioService.findById(idBloqueServicio)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.BLOQUE_SERVICIO_NO_ENCONTRADO,
+                        idBloqueServicio,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
+//    public ResponseEntity<BloqueServicioDTO> findById(@PathVariable("idBloqueServicio") Long idBloqueServicio){
+//        return bloqueServicioService.findById(idBloqueServicio)
+//                .map(ResponseEntity::ok)
+//                .orElse(ResponseEntity.notFound().build());
+//    }
 
     @PutMapping("/{idBloqueServicio}")
     @Operation(summary = "Actualizar un bloque de servicio", description = "Actualiza los datos de un bloque de servicio existente según su ID.",

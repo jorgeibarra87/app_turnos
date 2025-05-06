@@ -58,8 +58,10 @@ public class SecurityConfig {
                         .requestMatchers("/bloqueServicio/**").hasRole("ADMIN")
                         .requestMatchers("/seccionesServicio/**").hasRole("ADMIN")
                         .requestMatchers("/contrato/**").hasAnyRole("ADMIN", "GESTOR_TURNOS")
-                        .requestMatchers("/tipoatencion/**").hasRole("ADMIN")
-                        .requestMatchers("/tipoturno/**").hasRole("ADMIN")
+                        .requestMatchers("/procesosContrato/**").hasAnyRole("ADMIN","GESTOR_TURNOS")
+                        .requestMatchers("/tipoatencion/**").hasAnyRole("ADMIN","GESTOR_TURNOS")
+                        .requestMatchers("/tipoturno/**").hasAnyRole("ADMIN","GESTOR_TURNOS")
+
 
 
                         // Todas las demás rutas requieren autenticación
