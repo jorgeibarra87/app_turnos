@@ -1,12 +1,15 @@
 package com.turnos.enfermeria.controller;
 
 import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.service.BloqueServicioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.apache.catalina.connector.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,11 +31,28 @@ public class BloqueServicioController {
     private HttpServletRequest request;
 
     @PostMapping
-    @Operation(summary = "Crear un nuevo bloque de servicio", description = "Crea un nuevo bloque de servicio y lo guarda en la base de datos.",
+    @Operation(summary = "Crear un nuevo bloque de servicio",
+            description = "Crea un nuevo bloque de servicio y lo guarda en la base de datos.",
             tags={"Servicios"})
-    public ResponseEntity<BloqueServicioDTO> create(@RequestBody BloqueServicioDTO bloqueServicioDTO){
-        BloqueServicioDTO nuevoBloqueServicioDTO = bloqueServicioService.create(bloqueServicioDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoBloqueServicioDTO);
+    public ResponseEntity<BloqueServicioDTO> create(@Valid @RequestBody BloqueServicioDTO bloqueServicioDTO) {
+        try {
+            BloqueServicioDTO nuevoBloque = bloqueServicioService.create(bloqueServicioDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoBloque);
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.BLOQUE_SERVICIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (Exception e) {
+            throw new GenericConflictException(
+                    CodigoError.BLOQUE_SERVICIO_CONFLICTO,
+                    "Error al crear el bloque: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -56,30 +76,87 @@ public class BloqueServicioController {
                         request.getRequestURI()
                 ));
     }
-//    public ResponseEntity<BloqueServicioDTO> findById(@PathVariable("idBloqueServicio") Long idBloqueServicio){
-//        return bloqueServicioService.findById(idBloqueServicio)
-//                .map(ResponseEntity::ok)
-//                .orElse(ResponseEntity.notFound().build());
-//    }
 
     @PutMapping("/{idBloqueServicio}")
-    @Operation(summary = "Actualizar un bloque de servicio", description = "Actualiza los datos de un bloque de servicio existente según su ID.",
+    @Operation(summary = "Actualizar un bloque de servicio",
+            description = "Actualiza los datos de un bloque de servicio existente según su ID.",
             tags={"Servicios"})
-    public ResponseEntity<BloqueServicioDTO> update(@RequestBody BloqueServicioDTO bloqueServicioDTO, @PathVariable("idBloqueServicio") Long idBloqueServicio){
-        return bloqueServicioService.findById(idBloqueServicio)
-                .map(bloqueServicioExistente -> ResponseEntity.ok(bloqueServicioService.update(bloqueServicioDTO, idBloqueServicio)))
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<BloqueServicioDTO> update(
+            @Valid @RequestBody BloqueServicioDTO bloqueServicioDTO,
+            @PathVariable("idBloqueServicio") Long idBloqueServicio) {
+
+        try {
+            return bloqueServicioService.findById(idBloqueServicio)
+                    .map(existente -> ResponseEntity.ok(bloqueServicioService.update(bloqueServicioDTO, idBloqueServicio)))
+                    .orElseThrow(() -> new GenericNotFoundException(
+                            CodigoError.BLOQUE_SERVICIO_NO_ENCONTRADO,
+                            idBloqueServicio,
+                            request.getMethod(),
+                            request.getRequestURI()
+                    ));
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.BLOQUE_SERVICIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (Exception e) {
+            throw new GenericConflictException(
+                    CodigoError.BLOQUE_SERVICIO_CONFLICTO,
+                    "Error al actualizar el bloque: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @DeleteMapping("/{idBloqueServicio}")
-    @Operation(summary = "Eliminar un bloque de servicio", description = "Elimina un bloque de servicio del sistema por su ID.",
+    @Operation(summary = "Eliminar un bloque de servicio",
+            description = "Elimina un bloque de servicio del sistema por su ID.",
             tags={"Servicios"})
-    public ResponseEntity<Object> delete(@PathVariable("idBloqueServicio") Long idBloqueServicio){
-        return bloqueServicioService.findById(idBloqueServicio)
-                .map(bloqueServicioDTO-> {
-                    bloqueServicioService.delete(idBloqueServicio);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Void> delete(@PathVariable("idBloqueServicio") Long idBloqueServicio) {
+        try {
+            bloqueServicioService.findById(idBloqueServicio)
+                    .orElseThrow(() -> new GenericNotFoundException(
+                            CodigoError.BLOQUE_SERVICIO_NO_ENCONTRADO,
+                            idBloqueServicio,
+                            request.getMethod(),
+                            request.getRequestURI()
+                    ));
+
+            bloqueServicioService.delete(idBloqueServicio);
+            return ResponseEntity.noContent().build();
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.BLOQUE_SERVICIO_CONFLICTO,
+                    "No se puede eliminar: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
+
+
+//    @PutMapping("/{idBloqueServicio}")
+//    @Operation(summary = "Actualizar un bloque de servicio", description = "Actualiza los datos de un bloque de servicio existente según su ID.",
+//            tags={"Servicios"})
+//    public ResponseEntity<BloqueServicioDTO> update(@RequestBody BloqueServicioDTO bloqueServicioDTO, @PathVariable("idBloqueServicio") Long idBloqueServicio){
+//        return bloqueServicioService.findById(idBloqueServicio)
+//                .map(bloqueServicioExistente -> ResponseEntity.ok(bloqueServicioService.update(bloqueServicioDTO, idBloqueServicio)))
+//                .orElse(ResponseEntity.notFound().build());
+//    }
+
+//    @DeleteMapping("/{idBloqueServicio}")
+//    @Operation(summary = "Eliminar un bloque de servicio", description = "Elimina un bloque de servicio del sistema por su ID.",
+//            tags={"Servicios"})
+//    public ResponseEntity<Object> delete(@PathVariable("idBloqueServicio") Long idBloqueServicio){
+//        return bloqueServicioService.findById(idBloqueServicio)
+//                .map(bloqueServicioDTO-> {
+//                    bloqueServicioService.delete(idBloqueServicio);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElse(ResponseEntity.notFound().build());
+//    }
 }
