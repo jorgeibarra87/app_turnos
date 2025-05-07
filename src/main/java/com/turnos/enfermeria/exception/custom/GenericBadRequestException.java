@@ -30,12 +30,4 @@ public class GenericBadRequestException extends ApiException {
                 path
         );
     }
-
-//    // Método auxiliar para formatear mensajes
-//    private static String formatMessage(String mensajeBase, String detalle) {
-//        if (detalle == null || detalle.isEmpty()) {
-//            return mensajeBase;
-//        }
-//        return mensajeBase + ": " + detalle;
-//    }
 }

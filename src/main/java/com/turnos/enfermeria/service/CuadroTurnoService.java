@@ -1,14 +1,18 @@
 package com.turnos.enfermeria.service;
 
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
+import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.model.dto.CambiosCuadroTurnoDTO;
 import com.turnos.enfermeria.model.dto.CuadroTurnoDTO;
 import com.turnos.enfermeria.model.dto.TurnoDTO;
 import com.turnos.enfermeria.model.entity.*;
 import com.turnos.enfermeria.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -33,6 +37,7 @@ public class CuadroTurnoService {
     private final CambiosCuadroTurnoRepository cambiosCuadroTurnoRepository;
     private final CambiosCuadroTurnoService cambiosCuadroTurnoService;
     private final ModelMapper modelMapper;
+    private final HttpServletRequest request;
 
     @Transactional
     public CuadroTurnoDTO crearCuadroTurno(CuadroTurnoDTO cuadroTurnoDTO) {
@@ -86,13 +91,6 @@ public class CuadroTurnoService {
         return modelMapper.map(nuevoCuadro, CuadroTurnoDTO.class);
     }
 
-    /**
-     * Obtiene todos los cuadros de turnos actuales.
-     */
-//    public List<CuadroTurno> obtenerCuadrosTurno() {
-//        return cuadroTurnoRepository.findAll();
-//    }
-
     public List<CuadroTurnoDTO> obtenerCuadrosTurno() {
         List<CuadroTurno> cuadros = cuadroTurnoRepository.findAll();
 
@@ -102,12 +100,10 @@ public class CuadroTurnoService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Obtiene el historial de cambios de un cuadro de turno.
-     */
-//    public List<CambiosCuadroTurno> obtenerHistorialCuadroTurno(Long idCuadroTurno) {
-//        return cambiosCuadroTurnoRepository.findByCuadroTurnoOriginal_IdCuadroTurno(idCuadroTurno);
-//    }
+    public Optional<CuadroTurnoDTO> findById(Long idCuadroTurno) {
+        return cuadroTurnoRepository.findById(idCuadroTurno)
+                .map(cuadroTurno -> modelMapper.map(cuadroTurno, CuadroTurnoDTO.class)); // Convertir a DTO
+    }
 
     public List<CambiosCuadroTurnoDTO> obtenerHistorialCuadroTurno(Long id) {
         List<CambiosCuadroTurno> historial = cambiosCuadroTurnoRepository.findByCuadroTurno_IdCuadroTurno(id);
@@ -121,71 +117,38 @@ public class CuadroTurnoService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Registra una nueva versión de un cuadro de turno y guarda la anterior.
-     */
-//    @Transactional
-//    public CuadroTurno actualizarCuadroTurno(Long id, CuadroTurno cuadroTurnoDetalles) {
-//        Optional<CuadroTurno> optionalCuadro = cuadroTurnoRepository.findById(id);
-//        if (optionalCuadro.isPresent()) {
-//            CuadroTurno cuadroExistente = optionalCuadro.get();
-//            CuadroTurno cuadroAnterior = new CuadroTurno(cuadroExistente);
-//
-//            cuadroExistente.setNombre(cuadroTurnoDetalles.getNombre());
-//            cuadroExistente.setFechaInicio(cuadroTurnoDetalles.getFechaInicio());
-//            cuadroExistente.setFechaFin(cuadroTurnoDetalles.getFechaFin());
-//            cuadroExistente.setTotalHoras(calcularHoras(cuadroTurnoDetalles.getFechaInicio(), cuadroTurnoDetalles.getFechaFin()));
-//            cuadroExistente.setEstadoCuadro(cuadroTurnoDetalles.getEstadoCuadro());
-//            cuadroExistente.setVersion(generarNuevaVersion(cuadroExistente.getVersion()));
-//
-//            CuadroTurno actualizado = cuadroTurnoRepository.save(cuadroExistente);
-//            registrarCambioCuadroTurno(cuadroAnterior, "ACTUALIZACION");
-//            return actualizado;
-//        }
-//        throw new RuntimeException("CuadroTurno no encontrado");
-//    }
-
-//    @Transactional
-//    public CuadroTurno actualizarCuadroTurno(Long id, CuadroTurno cuadroTurnoDetalles) {
-//        Optional<CuadroTurno> optionalCuadro = cuadroTurnoRepository.findById(id);
-//        if (optionalCuadro.isPresent()) {
-//            CuadroTurno cuadroExistente = optionalCuadro.get();
-//
-//            // Guardamos solo los datos relevantes en un objeto de historial
-//            registrarCambioCuadroTurno(cuadroExistente, "ACTUALIZACION");
-//
-//            // Actualizamos los datos en el objeto existente
-//            cuadroExistente.setNombre(cuadroTurnoDetalles.getNombre());
-//            cuadroExistente.setAnio(cuadroTurnoDetalles.getAnio());
-//            cuadroExistente.setMes(cuadroTurnoDetalles.getMes());
-//            cuadroExistente.setEstadoCuadro(cuadroTurnoDetalles.getEstadoCuadro());
-//            if (!"cerrado".equalsIgnoreCase(cuadroExistente.getEstadoCuadro()) &&
-//                    "cerrado".equalsIgnoreCase(cuadroTurnoDetalles.getEstadoCuadro())) {
-//                cuadroExistente.setVersion(generarNuevaVersion(cuadroExistente.getVersion(), cuadroExistente.getAnio(), cuadroExistente.getMes()));
-//            }
-//
-//            return cuadroTurnoRepository.save(cuadroExistente);
-//        }
-//        throw new RuntimeException("CuadroTurno no encontrado");
-//    }
-
     @Transactional
     public CuadroTurnoDTO actualizarCuadroTurno(Long id, CuadroTurnoDTO cuadroTurnoDTO) {
 
         Macroprocesos macroprocesos = null;
         if (cuadroTurnoDTO.getIdMacroproceso() != null) {
             macroprocesos = macroprocesosRepository.findById(cuadroTurnoDTO.getIdMacroproceso())
-                    .orElseThrow(() -> new RuntimeException("macroproceso no encontrado."));
+                    .orElseThrow(() -> new GenericNotFoundException(
+                            CodigoError.MACROPROCESO_NO_ENCONTRADO,
+                            cuadroTurnoDTO.getIdMacroproceso(),
+                            request.getMethod(),
+                            request.getRequestURI()
+                    ));
         }
         Procesos procesos = null;
         if (cuadroTurnoDTO.getIdProceso() != null) {
             procesos = procesosRepository.findById(cuadroTurnoDTO.getIdProceso())
-                    .orElseThrow(() -> new RuntimeException("Proceso no encontrado."));
+                    .orElseThrow(() -> new GenericNotFoundException(
+                            CodigoError.PROCESO_NO_ENCONTRADO,
+                            cuadroTurnoDTO.getIdProceso(),
+                            request.getMethod(),
+                            request.getRequestURI()
+                    ));
         }
         Servicio servicio = null;
         if (cuadroTurnoDTO.getIdServicios() != null) {
             servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicios())
-                    .orElseThrow(() -> new RuntimeException("Servicio no encontrado."));
+                    .orElseThrow(() -> new GenericNotFoundException(
+                            CodigoError.CUADRO_TURNO_NO_ENCONTRADO,
+                            id,
+                            request.getMethod(),
+                            request.getRequestURI()
+                    ));
         }
         SeccionesServicio seccionesServicio = null;
         if (cuadroTurnoDTO.getIdSeccionesServicios() != null) {
@@ -198,13 +161,10 @@ public class CuadroTurnoService {
                     .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
         }
         Optional<CuadroTurno> optionalCuadro = cuadroTurnoRepository.findById(id);
-
         if (optionalCuadro.isPresent()) {
             CuadroTurno cuadroExistente = optionalCuadro.get();
-
             // Guardamos solo los datos relevantes en un objeto de historial
             cambiosCuadroTurnoService.registrarCambioCuadroTurno(cuadroExistente, "ACTUALIZACION");
-
             // Mapear los datos desde el DTO al objeto existente
             cuadroExistente.setNombre(cuadroTurnoDTO.getNombre());
             cuadroExistente.setAnio(cuadroTurnoDTO.getAnio());
@@ -216,33 +176,17 @@ public class CuadroTurnoService {
             cuadroExistente.setServicios(servicio);
             cuadroExistente.setProcesosAtencion(procesosAtencion);
             cuadroExistente.setSeccionesServicios(seccionesServicio);
-
             // Si el estado cambia a "cerrado", generamos una nueva versión
             if (!"cerrado".equalsIgnoreCase(cuadroExistente.getEstadoCuadro()) &&
                     "cerrado".equalsIgnoreCase(cuadroTurnoDTO.getEstadoCuadro())) {
                 cuadroExistente.setVersion(generarNuevaVersion(cuadroExistente.getVersion(), cuadroExistente.getAnio(), cuadroExistente.getMes()));
             }
-
             CuadroTurno cuadroActualizado = cuadroTurnoRepository.save(cuadroExistente);
-
             // Convertimos la entidad actualizada de vuelta a DTO
             return modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
         }
         throw new RuntimeException("CuadroTurno no encontrado");
     }
-
-//    @Transactional
-//    public void eliminarCuadroTurno(Long id) {
-//        Optional<CuadroTurno> optionalCuadro = cuadroTurnoRepository.findById(id);
-//        if (optionalCuadro.isPresent()) {
-//            CuadroTurno cuadroEliminar = optionalCuadro.get();
-//            registrarCambioCuadroTurno(cuadroEliminar, "ELIMINACION");
-//            cuadroTurnoRepository.deleteById(id);
-//        } else {
-//            throw new RuntimeException("CuadroTurno no encontrado");
-//        }
-//    }
-
     @Transactional
     public void eliminarCuadroTurno(Long id) {
         Optional<CuadroTurno> optionalCuadro = cuadroTurnoRepository.findById(id);
@@ -263,20 +207,7 @@ public class CuadroTurnoService {
         }
     }
 
-//    private void registrarCambioCuadroTurno(CuadroTurno cuadroTurno, String tipoCambio) {
-//        CambiosCuadroTurno cambio = new CambiosCuadroTurno();
-//        cambio.setCuadroTurnoOriginal(cuadroTurno);
-//        cambio.setFechaCambio(LocalDateTime.now());
-//        cambio.setNombre(cuadroTurno.getNombre());
-//        cambio.setMes(cuadroTurno.getMes());
-//        cambio.setAnio(cuadroTurno.getAnio());
-//        cambio.setEstadoCuadro(cuadroTurno.getEstadoCuadro());
-//        cambio.setVersion(cuadroTurno.getVersion());
-//        cambiosCuadroTurnoRepository.save(cambio);
-//    }
-
     private void registrarCambioCuadroTurno(CuadroTurnoDTO cuadroTurnoDTO, String tipoCambio) {
-
         Macroprocesos macroprocesos = null;
         if (cuadroTurnoDTO.getIdMacroproceso() != null) {
             macroprocesos = macroprocesosRepository.findById(cuadroTurnoDTO.getIdMacroproceso())
@@ -302,13 +233,11 @@ public class CuadroTurnoService {
             procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
                     .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
         }
-
         // Convertimos el DTO a la entidad CambiosCuadroTurno
         CambiosCuadroTurno cambio = modelMapper.map(cuadroTurnoDTO, CambiosCuadroTurno.class);
         // Obtener la entidad CuadroTurno desde el repositorio usando el ID del DTO
         CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(cuadroTurnoDTO.getIdCuadroTurno())
                 .orElseThrow(() -> new RuntimeException("CuadroTurno no encontrado"));
-
         cambio.setCuadroTurno(cuadroTurno);
         cambio.setFechaCambio(LocalDateTime.now());
         cambio.setNombre(cuadroTurnoDTO.getNombre());
@@ -322,45 +251,25 @@ public class CuadroTurnoService {
         cambio.setServicios(servicio);
         cambio.setProcesoAtencion(procesosAtencion);
         cambio.setSeccionesServicios(seccionesServicio);
-
         cambiosCuadroTurnoRepository.save(cambio);
     }
-
     private String generarNuevaVersion(String versionAnterior, String anio, String mes) {
         String baseVersion = mes + anio.substring(2);
         int nuevaVersion = 1;
-
         if (versionAnterior != null && versionAnterior.startsWith(baseVersion)) {
             String[] partes = versionAnterior.split("_v");
             nuevaVersion = Integer.parseInt(partes[1]) + 1;
         }
-
         return baseVersion + "_v" + nuevaVersion;
     }
 
     /**
      * Restaura un cuadro de turno a una versión anterior.
      */
-//    public CuadroTurno restaurarCuadroTurno(Long idCambio) {
-//        CambiosCuadroTurno cambio = cambiosCuadroTurnoRepository.findById(idCambio)
-//                .orElseThrow(() -> new EntityNotFoundException("Cambio de cuadro de turno no encontrado"));
-//
-//        CuadroTurno cuadroOriginal = cambio.getCuadroTurnoOriginal();
-//        cuadroOriginal.setNombre(cambio.getNombre());
-//        cuadroOriginal.setAnio(cambio.getAnio());
-//        cuadroOriginal.setMes(cambio.getMes());
-//        cuadroOriginal.setEstadoCuadro(cambio.getEstadoCuadro());
-//        cuadroOriginal.setVersion(cambio.getVersion());
-//
-//        return cuadroTurnoRepository.save(cuadroOriginal);
-//    }
-
     public CuadroTurnoDTO restaurarCuadroTurno(Long idCambio) {
         CambiosCuadroTurno cambio = cambiosCuadroTurnoRepository.findById(idCambio)
                 .orElseThrow(() -> new EntityNotFoundException("Cambio de cuadro de turno no encontrado"));
-
         CuadroTurno cuadroOriginal = cambio.getCuadroTurno();
-
         // Restaurar datos desde el cambio
         cuadroOriginal.setNombre(cambio.getNombre());
         cuadroOriginal.setAnio(cambio.getAnio());
@@ -368,31 +277,11 @@ public class CuadroTurnoService {
         cuadroOriginal.setEstadoCuadro(cambio.getEstadoCuadro());
         cuadroOriginal.setVersion(cambio.getVersion());
         cuadroOriginal.setTurnoExcepcion(cambio.getTurnoExcepcion());
-
         // Guardar la restauración en la base de datos
         CuadroTurno cuadroActualizado = cuadroTurnoRepository.save(cuadroOriginal);
-
         // Convertir la entidad actualizada a DTO antes de devolverla
         return modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
     }
-
-//    @Transactional
-//    public void cambiarEstadoDeCuadrosYTurnos(String estadoActual, String nuevoEstado) {
-//        // 1. Cambiar estado de los cuadros de turno
-//        List<CuadroTurno> cuadros = cuadroTurnoRepository.findByEstadoCuadro(estadoActual);
-//        for (CuadroTurno cuadro : cuadros) {
-//            cuadro.setEstadoCuadro(nuevoEstado);
-//        }
-//        cuadroTurnoRepository.saveAll(cuadros);
-//
-//        // 2. Cambiar estado de los turnos asociados
-//        List<Turnos> turnos = turnosRepository.findByEstadoTurno(estadoActual);
-//        for (Turnos turno : turnos) {
-//            turno.setEstadoTurno(nuevoEstado);
-//        }
-//        turnosRepository.saveAll(turnos);
-//    }
-
     @Transactional
     public Map<String, List<?>> cambiarEstadoDeCuadrosYTurnos(String estadoActual, String nuevoEstado) {
         // 1️⃣ Cambiar estado de los cuadros de turno
@@ -401,7 +290,6 @@ public class CuadroTurnoService {
             cuadro.setEstadoCuadro(nuevoEstado);
         }
         cuadroTurnoRepository.saveAll(cuadros);
-
         // 2️⃣ Cambiar estado de los turnos asociados
         List<Turnos> turnos = turnosRepository.findByEstadoTurno(estadoActual);
         for (Turnos turno : turnos) {
@@ -422,23 +310,16 @@ public class CuadroTurnoService {
         Map<String, List<?>> cambios = new HashMap<>();
         cambios.put("cuadrosActualizados", cuadrosDTO);
         cambios.put("turnosActualizados", turnosDTO);
-
         return cambios;
     }
-
     public CuadroTurnoDTO actualizarTurnoExcepcion(Long id, Boolean nuevoValor, String tipoCambio) {
         CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("CuadroTurno no encontrado"));
-
         cuadroTurno.setTurnoExcepcion(nuevoValor);
         cuadroTurnoRepository.save(cuadroTurno);
-
         // Registrar el cambio
         CuadroTurnoDTO dto = modelMapper.map(cuadroTurno, CuadroTurnoDTO.class);
         registrarCambioCuadroTurno(dto, tipoCambio);
-
         return dto;
     }
-
-
 }
