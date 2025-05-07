@@ -16,7 +16,12 @@ public enum CodigoError {
     ERROR_PROCESAMIENTO("Sistema", "SYS-500", "Error durante el procesamiento", HttpStatus.INTERNAL_SERVER_ERROR),
     MACROPROCESO_NO_ENCONTRADO("MACROPROCESO", "MP-404", "Macroproceso no encontrado", HttpStatus.NOT_FOUND),
     PROCESO_NO_ENCONTRADO("PROCESO", "PR-404", "proceso no encontrado", HttpStatus.NOT_FOUND),
-    // Agrega otros códigos según necesites
+    SECCION_SERVICIO_NO_ENCONTRADA("SECCION_SERVICIO", "SSER-404", "seccion de servicio no encontrada", HttpStatus.NOT_FOUND),
+    PROCESO_ATENCION_NO_ENCONTRADO("PROCESO_ATENCION", "PRA-404", "proceso de atención no encontrado", HttpStatus.NOT_FOUND),
+    SERVICIO_NO_ENCONTRADO("SERVICIO", "SER-404", "servicio no encontrado", HttpStatus.NOT_FOUND),
+    MACROPROCESO_DATOS_INVALIDOS("CUADRO_TURNO", "MP-400", "Datos inválidos para macroproceso", HttpStatus.BAD_REQUEST),
+    PROCESO_DATOS_INVALIDOS("CUADRO_TURNO", "PR-400", "Datos inválidos para proceso", HttpStatus.BAD_REQUEST),
+
     ;
 
     private final String entidad;

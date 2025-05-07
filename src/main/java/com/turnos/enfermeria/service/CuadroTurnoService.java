@@ -1,18 +1,15 @@
 package com.turnos.enfermeria.service;
 
-import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.CambiosCuadroTurnoDTO;
 import com.turnos.enfermeria.model.dto.CuadroTurnoDTO;
 import com.turnos.enfermeria.model.dto.TurnoDTO;
 import com.turnos.enfermeria.model.entity.*;
 import com.turnos.enfermeria.repository.*;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -37,7 +34,6 @@ public class CuadroTurnoService {
     private final CambiosCuadroTurnoRepository cambiosCuadroTurnoRepository;
     private final CambiosCuadroTurnoService cambiosCuadroTurnoService;
     private final ModelMapper modelMapper;
-    private final HttpServletRequest request;
 
     @Transactional
     public CuadroTurnoDTO crearCuadroTurno(CuadroTurnoDTO cuadroTurnoDTO) {
@@ -123,32 +119,17 @@ public class CuadroTurnoService {
         Macroprocesos macroprocesos = null;
         if (cuadroTurnoDTO.getIdMacroproceso() != null) {
             macroprocesos = macroprocesosRepository.findById(cuadroTurnoDTO.getIdMacroproceso())
-                    .orElseThrow(() -> new GenericNotFoundException(
-                            CodigoError.MACROPROCESO_NO_ENCONTRADO,
-                            cuadroTurnoDTO.getIdMacroproceso(),
-                            request.getMethod(),
-                            request.getRequestURI()
-                    ));
+                    .orElseThrow(() -> new RuntimeException("macroproceso no encontrado."));
         }
         Procesos procesos = null;
         if (cuadroTurnoDTO.getIdProceso() != null) {
             procesos = procesosRepository.findById(cuadroTurnoDTO.getIdProceso())
-                    .orElseThrow(() -> new GenericNotFoundException(
-                            CodigoError.PROCESO_NO_ENCONTRADO,
-                            cuadroTurnoDTO.getIdProceso(),
-                            request.getMethod(),
-                            request.getRequestURI()
-                    ));
+                    .orElseThrow(() -> new RuntimeException("Proceso no encontrado."));
         }
         Servicio servicio = null;
         if (cuadroTurnoDTO.getIdServicios() != null) {
             servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicios())
-                    .orElseThrow(() -> new GenericNotFoundException(
-                            CodigoError.CUADRO_TURNO_NO_ENCONTRADO,
-                            id,
-                            request.getMethod(),
-                            request.getRequestURI()
-                    ));
+                    .orElseThrow(() -> new RuntimeException("Servicio no encontrado."));
         }
         SeccionesServicio seccionesServicio = null;
         if (cuadroTurnoDTO.getIdSeccionesServicios() != null) {
