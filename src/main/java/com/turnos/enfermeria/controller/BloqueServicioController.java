@@ -137,26 +137,4 @@ public class BloqueServicioController {
             );
         }
     }
-
-
-//    @PutMapping("/{idBloqueServicio}")
-//    @Operation(summary = "Actualizar un bloque de servicio", description = "Actualiza los datos de un bloque de servicio existente según su ID.",
-//            tags={"Servicios"})
-//    public ResponseEntity<BloqueServicioDTO> ***REMOVED***(@RequestBody BloqueServicioDTO bloqueServicioDTO, @PathVariable("idBloqueServicio") Long idBloqueServicio){
-//        return bloqueServicioService.findById(idBloqueServicio)
-//                .map(bloqueServicioExistente -> ResponseEntity.ok(bloqueServicioService.***REMOVED***(bloqueServicioDTO, idBloqueServicio)))
-//                .orElse(ResponseEntity.notFound().build());
-//    }
-
-//    @DeleteMapping("/{idBloqueServicio}")
-//    @Operation(summary = "Eliminar un bloque de servicio", description = "Elimina un bloque de servicio del sistema por su ID.",
-//            tags={"Servicios"})
-//    public ResponseEntity<Object> delete(@PathVariable("idBloqueServicio") Long idBloqueServicio){
-//        return bloqueServicioService.findById(idBloqueServicio)
-//                .map(bloqueServicioDTO-> {
-//                    bloqueServicioService.delete(idBloqueServicio);
-//                    return ResponseEntity.noContent().build();
-//                })
-//                .orElse(ResponseEntity.notFound().build());
-//    }
 }

@@ -6,8 +6,16 @@ public enum CodigoError {
     BLOQUE_SERVICIO_NO_ENCONTRADO("BLOQUE_SERVICIO", "BS-404", "Bloque de servicio no encontrado", HttpStatus.NOT_FOUND),
     BLOQUE_SERVICIO_DATOS_INVALIDOS("BLOQUE_SERVICIO", "BS-400", "Datos inválidos para bloque de servicio", HttpStatus.BAD_REQUEST),
     BLOQUE_SERVICIO_CONFLICTO("BLOQUE_SERVICIO", "BS-409", "Conflicto con bloque de servicio", HttpStatus.CONFLICT),
-    BLOQUE_SERVICIO_SIN_CONTENIDO("BLOQUE_SERVICIO", "BS-204", "No hay bloques de servicio registrados", HttpStatus.NO_CONTENT);
-
+    BLOQUE_SERVICIO_SIN_CONTENIDO("BLOQUE_SERVICIO", "BS-204", "No hay bloques de servicio registrados", HttpStatus.NO_CONTENT),
+    CUADRO_TURNO_NO_ENCONTRADO("CUADRO_TURNO", "CT-404", "Cuadro de turno no encontrado", HttpStatus.NOT_FOUND),
+    CUADRO_TURNO_DATOS_INVALIDOS("CUADRO_TURNO", "CT-400", "Datos inválidos para cuadro de turno", HttpStatus.BAD_REQUEST),
+    CUADRO_TURNOS_ESTADO_INVALIDO("CuadroTurnos", "CT-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    CUADRO_TURNO_CONFLICTO("CUADRO_TURNO", "CT-409", "Conflicto con cuadro de turno", HttpStatus.CONFLICT),
+    CUADRO_TURNO_SIN_CONTENIDO("CUADRO_TURNO", "CT-204", "No hay cuadros de turno registrados", HttpStatus.NO_CONTENT),
+    HISTORIAL_CUADRO_TURNO_NO_ENCONTRADO("CUADRO_TURNO", "CT-404", "Historial de cuadro de turno no encontrado", HttpStatus.NOT_FOUND),
+    ERROR_PROCESAMIENTO("Sistema", "SYS-500", "Error durante el procesamiento", HttpStatus.INTERNAL_SERVER_ERROR),
+    MACROPROCESO_NO_ENCONTRADO("MACROPROCESO", "MP-404", "Macroproceso no encontrado", HttpStatus.NOT_FOUND),
+    PROCESO_NO_ENCONTRADO("PROCESO", "PR-404", "proceso no encontrado", HttpStatus.NOT_FOUND),
     // Agrega otros códigos según necesites
     ;
 
