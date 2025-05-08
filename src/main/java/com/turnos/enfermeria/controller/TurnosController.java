@@ -1,5 +1,9 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.CambiosTurnoDTO;
 import com.turnos.enfermeria.model.dto.TurnoDTO;
 import com.turnos.enfermeria.model.entity.CambiosTurno;
@@ -7,7 +11,10 @@ import com.turnos.enfermeria.model.entity.Turnos;
 import com.turnos.enfermeria.service.TurnosService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -26,6 +33,8 @@ public class TurnosController {
 
     private final TurnosService turnosService;
 
+    private final HttpServletRequest request;
+
     @GetMapping
     @Operation(summary = "Obtener todos los turnos", description = "Devuelve una lista de todos los turnos registrados.",
             tags={"Turnos"})
@@ -38,8 +47,40 @@ public class TurnosController {
     @Operation(summary = "Crear un nuevo turno", description = "Crea un nuevo turno con la información proporcionada.",
             tags={"Turnos"})
     public ResponseEntity<TurnoDTO> create(@RequestBody TurnoDTO turno) {
-        TurnoDTO nuevoTurno = turnosService.create(turno);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTurno);
+        try {
+            TurnoDTO nuevoTurno = turnosService.create(turno);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTurno);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.CUADRO_TURNO_NO_ENCONTRADO,
+                    turno.getIdTurno(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.CUADRO_TURNO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.CUADRO_TURNOS_ESTADO_INVALIDO,
+                    "No se pudo restaurar: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al restaurar el cuadro: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @PutMapping("/{id}")
