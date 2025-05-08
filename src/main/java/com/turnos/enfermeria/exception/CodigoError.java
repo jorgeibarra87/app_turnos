@@ -21,6 +21,17 @@ public enum CodigoError {
     SERVICIO_NO_ENCONTRADO("SERVICIO", "SER-404", "servicio no encontrado", HttpStatus.NOT_FOUND),
     MACROPROCESO_DATOS_INVALIDOS("CUADRO_TURNO", "MP-400", "Datos inválidos para macroproceso", HttpStatus.BAD_REQUEST),
     PROCESO_DATOS_INVALIDOS("CUADRO_TURNO", "PR-400", "Datos inválidos para proceso", HttpStatus.BAD_REQUEST),
+    TURNO_NO_ENCONTRADO("TURNOS", "TR-404", "Cuadro de turno no encontrado", HttpStatus.NOT_FOUND),
+    TURNO_DATOS_INVALIDOS("TURNOS", "TR-400", "Datos inválidos para cuadro de turno", HttpStatus.BAD_REQUEST),
+    TURNOS_ESTADO_INVALIDO("TURNOS", "TR-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    TURNO_CONFLICTO("TURNOS", "TR-409", "Conflicto con cuadro de turno", HttpStatus.CONFLICT),
+    TURNO_SIN_CONTENIDO("TURNOS", "TR-204", "No hay cuadros de turno registrados", HttpStatus.NO_CONTENT),
+    HISTORIAL_TURNO_NO_CONTENIDO("TURNOS", "H_TR-404", "historial de turno no encontrado", HttpStatus.NOT_FOUND),
+    RESTAURAR_TURNO_NO_ENCONTRADO("TURNOS", "R_TR-404", "No se encuentra historial de turno", HttpStatus.NOT_FOUND),
+    RESTAURAR_TURNO_DATOS_INVALIDOS("TURNOS", "R_TR-400", "Datos inválidos para restaurar el turno", HttpStatus.BAD_REQUEST),
+    RESTAURAR_TURNOS_ESTADO_INVALIDO("TURNOS", "R_TR-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    CAMBIAR_ESTADO_DATOS_INVALIDOS("TURNOS", "CE_TR-400", "Datos inválidos para cambio de estado de turno", HttpStatus.BAD_REQUEST),
+    CAMBIAR_ESTADO_ESTADO_INVALIDO("TURNOS", "CE_TR-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
 
     ;
 

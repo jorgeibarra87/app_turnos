@@ -44,6 +44,11 @@ public class GlobalExceptionHandler  {
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApiException(ApiException ex, WebRequest request) {
+
+        // Si es una excepción de NO CONTENT (204)
+        if (ex.getCodigoHttp() == HttpStatus.NO_CONTENT.value()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 ex.getEntidad(),
