@@ -52,14 +52,14 @@ public class TurnosController {
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTurno);
         }catch (EntityNotFoundException e) {
             throw new GenericNotFoundException(
-                    CodigoError.CUADRO_TURNO_NO_ENCONTRADO,
+                    CodigoError.TURNO_NO_ENCONTRADO,
                     turno.getIdTurno(),
                     request.getMethod(),
                     request.getRequestURI()
             );
         } catch (IllegalArgumentException e) {
             throw new GenericBadRequestException(
-                    CodigoError.CUADRO_TURNO_DATOS_INVALIDOS,
+                    CodigoError.TURNO_DATOS_INVALIDOS,
                     e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
@@ -67,7 +67,7 @@ public class TurnosController {
 
         } catch (IllegalStateException e) {
             throw new GenericConflictException(
-                    CodigoError.CUADRO_TURNOS_ESTADO_INVALIDO,
+                    CodigoError.TURNOS_ESTADO_INVALIDO,
                     "No se pudo restaurar: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
@@ -89,9 +89,13 @@ public class TurnosController {
     public ResponseEntity<TurnoDTO> actualizarTurno(@PathVariable Long id, @Valid @RequestBody TurnoDTO nuevoTurno) {
         return turnosService.findById(id)
                 .map(turnoExistente -> ResponseEntity.ok(turnosService.actualizarTurno(id, nuevoTurno)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TURNO_NO_ENCONTRADO,
+                        id,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
-
 
     @GetMapping("/{id}")
     @Operation(summary = "Obtener un turno por ID", description = "Busca un turno por su identificador único.",
@@ -99,7 +103,12 @@ public class TurnosController {
     public ResponseEntity<TurnoDTO> findById(@PathVariable Long id) {
         return turnosService.findById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                CodigoError.TURNO_NO_ENCONTRADO,
+                id,
+                request.getMethod(),
+                request.getRequestURI()
+        ));
     }
 
 
@@ -113,7 +122,12 @@ public class TurnosController {
                     turnosService.eliminarTurno(id);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TURNO_NO_ENCONTRADO,
+                        id,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @GetMapping("/cambios/{idTurno}")
@@ -121,7 +135,16 @@ public class TurnosController {
             tags={"Turnos"})
     public ResponseEntity<List<CambiosTurnoDTO>> obtenerCambiosDeTurno(@PathVariable Long idTurno) {
         List<CambiosTurnoDTO> cambios = turnosService.obtenerCambiosPorTurno(idTurno);
-        return cambios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(cambios);
+        if (cambios.isEmpty()) {
+            throw new GenericNotFoundException(
+                    CodigoError.TURNO_NO_ENCONTRADO,
+                    idTurno,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
+        return ResponseEntity.ok(cambios);
+        //return cambios.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(cambios);
     }
 
     @GetMapping("/{id}/historial")
@@ -136,7 +159,39 @@ public class TurnosController {
     @Operation(summary = "Restaurar un turno a una versión anterior", description = "Restaura un turno utilizando el ID del cambio de versión.",
             tags={"Turnos"})
     public ResponseEntity<TurnoDTO> restaurarTurno(@PathVariable Long idCambio) {
+        try{
         return ResponseEntity.ok(turnosService.restaurarTurno(idCambio));
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.RESTAURAR_TURNO_NO_ENCONTRADO,
+                    idCambio,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.RESTAURAR_TURNO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.RESTAURAR_TURNOS_ESTADO_INVALIDO,
+                    "No se pudo restaurar: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al restaurar el cuadro: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping("/restaurar-turnos/{version}")
@@ -144,7 +199,32 @@ public class TurnosController {
             tags={"Turnos"})
     public ResponseEntity<List<TurnoDTO>> restaurarTurnos(@PathVariable String version) {
         List<TurnoDTO> turnosRestaurados = turnosService.restaurarTurnosPorVersion(version);
-        return ResponseEntity.ok(turnosRestaurados);
+        try {
+            return ResponseEntity.ok(turnosRestaurados);
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.RESTAURAR_TURNO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.RESTAURAR_TURNOS_ESTADO_INVALIDO,
+                    "No se pudo restaurar: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al restaurar el cuadro: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @PutMapping("/cambiar-estado")
@@ -153,9 +233,31 @@ public class TurnosController {
     public ResponseEntity<String> cambiarEstadoTurnos(
             @RequestParam String estadoActual,
             @RequestParam String nuevoEstado) {
-
-        turnosService.cambiarEstadoDeTodosLosTurnos(estadoActual, nuevoEstado);
-        return ResponseEntity.ok("Todos los turnos con estado '" + estadoActual + "' fueron cambiados a '" + nuevoEstado + "'.");
+        try {
+            turnosService.cambiarEstadoDeTodosLosTurnos(estadoActual, nuevoEstado);
+            return ResponseEntity.ok("Todos los turnos con estado '" + estadoActual + "' fueron cambiados a '" + nuevoEstado + "'.");
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.CAMBIAR_ESTADO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.CAMBIAR_ESTADO_ESTADO_INVALIDO,
+                    "No se pudo restaurar: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al restaurar el cuadro: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 }
 
