@@ -58,6 +58,12 @@ public enum CodigoError {
     PROCESO_CONTRATO_NO_ENCONTRADO("PROCESO_CONTRATO", "PCON-404", "proceso de contrato no encontrada", HttpStatus.NOT_FOUND),
     PROCESO_CONTRATO_DATOS_INVALIDOS("PROCESO_CONTRATO", "PCON-400", "Datos inválidos para proceso de contrato", HttpStatus.BAD_REQUEST),
     PROCESO_CONTRATO_ESTADO_INVALIDO("PROCESO_CONTRATO", "PCON-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    PROCESO_NO_ENCONTRADO("PROCESO", "PROC-404", "proceso no encontrado", HttpStatus.NOT_FOUND),
+    PROCESO_DATOS_INVALIDOS("PROCESO", "PROC-400", "Datos inválidos para proceso", HttpStatus.BAD_REQUEST),
+    PROCESO_ESTADO_INVALIDO("PROCESO", "PROC-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    ROL_NO_ENCONTRADO("ROL", "ROL-404", "rol no encontrado", HttpStatus.NOT_FOUND),
+    ROL_DATOS_INVALIDOS("ROL", "ROL-400", "Datos inválidos para rol", HttpStatus.BAD_REQUEST),
+    ROL_ESTADO_INVALIDO("ROL", "ROL-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
     ;
 
     private final String entidad;

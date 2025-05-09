@@ -1,11 +1,17 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.ProcesosDTO;
 import com.turnos.enfermeria.model.entity.Procesos;
 import com.turnos.enfermeria.service.ProcesosService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +28,8 @@ import java.util.Optional;
 public class ProcesosController {
     @Autowired
     private ProcesosService procesosService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(
@@ -30,8 +38,40 @@ public class ProcesosController {
             tags={"Cuadro de Turnos"}
     )
     public ResponseEntity<ProcesosDTO> create(@RequestBody ProcesosDTO procesosDTO){
-        ProcesosDTO nuevoProcesosDTO = procesosService.create(procesosDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProcesosDTO);
+        try {
+            ProcesosDTO nuevoProcesosDTO = procesosService.create(procesosDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProcesosDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.PROCESO_NO_ENCONTRADO,
+                    procesosDTO.getIdProceso(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.PROCESO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.PROCESO_ESTADO_INVALIDO,
+                    "No se pudo crear turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -54,7 +94,12 @@ public class ProcesosController {
     public ResponseEntity<ProcesosDTO> findById(@PathVariable("idProceso") Long idProceso){
         return procesosService.findById(idProceso)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PROCESO_NO_ENCONTRADO,
+                        idProceso,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idProceso}")
@@ -66,7 +111,12 @@ public class ProcesosController {
     public ResponseEntity<ProcesosDTO> update(@RequestBody ProcesosDTO procesosDTO, @PathVariable Long idProceso){
         return procesosService.findById(idProceso)
                 .map(procesoExistente -> ResponseEntity.ok(procesosService.update(procesosDTO, idProceso)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PROCESO_NO_ENCONTRADO,
+                        idProceso,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @DeleteMapping("/{idProceso}")
@@ -81,6 +131,11 @@ public class ProcesosController {
                     procesosService.delete(idProceso);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PROCESO_NO_ENCONTRADO,
+                        idProceso,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }
