@@ -1,9 +1,15 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.EquipoDTO;
 import com.turnos.enfermeria.service.EquipoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +27,9 @@ public class EquipoController {
     @Autowired
     private EquipoService equipoService;
 
+    @Autowired
+    private HttpServletRequest request;
+
     @PostMapping
     @Operation(
             summary = "Crear un nuevo equipo",
@@ -28,8 +37,40 @@ public class EquipoController {
             tags={"Cuadro de Turnos"}
     )
     public ResponseEntity<EquipoDTO> create(@RequestBody EquipoDTO equipoDTO){
-        EquipoDTO nuevoEquipoDTO = equipoService.create(equipoDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoEquipoDTO);
+        try {
+            EquipoDTO nuevoEquipoDTO = equipoService.create(equipoDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoEquipoDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.EQUIPO_NO_ENCONTRADO,
+                    equipoDTO.getIdEquipo(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.EQUIPO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.EQUIPO_ESTADO_INVALIDO,
+                    "No se pudo crear equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -52,7 +93,12 @@ public class EquipoController {
     public ResponseEntity<EquipoDTO> findById(@PathVariable Long idEquipo){
         return equipoService.findById(idEquipo)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.EQUIPO_NO_ENCONTRADO,
+                        idEquipo,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idEquipo}")
@@ -64,7 +110,12 @@ public class EquipoController {
     public ResponseEntity<EquipoDTO> ***REMOVED***(@RequestBody EquipoDTO equipoDTO, @PathVariable Long idEquipo){
         return equipoService.findById(idEquipo)
                 .map(equipoExistente -> ResponseEntity.ok(equipoService.***REMOVED***(equipoDTO, idEquipo)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.EQUIPO_NO_ENCONTRADO,
+                        idEquipo,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
 
@@ -81,6 +132,11 @@ public class EquipoController {
                     equipoService.delete(idEquipo);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.EQUIPO_NO_ENCONTRADO,
+                        idEquipo,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }
