@@ -1,5 +1,9 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.CambiosTurnoDTO;
 import com.turnos.enfermeria.model.entity.CambiosTurno;
@@ -7,6 +11,8 @@ import com.turnos.enfermeria.model.entity.Usuario;
 import com.turnos.enfermeria.service.CambiosTurnoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,13 +31,47 @@ import org.springframework.validation.annotation.Validated;
 public class CambiosTurnoController {
     @Autowired
     private CambiosTurnoService cambiosTurnoService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(summary = "Crear un cambio de turno", description = "Registra un nuevo cambio asociado a un turno.",
             tags={"Turnos"})
     public ResponseEntity<CambiosTurnoDTO> create(@RequestBody CambiosTurnoDTO cambiosTurnoDTO){
-        CambiosTurnoDTO nuevoCambiosTurnoDTO = cambiosTurnoService.create(cambiosTurnoDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoCambiosTurnoDTO);
+        try {
+            CambiosTurnoDTO nuevoCambiosTurnoDTO = cambiosTurnoService.create(cambiosTurnoDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoCambiosTurnoDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.CAMBIOS_TURNO_NO_ENCONTRADO,
+                    cambiosTurnoDTO.getIdCambio(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.CAMBIOS_TURNO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.CAMBIOS_TURNO_ESTADO_INVALIDO,
+                    "No se pudo crear turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -48,7 +88,12 @@ public class CambiosTurnoController {
     public ResponseEntity<CambiosTurnoDTO> findById(@PathVariable Long idCambio){
         return cambiosTurnoService.findById(idCambio)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.CAMBIOS_TURNO_NO_ENCONTRADO,
+                        idCambio,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idCambio}")
@@ -57,7 +102,12 @@ public class CambiosTurnoController {
     public ResponseEntity<CambiosTurnoDTO> update(@RequestBody CambiosTurnoDTO cambiosTurnoDTO, @PathVariable Long idCambio){
         return cambiosTurnoService.findById(idCambio)
                 .map(cambiosTurnoExistente -> ResponseEntity.ok(cambiosTurnoService.update(cambiosTurnoDTO, idCambio)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.CAMBIOS_TURNO_NO_ENCONTRADO,
+                        idCambio,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @DeleteMapping("/{idCambio}")
@@ -69,6 +119,11 @@ public class CambiosTurnoController {
                     cambiosTurnoService.delete(idCambio);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.CAMBIOS_TURNO_NO_ENCONTRADO,
+                        idCambio,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }

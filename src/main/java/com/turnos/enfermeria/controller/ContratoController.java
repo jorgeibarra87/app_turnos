@@ -1,9 +1,15 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.*;
 import com.turnos.enfermeria.service.ContratoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +25,8 @@ public class ContratoController {
 
     @Autowired
     private ContratoService contratoService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(
@@ -27,8 +35,40 @@ public class ContratoController {
             tags={"Contratos"}
     )
     public ResponseEntity<ContratoDTO> create(@RequestBody ContratoDTO contratoDTO){
-        ContratoDTO nuevoContratoDTO = contratoService.create(contratoDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoContratoDTO);
+        try {
+            ContratoDTO nuevoContratoDTO = contratoService.create(contratoDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoContratoDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.CONTRATO_NO_ENCONTRADO,
+                    contratoDTO.getIdContrato(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.CONTRATO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.CONTRATO_ESTADO_INVALIDO,
+                    "No se pudo crear turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -51,7 +91,12 @@ public class ContratoController {
     public ResponseEntity<ContratoDTO> findById(@PathVariable Long idContrato){
         return contratoService.findById(idContrato)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.CONTRATO_NO_ENCONTRADO,
+                        idContrato,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idContrato}")
@@ -63,7 +108,12 @@ public class ContratoController {
     public ResponseEntity<ContratoDTO> update(@RequestBody ContratoDTO contratoDTO, @PathVariable Long idContrato){
         return contratoService.findById(idContrato)
                 .map(contratoExistente -> ResponseEntity.ok(contratoService.update(contratoDTO, idContrato)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.CONTRATO_NO_ENCONTRADO,
+                        idContrato,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @DeleteMapping("/{idContrato}")
@@ -78,7 +128,12 @@ public class ContratoController {
                     contratoService.delete(idContrato);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.CONTRATO_NO_ENCONTRADO,
+                        idContrato,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PostMapping("{idContrato}/titulo/{idTitulo}")
@@ -89,10 +144,41 @@ public class ContratoController {
     )
     public ResponseEntity<List<TitulosFormacionAcademicaDTO>> agregarTituloAContrato(
             @PathVariable Long idContrato,
-            @PathVariable Long idTitulo
-    ) {
-        List<TitulosFormacionAcademicaDTO> titulos = contratoService.agregarTituloAContrato(idContrato, idTitulo);
-        return ResponseEntity.ok(titulos);
+            @PathVariable Long idTitulo) {
+        try {
+            List<TitulosFormacionAcademicaDTO> titulos = contratoService.agregarTituloAContrato(idContrato, idTitulo);
+            return ResponseEntity.ok(titulos);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.TITULO_CONTRATO_NO_ENCONTRADO,
+                    idTitulo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.TITULO_CONTRATO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.TITULO_CONTRATO_DATOS_INVALIDOS,
+                    "No se pudo crear titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el titulo de contrato: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping("/{idContrato}/titulos")
@@ -102,8 +188,40 @@ public class ContratoController {
             tags={"Contratos"}
     )
     public ResponseEntity<List<TitulosFormacionAcademicaDTO>> obtenerTitulosPorContrato(@PathVariable Long idContrato) {
-        List<TitulosFormacionAcademicaDTO> usuarios = contratoService.obtenerTitulosPorContrato(idContrato);
-        return ResponseEntity.ok(usuarios);
+        try {
+            List<TitulosFormacionAcademicaDTO> usuarios = contratoService.obtenerTitulosPorContrato(idContrato);
+            return ResponseEntity.ok(usuarios);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.TITULO_CONTRATO_NO_ENCONTRADO,
+                    idContrato,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.TITULO_CONTRATO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.TITULO_CONTRATO_ESTADO_INVALIDO,
+                    "No se pudo obtener titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al obtener el titulo de contrato: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @PutMapping("titulo/{idTitulo}")
@@ -115,8 +233,39 @@ public class ContratoController {
     public ResponseEntity<TitulosFormacionAcademicaDTO> actualizarTitulosDeContrato(
             @PathVariable Long idTitulo,
             @RequestBody List<Long> nuevosTitulosIds) {
+        try {
+            TitulosFormacionAcademicaDTO titulosFormacionAcademicaDTO = contratoService.actualizarTitulosDeContrato(idTitulo, nuevosTitulosIds);
+            return ResponseEntity.ok(titulosFormacionAcademicaDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.TITULO_CONTRATO_NO_ENCONTRADO,
+                    idTitulo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.TITULO_CONTRATO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
 
-        TitulosFormacionAcademicaDTO titulosFormacionAcademicaDTO = contratoService.actualizarTitulosDeContrato(idTitulo, nuevosTitulosIds);
-        return ResponseEntity.ok(titulosFormacionAcademicaDTO);
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.TITULO_CONTRATO_DATOS_INVALIDOS,
+                    "No se pudo obtener titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al obtener el titulo de contrato: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 }

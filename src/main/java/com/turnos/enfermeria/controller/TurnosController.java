@@ -68,7 +68,7 @@ public class TurnosController {
         } catch (IllegalStateException e) {
             throw new GenericConflictException(
                     CodigoError.TURNOS_ESTADO_INVALIDO,
-                    "No se pudo restaurar: " + e.getMessage(),
+                    "No se pudo crear turno: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
@@ -76,7 +76,7 @@ public class TurnosController {
         } catch (Exception e) {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al restaurar el cuadro: " + e.getMessage(),
+                    "Error al crear el turno: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
@@ -246,14 +246,14 @@ public class TurnosController {
         } catch (IllegalStateException e) {
             throw new GenericConflictException(
                     CodigoError.CAMBIAR_ESTADO_ESTADO_INVALIDO,
-                    "No se pudo restaurar: " + e.getMessage(),
+                    "No se pudo cambiar estado: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
         } catch (Exception e) {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al restaurar el cuadro: " + e.getMessage(),
+                    "Error al cambiar el estado: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );

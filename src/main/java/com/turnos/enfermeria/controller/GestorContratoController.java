@@ -1,10 +1,16 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.GestorContratoDTO;
 import com.turnos.enfermeria.service.GestorContratoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +26,8 @@ import java.util.List;
 public class GestorContratoController {
     @Autowired
     private GestorContratoService gestorContratoService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(
@@ -28,8 +36,40 @@ public class GestorContratoController {
             tags={"Contratos"}
     )
     public ResponseEntity<GestorContratoDTO> create(@RequestBody GestorContratoDTO gestorContratoDTO){
-        GestorContratoDTO nuevoGestorContratoDTO = gestorContratoService.create(gestorContratoDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoGestorContratoDTO);
+        try {
+            GestorContratoDTO nuevoGestorContratoDTO = gestorContratoService.create(gestorContratoDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoGestorContratoDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.GESTOR_CONTRATO_NO_ENCONTRADO,
+                    gestorContratoDTO.getIdGestorContrato(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.GESTOR_CONTRATO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.GESTOR_CONTRATO_ESTADO_INVALIDO,
+                    "No se pudo crear gestor: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el gestor: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -52,7 +92,12 @@ public class GestorContratoController {
     public ResponseEntity<GestorContratoDTO> findById(@PathVariable Long idGestorContrato){
         return gestorContratoService.findById(idGestorContrato)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.GESTOR_CONTRATO_NO_ENCONTRADO,
+                        idGestorContrato,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idGestorContrato}")
@@ -61,7 +106,12 @@ public class GestorContratoController {
     public ResponseEntity<GestorContratoDTO> update(@RequestBody GestorContratoDTO gestorContratoDTO, @PathVariable Long idGestorContrato){
         return gestorContratoService.findById(idGestorContrato)
                 .map(gestorContratoExistente -> ResponseEntity.ok(gestorContratoService.update(gestorContratoDTO, idGestorContrato)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.GESTOR_CONTRATO_NO_ENCONTRADO,
+                        idGestorContrato,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @DeleteMapping("/{idGestorContrato}")
@@ -76,6 +126,11 @@ public class GestorContratoController {
                     gestorContratoService.delete(idGestorContrato);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.GESTOR_CONTRATO_NO_ENCONTRADO,
+                        idGestorContrato,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }
