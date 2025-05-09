@@ -1,5 +1,9 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.MacroprocesosDTO;
 import com.turnos.enfermeria.model.entity.BloqueServicio;
@@ -8,6 +12,8 @@ import com.turnos.enfermeria.service.BloqueServicioService;
 import com.turnos.enfermeria.service.MacroprocesosService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +33,9 @@ public class MacroprocesosController {
     @Autowired
     private MacroprocesosService macroprocesosService;
 
+    @Autowired
+    private HttpServletRequest request;
+
     @PostMapping
     @Operation(
             summary = "Crear un nuevo macroproceso",
@@ -34,8 +43,40 @@ public class MacroprocesosController {
             tags={"Cuadro de Turnos"}
     )
     public ResponseEntity<MacroprocesosDTO> create(@RequestBody MacroprocesosDTO macroprocesosDTO){
-        MacroprocesosDTO nuevoMacroprocesosDTO = macroprocesosService.create(macroprocesosDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoMacroprocesosDTO);
+        try {
+            MacroprocesosDTO nuevoMacroprocesosDTO = macroprocesosService.create(macroprocesosDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoMacroprocesosDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.MACROPROCESO_NO_ENCONTRADO,
+                    macroprocesosDTO.getIdMacroproceso(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.MACROPROCESO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.MACROPROCESO_ESTADO_INVALIDO,
+                    "No se pudo crear macroproceso: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el macroproceso: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -58,7 +99,12 @@ public class MacroprocesosController {
     public ResponseEntity<MacroprocesosDTO> findById(@PathVariable Long idMacroproceso){
         return macroprocesosService.findById(idMacroproceso)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.MACROPROCESO_NO_ENCONTRADO,
+                        idMacroproceso,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idMacroproceso}")
@@ -70,7 +116,12 @@ public class MacroprocesosController {
     public ResponseEntity<MacroprocesosDTO> update(@RequestBody MacroprocesosDTO macroprocesosDTO, @PathVariable Long idMacroproceso){
         return macroprocesosService.findById(idMacroproceso)
                 .map(macroprocesoExistente -> ResponseEntity.ok(macroprocesosService.update(macroprocesosDTO, idMacroproceso)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.MACROPROCESO_NO_ENCONTRADO,
+                        idMacroproceso,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
 
@@ -87,6 +138,11 @@ public class MacroprocesosController {
                     macroprocesosService.delete(idMacroproceso);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.MACROPROCESO_NO_ENCONTRADO,
+                        idMacroproceso,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }

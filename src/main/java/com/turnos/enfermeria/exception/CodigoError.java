@@ -43,6 +43,21 @@ public enum CodigoError {
     GESTOR_CONTRATO_NO_ENCONTRADO("GESTOR_CONTRATO", "GC-404", "gestor no encontrado", HttpStatus.NOT_FOUND),
     GESTOR_CONTRATO_DATOS_INVALIDOS("GESTOR_CONTRATO", "GC-400", "Datos inválidos para gestor", HttpStatus.BAD_REQUEST),
     GESTOR_CONTRATO_ESTADO_INVALIDO("GESTOR_CONTRATO", "GC-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    MACROPROCESO_NO_ENCONTRADO("MACROPROCESO", "MP-404", "macroproceso no encontrado", HttpStatus.NOT_FOUND),
+    MACROPROCESO_DATOS_INVALIDOS("MACROPROCESO", "MP-400", "Datos inválidos para macroproceso", HttpStatus.BAD_REQUEST),
+    MACROPROCESO_ESTADO_INVALIDO("MACROPROCESO", "MP-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    NOTIFICACION_NO_ENCONTRADA("NOTIFICACION", "NOT-404", "notificacion no encontrada", HttpStatus.NOT_FOUND),
+    NOTIFICACION_DATOS_INVALIDOS("NOTIFICACION", "NOT-400", "Datos inválidos para notificacion", HttpStatus.BAD_REQUEST),
+    NOTIFICACION_ESTADO_INVALIDO("NOTIFICACION", "NOT-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    PERSONA_NO_ENCONTRADA("PERSONA", "PER-404", "persona no encontrada", HttpStatus.NOT_FOUND),
+    PERSONA_DATOS_INVALIDOS("PERSONA", "PER-400", "Datos inválidos para persona", HttpStatus.BAD_REQUEST),
+    PERSONA_ESTADO_INVALIDO("PERSONA", "PER-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    PROCESO_ATENCION_NO_ENCONTRADO("PROCESO_ATENCION", "PAT-404", "persona no encontrada", HttpStatus.NOT_FOUND),
+    PROCESO_ATENCION_DATOS_INVALIDOS("PROCESO_ATENCION", "PAT-400", "Datos inválidos para persona", HttpStatus.BAD_REQUEST),
+    PROCESO_ATENCION_ESTADO_INVALIDO("PROCESO_ATENCION", "PAT-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    PROCESO_CONTRATO_NO_ENCONTRADO("PROCESO_CONTRATO", "PCON-404", "proceso de contrato no encontrada", HttpStatus.NOT_FOUND),
+    PROCESO_CONTRATO_DATOS_INVALIDOS("PROCESO_CONTRATO", "PCON-400", "Datos inválidos para proceso de contrato", HttpStatus.BAD_REQUEST),
+    PROCESO_CONTRATO_ESTADO_INVALIDO("PROCESO_CONTRATO", "PCON-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
     ;
 
     private final String entidad;

@@ -1,11 +1,17 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.PersonaDTO;
 import com.turnos.enfermeria.model.entity.Persona;
 import com.turnos.enfermeria.service.PersonaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +30,9 @@ public class PersonaController {
     @Autowired
     private PersonaService personaService;
 
+    @Autowired
+    private HttpServletRequest request;
+
     @PostMapping
     @Operation(
             summary = "Crear una nueva persona",
@@ -31,8 +40,40 @@ public class PersonaController {
             tags={"Usuarios"}
     )
     public ResponseEntity<PersonaDTO> create(@RequestBody PersonaDTO personaDTO){
-        PersonaDTO nuevaPersonaDTO = personaService.create(personaDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaPersonaDTO);
+        try {
+            PersonaDTO nuevaPersonaDTO = personaService.create(personaDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevaPersonaDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.PERSONA_NO_ENCONTRADA,
+                    personaDTO.getIdPersona(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.PERSONA_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.PERSONA_ESTADO_INVALIDO,
+                    "No se pudo crear persona: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear la persona: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -55,7 +96,12 @@ public class PersonaController {
     public ResponseEntity<PersonaDTO> findById(@PathVariable Long idPersona){
         return personaService.findById(idPersona)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PERSONA_NO_ENCONTRADA,
+                        idPersona,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idPersona}")
@@ -67,7 +113,12 @@ public class PersonaController {
     public ResponseEntity<PersonaDTO> update(@RequestBody PersonaDTO personaDTO, @PathVariable Long idPersona){
         return personaService.findById(idPersona)
                 .map(personaExistente -> ResponseEntity.ok(personaService.update(personaDTO, idPersona)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PERSONA_NO_ENCONTRADA,
+                        idPersona,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @DeleteMapping("/{idPersona}")
@@ -82,6 +133,11 @@ public class PersonaController {
                     personaService.delete(idPersona);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PERSONA_NO_ENCONTRADA,
+                        idPersona,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }

@@ -1,10 +1,16 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.NotificacionDTO;
 import com.turnos.enfermeria.service.NotificacionesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,14 +28,49 @@ public class NotificacionesController {
     @Autowired
     private NotificacionesService notificacionesService;
 
+    @Autowired
+    private HttpServletRequest request;
+
     @PostMapping
     @Operation(
             summary = "Crear una nueva notificación",
             description = "Crea una nueva notificación que puede estar asociada a eventos del sistema como cambios de turno o cuadros de turnos."
     )
     public ResponseEntity<NotificacionDTO> create(@RequestBody NotificacionDTO notificacionDTO){
-        NotificacionDTO nuevaNotificacionDTO = notificacionesService.create(notificacionDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaNotificacionDTO);
+        try {
+            NotificacionDTO nuevaNotificacionDTO = notificacionesService.create(notificacionDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevaNotificacionDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.NOTIFICACION_NO_ENCONTRADA,
+                    notificacionDTO.getIdNotificacion(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.NOTIFICACION_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.NOTIFICACION_ESTADO_INVALIDO,
+                    "No se pudo crear turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -50,7 +91,12 @@ public class NotificacionesController {
     public ResponseEntity<NotificacionDTO> findById(@PathVariable("idNotificacion") Long idNotificacion){
         return notificacionesService.findById(idNotificacion)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.NOTIFICACION_NO_ENCONTRADA,
+                        idNotificacion,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idNotificacion}")
@@ -61,7 +107,12 @@ public class NotificacionesController {
     public ResponseEntity<NotificacionDTO> update(@RequestBody NotificacionDTO notificacionDTO, @PathVariable("idNotificacion") Long idNotificacion){
         return notificacionesService.findById(idNotificacion)
                 .map(notificacionExistente -> ResponseEntity.ok(notificacionesService.update(notificacionDTO, idNotificacion)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.NOTIFICACION_NO_ENCONTRADA,
+                        idNotificacion,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @DeleteMapping("/{idNotificacion}")
@@ -75,6 +126,11 @@ public class NotificacionesController {
                     notificacionesService.delete(idNotificacion);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.NOTIFICACION_NO_ENCONTRADA,
+                        idNotificacion,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }

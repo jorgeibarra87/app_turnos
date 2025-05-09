@@ -1,11 +1,17 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.ProcesosAtencionDTO;
 import com.turnos.enfermeria.model.entity.ProcesosAtencion;
 import com.turnos.enfermeria.service.ProcesosAtencionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +30,9 @@ public class ProcesosAtencionController {
     @Autowired
     private ProcesosAtencionService procesosAtencionService;
 
+    @Autowired
+    private HttpServletRequest request;
+
     @PostMapping
     @Operation(
             summary = "Crear un nuevo proceso de atención",
@@ -31,8 +40,40 @@ public class ProcesosAtencionController {
             tags={"Cuadro de Turnos"}
     )
     public ResponseEntity<ProcesosAtencionDTO> create(@RequestBody ProcesosAtencionDTO procesosAtencionDTO){
-        ProcesosAtencionDTO nuevoProcesosAtencionDTO = procesosAtencionService.create(procesosAtencionDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProcesosAtencionDTO);
+        try {
+            ProcesosAtencionDTO nuevoProcesosAtencionDTO = procesosAtencionService.create(procesosAtencionDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProcesosAtencionDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.PROCESO_ATENCION_NO_ENCONTRADO,
+                    procesosAtencionDTO.getIdProcesoAtencion(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.PROCESO_ATENCION_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.PROCESO_ATENCION_ESTADO_INVALIDO,
+                    "No se pudo crear proceso de atención: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el proceso atencion: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -55,7 +96,12 @@ public class ProcesosAtencionController {
     public ResponseEntity<ProcesosAtencionDTO> findById(@PathVariable Long idProcesoAtencion){
         return procesosAtencionService.findById(idProcesoAtencion)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PROCESO_ATENCION_NO_ENCONTRADO,
+                        idProcesoAtencion,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idProcesoAtencion}")
@@ -67,7 +113,12 @@ public class ProcesosAtencionController {
     public ResponseEntity<ProcesosAtencionDTO> update(@RequestBody ProcesosAtencionDTO procesosAtencionDTO, @PathVariable Long idProcesoAtencion){
         return procesosAtencionService.findById(idProcesoAtencion)
                 .map(procesosAtencionExistente -> ResponseEntity.ok(procesosAtencionService.update(procesosAtencionDTO, idProcesoAtencion)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PROCESO_ATENCION_NO_ENCONTRADO,
+                        idProcesoAtencion,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @DeleteMapping("/{idProcesoAtencion}")
@@ -82,6 +133,11 @@ public class ProcesosAtencionController {
                     procesosAtencionService.delete(idProcesoAtencion);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PROCESO_ATENCION_NO_ENCONTRADO,
+                        idProcesoAtencion,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }
