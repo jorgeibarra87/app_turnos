@@ -1,9 +1,15 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.ProcesosContratoDTO;
 import com.turnos.enfermeria.service.ProcesosContratoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +27,9 @@ public class ProcesosContratoController {
     @Autowired
     private ProcesosContratoService procesosContratoService;
 
+    @Autowired
+    private HttpServletRequest request;
+
     @PostMapping
     @Operation(
             summary = "Crear un nuevo proceso de contrato",
@@ -28,8 +37,40 @@ public class ProcesosContratoController {
             tags={"Contratos"}
     )
     public ResponseEntity<ProcesosContratoDTO> create(@RequestBody ProcesosContratoDTO procesosContratoDTO){
-        ProcesosContratoDTO nuevoProcesosContratoDTO = procesosContratoService.create(procesosContratoDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProcesosContratoDTO);
+        try {
+            ProcesosContratoDTO nuevoProcesosContratoDTO = procesosContratoService.create(procesosContratoDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProcesosContratoDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.PROCESO_CONTRATO_NO_ENCONTRADO,
+                    procesosContratoDTO.getIdContrato(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.PROCESO_CONTRATO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.PROCESO_CONTRATO_ESTADO_INVALIDO,
+                    "No se pudo crear proceso de contrato: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el proceso de contrato: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -52,7 +93,12 @@ public class ProcesosContratoController {
     public ResponseEntity<ProcesosContratoDTO> findById(@PathVariable Long idProcesoContrato){
         return procesosContratoService.findById(idProcesoContrato)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PROCESO_CONTRATO_NO_ENCONTRADO,
+                        idProcesoContrato,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idProcesoContrato}")
@@ -64,7 +110,12 @@ public class ProcesosContratoController {
     public ResponseEntity<ProcesosContratoDTO> ***REMOVED***(@RequestBody ProcesosContratoDTO procesosContratoDTO, @PathVariable Long idProcesoContrato){
         return procesosContratoService.findById(idProcesoContrato)
                 .map(procesosContratoExistente -> ResponseEntity.ok(procesosContratoService.***REMOVED***(procesosContratoDTO, idProcesoContrato)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PROCESO_CONTRATO_NO_ENCONTRADO,
+                        idProcesoContrato,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @DeleteMapping("/{idProcesoContrato}")
@@ -79,6 +130,11 @@ public class ProcesosContratoController {
                     procesosContratoService.delete(idProcesoContrato);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.PROCESO_CONTRATO_NO_ENCONTRADO,
+                        idProcesoContrato,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }
