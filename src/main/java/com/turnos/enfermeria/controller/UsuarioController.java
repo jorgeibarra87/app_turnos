@@ -427,14 +427,14 @@ public class UsuarioController {
             return ResponseEntity.ok(equipos);
         }catch (EntityNotFoundException e) {
             throw new GenericNotFoundException(
-                    CodigoError.USUARIO_NO_ENCONTRADO,
+                    CodigoError.TITULO_USUARIO_NO_ENCONTRADO,
                     id,
                     request.getMethod(),
                     request.getRequestURI()
             );
         } catch (IllegalArgumentException e) {
             throw new GenericBadRequestException(
-                    CodigoError.USUARIO_DATOS_INVALIDOS,
+                    CodigoError.TITULO_USUARIO_DATOS_INVALIDOS,
                     e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
@@ -442,8 +442,8 @@ public class UsuarioController {
 
         } catch (IllegalStateException e) {
             throw new GenericConflictException(
-                    CodigoError.USUARIO_ESTADO_INVALIDO,
-                    "No se pudo crear usuario: " + e.getMessage(),
+                    CodigoError.TITULO_USUARIO_ESTADO_INVALIDO,
+                    "No se pudo acceder a titulo: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
@@ -451,7 +451,7 @@ public class UsuarioController {
         } catch (Exception e) {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el usuario: " + e.getMessage(),
+                    "Error en titulo: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
@@ -503,8 +503,40 @@ public class UsuarioController {
     @Operation(summary = "Asignar título a usuario", description = "Asocia un título académico existente a un usuario.",
             tags={"Usuarios"})
     public ResponseEntity<PersonaTituloDTO> agregarTituloAUsuario(@PathVariable Long id, @PathVariable Long idTitulo) {
+        try{
         PersonaTituloDTO usuarioDTO = usuarioService.agregarTituloAUsuario(id, idTitulo);
         return ResponseEntity.ok(usuarioDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.TITULO_USUARIO_NO_ENCONTRADO,
+                    idTitulo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.TITULO_USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.TITULO_USUARIO_ESTADO_INVALIDO,
+                    "No se pudo acceder a titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     // POST: Agregar un usuario a un titulo
@@ -512,8 +544,40 @@ public class UsuarioController {
     @Operation(summary = "Asignar usuario a título", description = "Agrega un usuario a la lista de personas que poseen un título académico.",
             tags={"Usuarios"})
     public ResponseEntity<TitulosFormacionAcademicaDTO> agregarUsuarioATitulo(@PathVariable Long idTitulo, @PathVariable Long idPersona) {
-        TitulosFormacionAcademicaDTO titulosFormacionAcademicaDTO = usuarioService.agregarUsuarioATitulo(idTitulo, idPersona);
-        return ResponseEntity.ok(titulosFormacionAcademicaDTO);
+        try {
+            TitulosFormacionAcademicaDTO titulosFormacionAcademicaDTO = usuarioService.agregarUsuarioATitulo(idTitulo, idPersona);
+            return ResponseEntity.ok(titulosFormacionAcademicaDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.USUARIO_NO_ENCONTRADO,
+                    idTitulo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.USUARIO_ESTADO_INVALIDO,
+                    "No se pudo crear usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @PutMapping("titulo/{idTitulo}")
@@ -522,9 +586,40 @@ public class UsuarioController {
     public ResponseEntity<TitulosFormacionAcademicaDTO> actualizarUsuariosDeTitulo(
             @PathVariable Long idTitulo,
             @RequestBody List<Long> nuevosUsuariosIds) {
+        try {
+            TitulosFormacionAcademicaDTO titulosFormacionAcademicaDTO = usuarioService.actualizarUsuariosDeTitulo(idTitulo, nuevosUsuariosIds);
+            return ResponseEntity.ok(titulosFormacionAcademicaDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.TITULO_USUARIO_NO_ENCONTRADO,
+                    idTitulo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.TITULO_USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
 
-        TitulosFormacionAcademicaDTO titulosFormacionAcademicaDTO = usuarioService.actualizarUsuariosDeTitulo(idTitulo, nuevosUsuariosIds);
-        return ResponseEntity.ok(titulosFormacionAcademicaDTO);
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.TITULO_USUARIO_ESTADO_INVALIDO,
+                    "No se pudo acceder a titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @PutMapping("{idPersona}/titulo")
@@ -533,9 +628,40 @@ public class UsuarioController {
     public ResponseEntity<PersonaTituloDTO> actualizarTitulosDeUsuario(
             @PathVariable Long idPersona,
             @RequestBody List<Long> nuevosTitulosIds) {
+        try {
+            PersonaTituloDTO personaDTO = usuarioService.actualizarTitulosDeUsuario(idPersona, nuevosTitulosIds);
+            return ResponseEntity.ok(personaDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.TITULO_USUARIO_NO_ENCONTRADO,
+                    idPersona,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.TITULO_USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
 
-        PersonaTituloDTO personaDTO = usuarioService.actualizarTitulosDeUsuario(idPersona, nuevosTitulosIds);
-        return ResponseEntity.ok(personaDTO);
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.TITULO_USUARIO_ESTADO_INVALIDO,
+                    "No se pudo acceder a titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     // DELETE: Eliminar un titulo de un usuario
@@ -543,8 +669,40 @@ public class UsuarioController {
     @Operation(summary = "Eliminar título de usuario", description = "Elimina la relación entre un usuario y un título académico.",
             tags={"Usuarios"})
     public ResponseEntity<String> eliminarTituloDeUsuario(@PathVariable Long id, @PathVariable Long idTitulo) {
+        try{
         usuarioService.eliminarTituloDeUsuario(id, idTitulo);
         return ResponseEntity.ok("titulo eliminado del usuario correctamente.");
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.TITULO_USUARIO_NO_ENCONTRADO,
+                    idTitulo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.TITULO_USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.TITULO_USUARIO_ESTADO_INVALIDO,
+                    "No se pudo acceder a titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en titulo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
 
@@ -553,16 +711,80 @@ public class UsuarioController {
     @Operation(summary = "Obtener roles de un usuario", description = "Lista todos los roles asociados a un usuario.",
             tags={"Usuarios"})
     public ResponseEntity<List<RolesDTO>> obtenerRolDeUsuario(@PathVariable Long id) {
-        List<RolesDTO> roles = usuarioService.obtenerRolDeUsuario(id);
-        return ResponseEntity.ok(roles);
+        try {
+            List<RolesDTO> roles = usuarioService.obtenerRolDeUsuario(id);
+            return ResponseEntity.ok(roles);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.ROL_USUARIO_NO_ENCONTRADO,
+                    id,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ROL_USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.ROL_USUARIO_ESTADO_INVALIDO,
+                    "No se pudo acceder a rol: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en rol: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping("/rol/{id}/usuarios")
     @Operation(summary = "Obtener usuarios de un rol", description = "Lista todos los usuarios asociados a un rol.",
             tags={"Usuarios"})
     public ResponseEntity<List<PersonaRolDTO>> obtenerUsuariosPorRol(@PathVariable Long id) {
-        List<PersonaRolDTO> usuarios = usuarioService.obtenerUsuariosPorRol(id);
-        return ResponseEntity.ok(usuarios);
+        try {
+            List<PersonaRolDTO> usuarios = usuarioService.obtenerUsuariosPorRol(id);
+            return ResponseEntity.ok(usuarios);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.ROL_USUARIO_NO_ENCONTRADO,
+                    id,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ROL_USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.ROL_USUARIO_ESTADO_INVALIDO,
+                    "No se pudo acceder a rol: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en rol: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     // POST: Agregar un rol a un usuario
@@ -570,8 +792,40 @@ public class UsuarioController {
     @Operation(summary = "Asignar rol a usuario", description = "Agrega un rol existente a un usuario.",
             tags={"Usuarios"})
     public ResponseEntity<PersonaRolDTO> agregarEquipoARol(@PathVariable Long id, @PathVariable Long idRol) {
-        PersonaRolDTO usuarioDTO = usuarioService.agregarRolAUsuario(id, idRol);
-        return ResponseEntity.ok(usuarioDTO);
+        try {
+            PersonaRolDTO usuarioDTO = usuarioService.agregarRolAUsuario(id, idRol);
+            return ResponseEntity.ok(usuarioDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.ROL_USUARIO_NO_ENCONTRADO,
+                    id,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ROL_USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.ROL_USUARIO_ESTADO_INVALIDO,
+                    "No se pudo acceder a rol: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en rol: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     // POST: Agregar un usuario a un rol
@@ -579,8 +833,40 @@ public class UsuarioController {
     @Operation(summary = "Asignar usuario a rol", description = "Agrega un usuario existente a un rol.",
             tags={"Usuarios"})
     public ResponseEntity<RolesDTO> agregarUsuarioARol(@PathVariable Long idRol, @PathVariable Long idPersona) {
-        RolesDTO rolDTO = usuarioService.agregarUsuarioARol(idRol, idPersona);
-        return ResponseEntity.ok(rolDTO);
+        try {
+            RolesDTO rolDTO = usuarioService.agregarUsuarioARol(idRol, idPersona);
+            return ResponseEntity.ok(rolDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.ROL_USUARIO_NO_ENCONTRADO,
+                    idRol,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ROL_USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.ROL_USUARIO_ESTADO_INVALIDO,
+                    "No se pudo acceder a rol: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en rol: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @PutMapping("rol/{idRol}")
@@ -589,9 +875,40 @@ public class UsuarioController {
     public ResponseEntity<RolesDTO> actualizarUsuariosDeRol(
             @PathVariable Long idRol,
             @RequestBody List<Long> nuevosUsuariosIds) {
-
+    try {
         RolesDTO rolDTO = usuarioService.actualizarUsuariosDeRol(idRol, nuevosUsuariosIds);
         return ResponseEntity.ok(rolDTO);
+    }catch (EntityNotFoundException e) {
+        throw new GenericNotFoundException(
+                CodigoError.ROL_USUARIO_NO_ENCONTRADO,
+                idRol,
+                request.getMethod(),
+                request.getRequestURI()
+        );
+    } catch (IllegalArgumentException e) {
+        throw new GenericBadRequestException(
+                CodigoError.ROL_USUARIO_DATOS_INVALIDOS,
+                e.getMessage(),
+                request.getMethod(),
+                request.getRequestURI()
+        );
+
+    } catch (IllegalStateException e) {
+        throw new GenericConflictException(
+                CodigoError.ROL_USUARIO_ESTADO_INVALIDO,
+                "No se pudo acceder a rol: " + e.getMessage(),
+                request.getMethod(),
+                request.getRequestURI()
+        );
+
+    } catch (Exception e) {
+        throw new GenericBadRequestException(
+                CodigoError.ERROR_PROCESAMIENTO,
+                "Error en rol: " + e.getMessage(),
+                request.getMethod(),
+                request.getRequestURI()
+        );
+    }
     }
 
     // DELETE: Eliminar un rol de un usuario
@@ -599,8 +916,40 @@ public class UsuarioController {
     @Operation(summary = "Eliminar rol de usuario", description = "Elimina la relación entre un usuario y un rol.",
             tags={"Usuarios"})
     public ResponseEntity<String> eliminarRolDeUsuario(@PathVariable Long id, @PathVariable Long idRol) {
-        usuarioService.eliminarRolDeUsuario(id, idRol);
-        return ResponseEntity.ok("Rol eliminado del usuario correctamente.");
+        try {
+            usuarioService.eliminarRolDeUsuario(id, idRol);
+            return ResponseEntity.ok("Rol eliminado del usuario correctamente.");
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.ROL_USUARIO_NO_ENCONTRADO,
+                    idRol,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ROL_USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.ROL_USUARIO_ESTADO_INVALIDO,
+                    "No se pudo acceder a rol: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en rol: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
 }

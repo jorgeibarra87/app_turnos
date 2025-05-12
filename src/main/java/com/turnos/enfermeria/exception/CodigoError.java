@@ -88,6 +88,12 @@ public enum CodigoError {
     USUARIO_NO_ENCONTRADO("TITULOS_FORMACION", "TITF-404", "titulo de formación no encontrado", HttpStatus.NOT_FOUND),
     USUARIO_DATOS_INVALIDOS("TITULOS_FORMACION", "TITF-400", "Datos inválidos para titulo de formación", HttpStatus.BAD_REQUEST),
     USUARIO_ESTADO_INVALIDO("TITULOS_FORMACION", "TITF-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    TITULO_USUARIO_NO_ENCONTRADO("TITULOS_USUARIO", "TUSU-404", "titulo de contrato no encontrado", HttpStatus.NOT_FOUND),
+    TITULO_USUARIO_DATOS_INVALIDOS("TITULOS_USUARIO", "TUSU-400", "Datos inválidos para titulo de contrato", HttpStatus.BAD_REQUEST),
+    TITULO_USUARIO_ESTADO_INVALIDO("TITULOS_USUARIO", "TUSU-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    ROL_USUARIO_NO_ENCONTRADO("TITULOS_USUARIO", "TUSU-404", "titulo de contrato no encontrado", HttpStatus.NOT_FOUND),
+    ROL_USUARIO_DATOS_INVALIDOS("TITULOS_USUARIO", "TUSU-400", "Datos inválidos para titulo de contrato", HttpStatus.BAD_REQUEST),
+    ROL_USUARIO_ESTADO_INVALIDO("TITULOS_USUARIO", "TUSU-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
     ;
 
     private final String entidad;
