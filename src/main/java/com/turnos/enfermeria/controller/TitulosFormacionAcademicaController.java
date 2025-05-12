@@ -1,5 +1,9 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.TitulosFormacionAcademicaDTO;
 import com.turnos.enfermeria.model.entity.TitulosFormacionAcademica;
@@ -7,6 +11,8 @@ import com.turnos.enfermeria.service.TitulosFormacionAcademicaService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +30,8 @@ public class TitulosFormacionAcademicaController {
 
     @Autowired
     private TitulosFormacionAcademicaService titulosFormacionAcademicaService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(
@@ -32,8 +40,40 @@ public class TitulosFormacionAcademicaController {
             tags={"Títulos de Formación Académica"}
     )
     public ResponseEntity<TitulosFormacionAcademicaDTO> create(@RequestBody TitulosFormacionAcademicaDTO titulosFormacionAcademicaDTO){
-        TitulosFormacionAcademicaDTO nuevoTitulosFormacionAcademicaDTO = titulosFormacionAcademicaService.create(titulosFormacionAcademicaDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTitulosFormacionAcademicaDTO);
+        try {
+            TitulosFormacionAcademicaDTO nuevoTitulosFormacionAcademicaDTO = titulosFormacionAcademicaService.create(titulosFormacionAcademicaDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTitulosFormacionAcademicaDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.TITULOS_FORMACION_NO_ENCONTRADO,
+                    titulosFormacionAcademicaDTO.getIdTitulo(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.TITULOS_FORMACION_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.TITULOS_FORMACION_ESTADO_INVALIDO,
+                    "No se pudo crear turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -56,7 +96,12 @@ public class TitulosFormacionAcademicaController {
     public ResponseEntity<TitulosFormacionAcademicaDTO> findById(@PathVariable Long idTitulo){
         return titulosFormacionAcademicaService.findById(idTitulo)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TITULOS_FORMACION_NO_ENCONTRADO,
+                        idTitulo,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idTitulo}")
@@ -65,7 +110,12 @@ public class TitulosFormacionAcademicaController {
     public ResponseEntity<TitulosFormacionAcademicaDTO> ***REMOVED***(@RequestBody TitulosFormacionAcademicaDTO titulosFormacionAcademicaDTO, @PathVariable Long idTitulo){
         return titulosFormacionAcademicaService.findById(idTitulo)
                 .map(TitulosFormacionAcademicaExistente -> ResponseEntity.ok(titulosFormacionAcademicaService.***REMOVED***(titulosFormacionAcademicaDTO, idTitulo)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TITULOS_FORMACION_NO_ENCONTRADO,
+                        idTitulo,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
 
@@ -82,6 +132,11 @@ public class TitulosFormacionAcademicaController {
                     titulosFormacionAcademicaService.delete(idTitulo);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TITULOS_FORMACION_NO_ENCONTRADO,
+                        idTitulo,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }

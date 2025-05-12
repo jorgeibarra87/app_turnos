@@ -1,10 +1,16 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.TipoTurnoDTO;
 import com.turnos.enfermeria.service.TipoTurnoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,13 +27,47 @@ public class TipoTurnoController {
 
     @Autowired
     private TipoTurnoService tipoTurnoService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(summary = "Crear tipo de turno", description = "Crea un nuevo tipo de turno con los datos proporcionados",
             tags={"Contratos"})
     public ResponseEntity<TipoTurnoDTO> create(@RequestBody TipoTurnoDTO tipoTurnoDTO){
-        TipoTurnoDTO nuevoTipoTurnoDTO = tipoTurnoService.create(tipoTurnoDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTipoTurnoDTO);
+        try {
+            TipoTurnoDTO nuevoTipoTurnoDTO = tipoTurnoService.create(tipoTurnoDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTipoTurnoDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.TIPO_TURNO_NO_ENCONTRADO,
+                    tipoTurnoDTO.getIdTipoTurno(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.TIPO_TURNO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.TIPO_TURNO_ESTADO_INVALIDO,
+                    "No se pudo crear turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -44,7 +84,12 @@ public class TipoTurnoController {
     public ResponseEntity<TipoTurnoDTO> findById(@PathVariable Long idTipoTurno){
         return tipoTurnoService.findById(idTipoTurno)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TIPO_TURNO_NO_ENCONTRADO,
+                        idTipoTurno,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idTipoTurno}")
@@ -65,6 +110,11 @@ public class TipoTurnoController {
                     tipoTurnoService.delete(idTipoTurno);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TIPO_TURNO_NO_ENCONTRADO,
+                        idTipoTurno,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }
