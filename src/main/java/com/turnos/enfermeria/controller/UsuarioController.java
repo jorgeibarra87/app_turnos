@@ -1,11 +1,17 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.*;
 import com.turnos.enfermeria.model.entity.Equipo;
 import com.turnos.enfermeria.model.entity.Usuario;
 import com.turnos.enfermeria.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +29,47 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(summary = "Crear un nuevo usuario", description = "Crea un nuevo usuario y lo guarda en la base de datos.",
             tags={"Usuarios"})
     public ResponseEntity<UsuarioDTO> create(@RequestBody UsuarioDTO usuarioDTO){
-        UsuarioDTO nuevoUsuarioDTO = usuarioService.create(usuarioDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuarioDTO);
+        try {
+            UsuarioDTO nuevoUsuarioDTO = usuarioService.create(usuarioDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuarioDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.USUARIO_NO_ENCONTRADO,
+                    usuarioDTO.getIdPersona(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.USUARIO_ESTADO_INVALIDO,
+                    "No se pudo crear usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -46,7 +86,12 @@ public class UsuarioController {
     public ResponseEntity<UsuarioDTO> findById(@PathVariable Long idPersona){
         return usuarioService.findById(idPersona)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.USUARIO_NO_ENCONTRADO,
+                        idPersona,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idPersona}")
@@ -55,7 +100,12 @@ public class UsuarioController {
     public ResponseEntity<UsuarioDTO> update(@RequestBody UsuarioDTO usuarioDTO, @PathVariable Long idPersona){
         return usuarioService.findById(idPersona)
                 .map(usuarioExistente -> ResponseEntity.ok(usuarioService.update(usuarioDTO, idPersona)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.USUARIO_NO_ENCONTRADO,
+                        idPersona,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
 
@@ -69,7 +119,12 @@ public class UsuarioController {
                     usuarioService.delete(idPersona);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.USUARIO_NO_ENCONTRADO,
+                        idPersona,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     // GET: Obtener equipos de un usuario
@@ -77,16 +132,80 @@ public class UsuarioController {
     @Operation(summary = "Obtener equipos de un usuario", description = "Lista todos los equipos asociados a un usuario.",
             tags={"Usuarios"})
     public ResponseEntity<List<EquipoDTO>> obtenerEquiposDeUsuario(@PathVariable Long id) {
-        List<EquipoDTO> equipos = usuarioService.obtenerEquiposDeUsuario(id);
-        return ResponseEntity.ok(equipos);
+        try {
+            List<EquipoDTO> equipos = usuarioService.obtenerEquiposDeUsuario(id);
+            return ResponseEntity.ok(equipos);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.EQUIPO_NO_ENCONTRADO,
+                    id,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.EQUIPO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.EQUIPO_ESTADO_INVALIDO,
+                    "No se pudo acceder equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping("/equipo/{idEquipo}/usuarios")
     @Operation(summary = "Obtener usuarios de un equipo", description = "Lista todos los usuarios asociados a un equipo.",
             tags={"Usuarios"})
     public ResponseEntity<List<PersonaEquipoDTO>> obtenerUsuariosPorEquipo(@PathVariable Long idEquipo) {
-        List<PersonaEquipoDTO> usuarios = usuarioService.obtenerUsuariosPorEquipo(idEquipo);
-        return ResponseEntity.ok(usuarios);
+        try {
+            List<PersonaEquipoDTO> usuarios = usuarioService.obtenerUsuariosPorEquipo(idEquipo);
+            return ResponseEntity.ok(usuarios);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.USUARIO_NO_ENCONTRADO,
+                    idEquipo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.USUARIO_ESTADO_INVALIDO,
+                    "No se pudo crear usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     // POST: Agregar un equipo a un usuario
@@ -94,8 +213,40 @@ public class UsuarioController {
     @Operation(summary = "Asignar equipo a usuario", description = "Agrega un equipo existente a un usuario.",
             tags={"Usuarios"})
     public ResponseEntity<PersonaEquipoDTO> agregarEquipoAUsuario(@PathVariable Long id, @PathVariable Long idEquipo) {
-        PersonaEquipoDTO usuarioDTO = usuarioService.agregarEquipoAUsuario(id, idEquipo);
-        return ResponseEntity.ok(usuarioDTO);
+        try {
+            PersonaEquipoDTO usuarioDTO = usuarioService.agregarEquipoAUsuario(id, idEquipo);
+            return ResponseEntity.ok(usuarioDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.EQUIPO_NO_ENCONTRADO,
+                    id,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.EQUIPO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.EQUIPO_ESTADO_INVALIDO,
+                    "No se pudo acceder equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     // POST: Agregar un usuario a un equipo
@@ -103,8 +254,40 @@ public class UsuarioController {
     @Operation(summary = "Asignar usuario a equipo", description = "Agrega un usuario existente a un equipo.",
             tags={"Usuarios"})
     public ResponseEntity<EquipoDTO> agregarUsuarioAEquipo(@PathVariable Long idEquipo, @PathVariable Long idPersona) {
-        EquipoDTO equipoDTO = usuarioService.agregarUsuarioAEquipo(idEquipo, idPersona);
-        return ResponseEntity.ok(equipoDTO);
+        try {
+            EquipoDTO equipoDTO = usuarioService.agregarUsuarioAEquipo(idEquipo, idPersona);
+            return ResponseEntity.ok(equipoDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.USUARIO_NO_ENCONTRADO,
+                    idEquipo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.USUARIO_ESTADO_INVALIDO,
+                    "No se pudo crear usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @PutMapping("equipo/{idEquipo}")
@@ -113,9 +296,40 @@ public class UsuarioController {
     public ResponseEntity<EquipoDTO> actualizarUsuariosDeEquipo(
             @PathVariable Long idEquipo,
             @RequestBody List<Long> nuevosUsuariosIds) {
+        try {
+            EquipoDTO equipoDTO = usuarioService.actualizarUsuariosDeEquipo(idEquipo, nuevosUsuariosIds);
+            return ResponseEntity.ok(equipoDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.USUARIO_NO_ENCONTRADO,
+                    idEquipo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
 
-        EquipoDTO equipoDTO = usuarioService.actualizarUsuariosDeEquipo(idEquipo, nuevosUsuariosIds);
-        return ResponseEntity.ok(equipoDTO);
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.USUARIO_ESTADO_INVALIDO,
+                    "No se pudo crear usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @PutMapping("{idPersona}/equipo")
@@ -124,9 +338,40 @@ public class UsuarioController {
     public ResponseEntity<PersonaEquipoDTO> actualizarEquiposDeUsuario(
             @PathVariable Long idPersona,
             @RequestBody List<Long> nuevosEquiposIds) {
+        try {
+            PersonaEquipoDTO personaDTO = usuarioService.actualizarEquiposDeUsuario(idPersona, nuevosEquiposIds);
+            return ResponseEntity.ok(personaDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.EQUIPO_NO_ENCONTRADO,
+                    idPersona,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.EQUIPO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
 
-        PersonaEquipoDTO personaDTO = usuarioService.actualizarEquiposDeUsuario(idPersona, nuevosEquiposIds);
-        return ResponseEntity.ok(personaDTO);
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.EQUIPO_ESTADO_INVALIDO,
+                    "No se pudo acceder equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     // DELETE: Eliminar un equipo de un usuario
@@ -134,8 +379,40 @@ public class UsuarioController {
     @Operation(summary = "Eliminar equipo de usuario", description = "Elimina la relación entre un usuario y un equipo.",
             tags={"Usuarios"})
     public ResponseEntity<String> eliminarEquipoDeUsuario(@PathVariable Long id, @PathVariable Long idEquipo) {
-        usuarioService.eliminarEquipoDeUsuario(id, idEquipo);
-        return ResponseEntity.ok("Equipo eliminado del usuario correctamente.");
+        try {
+            usuarioService.eliminarEquipoDeUsuario(id, idEquipo);
+            return ResponseEntity.ok("Equipo eliminado del usuario correctamente.");
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.EQUIPO_NO_ENCONTRADO,
+                    idEquipo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.EQUIPO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.EQUIPO_ESTADO_INVALIDO,
+                    "No se pudo acceder equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error en equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
 
@@ -145,16 +422,80 @@ public class UsuarioController {
     @Operation(summary = "Obtener títulos de un usuario", description = "Lista todos los títulos académicos asociados a un usuario.",
             tags={"Usuarios"})
     public ResponseEntity<List<TitulosFormacionAcademicaDTO>> obtenerTituloDeUsuario(@PathVariable Long id) {
-        List<TitulosFormacionAcademicaDTO> equipos = usuarioService.obtenerTituloDeUsuario(id);
-        return ResponseEntity.ok(equipos);
+        try {
+            List<TitulosFormacionAcademicaDTO> equipos = usuarioService.obtenerTituloDeUsuario(id);
+            return ResponseEntity.ok(equipos);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.USUARIO_NO_ENCONTRADO,
+                    id,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.USUARIO_ESTADO_INVALIDO,
+                    "No se pudo crear usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping("/titulo/{idTitulo}/usuarios")
     @Operation(summary = "Obtener usuarios por título", description = "Devuelve los usuarios que tienen un título académico específico.",
             tags={"Usuarios"})
     public ResponseEntity<List<PersonaTituloDTO>> obtenerUsuariosPorTitulo(@PathVariable Long idTitulo) {
-        List<PersonaTituloDTO> usuarios = usuarioService.obtenerUsuariosPorTitulo(idTitulo);
-        return ResponseEntity.ok(usuarios);
+        try {
+            List<PersonaTituloDTO> usuarios = usuarioService.obtenerUsuariosPorTitulo(idTitulo);
+            return ResponseEntity.ok(usuarios);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.USUARIO_NO_ENCONTRADO,
+                    idTitulo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.USUARIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.USUARIO_ESTADO_INVALIDO,
+                    "No se pudo crear usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el usuario: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     // POST: Agregar un titulo a un usuario

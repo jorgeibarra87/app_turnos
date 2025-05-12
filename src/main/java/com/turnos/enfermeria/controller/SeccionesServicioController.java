@@ -1,11 +1,17 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.SeccionesServicioDTO;
 import com.turnos.enfermeria.model.entity.SeccionesServicio;
 import com.turnos.enfermeria.service.SeccionesServicioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +29,47 @@ public class SeccionesServicioController {
 
     @Autowired
     private SeccionesServicioService seccionesServicioService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(summary = "Crear sección de servicio", description = "Registra una nueva sección dentro de un servicio",
             tags={"Servicios"})
     public ResponseEntity<SeccionesServicioDTO> create(@RequestBody SeccionesServicioDTO seccionesServicioDTO){
-        SeccionesServicioDTO nuevoSeccionesServicioDTO = seccionesServicioService.create(seccionesServicioDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoSeccionesServicioDTO);
+        try {
+            SeccionesServicioDTO nuevoSeccionesServicioDTO = seccionesServicioService.create(seccionesServicioDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoSeccionesServicioDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.SECCION_SERVICIO_NO_ENCONTRADA,
+                    seccionesServicioDTO.getIdSeccionServicio(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.SECCION_SERVICIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.SECCION_SERVICIO_ESTADO_INVALIDO,
+                    "No se pudo crear la seccion: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear la seccion: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -46,7 +86,12 @@ public class SeccionesServicioController {
     public ResponseEntity<SeccionesServicioDTO> findById(@PathVariable Long idSeccionServicio){
         return seccionesServicioService.findById(idSeccionServicio)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.SECCION_SERVICIO_NO_ENCONTRADA,
+                        idSeccionServicio,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idSeccionServicio}")
@@ -55,7 +100,12 @@ public class SeccionesServicioController {
     public ResponseEntity<SeccionesServicioDTO> update(@RequestBody SeccionesServicioDTO seccionesServicioDTO, @PathVariable Long idSeccionServicio){
         return seccionesServicioService.findById(idSeccionServicio)
                 .map(seccionesServicioExistente -> ResponseEntity.ok(seccionesServicioService.update(seccionesServicioDTO, idSeccionServicio)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.SECCION_SERVICIO_NO_ENCONTRADA,
+                        idSeccionServicio,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
 
@@ -69,6 +119,11 @@ public class SeccionesServicioController {
                     seccionesServicioService.delete(idSeccionServicio);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.SECCION_SERVICIO_NO_ENCONTRADA,
+                        idSeccionServicio,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }

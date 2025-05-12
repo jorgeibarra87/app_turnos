@@ -1,11 +1,17 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.SubseccionesServicioDTO;
 import com.turnos.enfermeria.model.entity.SubseccionesServicio;
 import com.turnos.enfermeria.service.SubseccionesServicioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +29,47 @@ public class SubseccionesServicioController {
 
     @Autowired
     private SubseccionesServicioService subseccionesServicioService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(summary = "Crear subsección de servicio", description = "Crea una nueva subsección asociada a un servicio",
             tags={"Servicios"})
     public ResponseEntity<SubseccionesServicioDTO> create(@RequestBody SubseccionesServicioDTO subseccionesServicioDTO){
-        SubseccionesServicioDTO nuevoSubseccionesServicioDTO = subseccionesServicioService.create(subseccionesServicioDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoSubseccionesServicioDTO);
+        try {
+            SubseccionesServicioDTO nuevoSubseccionesServicioDTO = subseccionesServicioService.create(subseccionesServicioDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoSubseccionesServicioDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.SUBSECCION_SERVICIO_NO_ENCONTRADO,
+                    subseccionesServicioDTO.getIdSubseccionServicio(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.SUBSECCION_SERVICIO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.SUBSECCION_SERVICIO_ESTADO_INVALIDO,
+                    "No se pudo crear subseccion: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear la subseccion: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -46,7 +86,12 @@ public class SubseccionesServicioController {
     public ResponseEntity<SubseccionesServicioDTO> findById(@PathVariable Long idSubseccionServicio){
         return subseccionesServicioService.findById(idSubseccionServicio)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.SUBSECCION_SERVICIO_NO_ENCONTRADO,
+                        idSubseccionServicio,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idSubseccionServicio}")
@@ -55,7 +100,12 @@ public class SubseccionesServicioController {
     public ResponseEntity<SubseccionesServicioDTO> update(@RequestBody SubseccionesServicioDTO subseccionesServicioDTO, @PathVariable("idSubseccionServicio") Long idSubseccionServicio){
         return subseccionesServicioService.findById(idSubseccionServicio)
                 .map(subseccionesServicioExistente -> ResponseEntity.ok(subseccionesServicioService.update(subseccionesServicioDTO, idSubseccionServicio)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.SUBSECCION_SERVICIO_NO_ENCONTRADO,
+                        idSubseccionServicio,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
 
@@ -69,6 +119,11 @@ public class SubseccionesServicioController {
                     subseccionesServicioService.delete(idSubseccionServicio);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.SUBSECCION_SERVICIO_NO_ENCONTRADO,
+                        idSubseccionServicio,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }

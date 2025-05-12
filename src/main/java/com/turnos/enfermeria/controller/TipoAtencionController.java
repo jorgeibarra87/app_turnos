@@ -1,9 +1,15 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
+import com.turnos.enfermeria.exception.custom.GenericConflictException;
+import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.TipoAtencionDTO;
 import com.turnos.enfermeria.service.TipoAtencionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +26,47 @@ public class TipoAtencionController {
 
     @Autowired
     private TipoAtencionService tipoAtencionService;
+    @Autowired
+    private HttpServletRequest request;
 
     @PostMapping
     @Operation(summary = "Crear tipo de atención", description = "Crea un nuevo tipo de atención médica",
             tags={"Contratos"})
     public ResponseEntity<TipoAtencionDTO> create(@RequestBody TipoAtencionDTO tipoAtencionDTO){
-        TipoAtencionDTO nuevoTipoAtencionDTO = tipoAtencionService.create(tipoAtencionDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTipoAtencionDTO);
+        try {
+            TipoAtencionDTO nuevoTipoAtencionDTO = tipoAtencionService.create(tipoAtencionDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTipoAtencionDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.TIPO_ATENCION_NO_ENCONTRADA,
+                    tipoAtencionDTO.getIdTipoAtencion(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.TIPO_ATENCION_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.TIPO_ATENCION_ESTADO_INVALIDO,
+                    "No se pudo crear turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el turno: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     @GetMapping
@@ -43,7 +83,12 @@ public class TipoAtencionController {
     public ResponseEntity<TipoAtencionDTO> findById(@PathVariable Long idTipoAtencion){
         return tipoAtencionService.findById(idTipoAtencion)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TIPO_ATENCION_NO_ENCONTRADA,
+                        idTipoAtencion,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @PutMapping("/{idTipoAtencion}")
@@ -52,7 +97,12 @@ public class TipoAtencionController {
     public ResponseEntity<TipoAtencionDTO> update(@RequestBody TipoAtencionDTO tipoAtencionDTO, @PathVariable("idTipoAtencion") Long idTipoAtencion){
         return tipoAtencionService.findById(idTipoAtencion)
                 .map(tipoAtencionoExistente -> ResponseEntity.ok(tipoAtencionService.update(tipoAtencionDTO, idTipoAtencion)))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TIPO_ATENCION_NO_ENCONTRADA,
+                        idTipoAtencion,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 
     @DeleteMapping("/{idTipoAtencion}")
@@ -64,6 +114,11 @@ public class TipoAtencionController {
                     tipoAtencionService.delete(idTipoAtencion);
                     return ResponseEntity.noContent().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TIPO_ATENCION_NO_ENCONTRADA,
+                        idTipoAtencion,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
     }
 }
