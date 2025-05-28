@@ -1,6 +1,5 @@
 package com.turnos.enfermeria.service;
 
-import com.turnos.enfermeria.model.dto.LoginDTO;
 import com.turnos.enfermeria.model.dto.RegistroDTO;
 import com.turnos.enfermeria.model.entity.Persona;
 import com.turnos.enfermeria.model.entity.Usuario;
@@ -9,9 +8,6 @@ import com.turnos.enfermeria.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

@@ -139,4 +139,62 @@ public class EquipoController {
                         request.getRequestURI()
                 ));
     }
+
+
+
+    /**
+     * Crea un equipo basado en un perfil específico
+     */
+    @PostMapping("/crear-por-perfil")
+    @Operation(
+            summary = "crear por perfil",
+            description = "Crea un equipo basado en un perfil específico.",
+            tags={"Cuadro de Turnos"}
+    )
+    public ResponseEntity<EquipoDTO> crearEquipoPorPerfil(
+            @RequestParam Long idTitulo,
+            @RequestParam Long idCuadroTurno) {
+        try {
+            EquipoDTO equipoCreado = equipoService.createEquipoByPerfil(idTitulo, idCuadroTurno);
+            return ResponseEntity.ok(equipoCreado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Obtiene todos los equipos de un perfil específico
+     */
+    @GetMapping("/por-perfil/{idTitulo}")
+    @Operation(
+            summary = "equipos por perfil",
+            description = "Obtiene todos los equipos de un perfil específico.",
+            tags={"Cuadro de Turnos"}
+    )
+    public ResponseEntity<List<EquipoDTO>> obtenerEquiposPorPerfil(@PathVariable Long idTitulo) {
+        try {
+            List<EquipoDTO> equipos = equipoService.findEquiposByPerfil(idTitulo);
+            return ResponseEntity.ok(equipos);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Cuenta los equipos de un perfil específico
+     */
+    @GetMapping("/contar-por-perfil/{idTitulo}")
+    @Operation(
+            summary = "cuenta equipos por perfil",
+            description = "Cuenta los equipos de un perfil específico.",
+            tags={"Cuadro de Turnos"}
+    )
+    public ResponseEntity<Long> contarEquiposPorPerfil(@PathVariable Long idTitulo) {
+        try {
+            long cantidad = equipoService.contarEquiposByPerfil(idTitulo);
+            return ResponseEntity.ok(cantidad);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }
