@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.controller;
 
+import com.turnos.enfermeria.exception.ApiException;
 import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;

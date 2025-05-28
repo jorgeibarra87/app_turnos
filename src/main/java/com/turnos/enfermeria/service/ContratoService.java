@@ -5,13 +5,13 @@ import com.turnos.enfermeria.model.dto.*;
 import com.turnos.enfermeria.model.entity.*;
 import com.turnos.enfermeria.repository.ContratoRepository;
 import com.turnos.enfermeria.repository.TitulosFormacionAcademicaRepository;
-import com.turnos.enfermeria.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class ContratoService {
 
     private final ContratoRepository contratoRepository;
-    private final UsuarioRepository usuarioRepository;
     private final ModelMapper modelMapper;
     private final TitulosFormacionAcademicaRepository titulosFormacionAcademicaRepository;
     private final TitulosContratoMapper titulosContratoMapper;
@@ -54,6 +53,16 @@ public class ContratoService {
         ContratoDTO contratoDTO = modelMapper.map(contratoExistente, ContratoDTO.class);
 
         // Actualizar los campos si no son nulos
+        validarNulos(detalleContratoDTO, contratoExistente);
+
+        // Guardar en la base de datos
+        Contrato contratoActualizado = contratoRepository.save(contratoExistente);
+
+        // Convertir a DTO antes de retornar
+        return modelMapper.map(contratoActualizado, ContratoDTO.class);
+    }
+
+    private static void validarNulos(ContratoDTO detalleContratoDTO, Contrato contratoExistente) {
         if (detalleContratoDTO.getIdContrato()!= null) {
             contratoExistente.setIdContrato(detalleContratoDTO.getIdContrato());
         }
@@ -84,12 +93,6 @@ public class ContratoService {
         if (detalleContratoDTO.getObservaciones()!= null) {
             contratoExistente.setObservaciones(detalleContratoDTO.getObservaciones());
         }
-
-        // Guardar en la base de datos
-        Contrato contratoActualizado = contratoRepository.save(contratoExistente);
-
-        // Convertir a DTO antes de retornar
-        return modelMapper.map(contratoActualizado, ContratoDTO.class);
     }
 
     public Optional<ContratoDTO> findById(Long idContrato) {
@@ -129,7 +132,7 @@ public class ContratoService {
     }
 
     public List<TitulosFormacionAcademicaDTO> obtenerTitulosPorContrato(Long idContrato) {
-        List<TitulosFormacionAcademica> titulosFormacionAcademica = contratoRepository.findTitulosByIdContrato(idContrato);
+        List<TitulosFormacionAcademica> titulosFormacionAcademica = contratoRepository.findTitulosByIdContrato(idContrato).orElse(new ArrayList<>());
         return titulosFormacionAcademica.stream()
                 .map(titulosContratoMapper::toDTO)
                 .collect(Collectors.toList());
