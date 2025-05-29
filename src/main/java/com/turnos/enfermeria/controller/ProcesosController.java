@@ -119,23 +119,23 @@ public class ProcesosController {
                 ));
     }
 
-    @DeleteMapping("/{idProceso}")
-    @Operation(
-            summary = "Eliminar proceso",
-            description = "Elimina un proceso del sistema utilizando su ID.",
-            tags={"Cuadro de Turnos"}
-    )
-    public ResponseEntity<Object> delete(@PathVariable Long idProceso){
-        return procesosService.findById(idProceso)
-                .map(bloqueServicioDTO-> {
-                    procesosService.delete(idProceso);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.PROCESO_NO_ENCONTRADO,
-                        idProceso,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idProceso}")
+//    @Operation(
+//            summary = "Eliminar proceso",
+//            description = "Elimina un proceso del sistema utilizando su ID.",
+//            tags={"Cuadro de Turnos"}
+//    )
+//    public ResponseEntity<Object> delete(@PathVariable Long idProceso){
+//        return procesosService.findById(idProceso)
+//                .map(bloqueServicioDTO-> {
+//                    procesosService.delete(idProceso);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.PROCESO_NO_ENCONTRADO,
+//                        idProceso,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }

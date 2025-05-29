@@ -110,20 +110,20 @@ public class SubseccionesServicioController {
 
 
 
-    @DeleteMapping("/{idSubseccionServicio}")
-    @Operation(summary = "Eliminar subsección", description = "Elimina una subsección existente por su ID",
-            tags={"Servicios"})
-    public ResponseEntity<Object> delete(@PathVariable Long idSubseccionServicio){
-        return subseccionesServicioService.findById(idSubseccionServicio)
-                .map(subseccionesServicioDTO-> {
-                    subseccionesServicioService.delete(idSubseccionServicio);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.SUBSECCION_SERVICIO_NO_ENCONTRADO,
-                        idSubseccionServicio,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idSubseccionServicio}")
+//    @Operation(summary = "Eliminar subsección", description = "Elimina una subsección existente por su ID",
+//            tags={"Servicios"})
+//    public ResponseEntity<Object> delete(@PathVariable Long idSubseccionServicio){
+//        return subseccionesServicioService.findById(idSubseccionServicio)
+//                .map(subseccionesServicioDTO-> {
+//                    subseccionesServicioService.delete(idSubseccionServicio);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.SUBSECCION_SERVICIO_NO_ENCONTRADO,
+//                        idSubseccionServicio,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }

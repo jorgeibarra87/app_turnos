@@ -118,23 +118,23 @@ public class ProcesosContratoController {
                 ));
     }
 
-    @DeleteMapping("/{idProcesoContrato}")
-    @Operation(
-            summary = "Eliminar un proceso de contrato",
-            description = "Elimina del sistema un proceso de contrato específico utilizando su ID.",
-            tags={"Contratos"}
-    )
-    public ResponseEntity<Object> delete(@PathVariable Long idProcesoContrato){
-        return procesosContratoService.findById(idProcesoContrato)
-                .map(procesosContratoDTO-> {
-                    procesosContratoService.delete(idProcesoContrato);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.PROCESO_CONTRATO_NO_ENCONTRADO,
-                        idProcesoContrato,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idProcesoContrato}")
+//    @Operation(
+//            summary = "Eliminar un proceso de contrato",
+//            description = "Elimina del sistema un proceso de contrato específico utilizando su ID.",
+//            tags={"Contratos"}
+//    )
+//    public ResponseEntity<Object> delete(@PathVariable Long idProcesoContrato){
+//        return procesosContratoService.findById(idProcesoContrato)
+//                .map(procesosContratoDTO-> {
+//                    procesosContratoService.delete(idProcesoContrato);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.PROCESO_CONTRATO_NO_ENCONTRADO,
+//                        idProcesoContrato,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }

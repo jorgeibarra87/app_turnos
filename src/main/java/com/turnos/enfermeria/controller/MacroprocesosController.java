@@ -126,23 +126,23 @@ public class MacroprocesosController {
 
 
 
-    @DeleteMapping("/{idMacroproceso}")
-    @Operation(
-            summary = "Eliminar macroproceso",
-            description = "Elimina de forma lógica o definitiva un macroproceso del sistema.",
-            tags={"Cuadro de Turnos"}
-    )
-    public ResponseEntity<Object> delete(@PathVariable Long idMacroproceso){
-        return macroprocesosService.findById(idMacroproceso)
-                .map(macroprocesosDTO-> {
-                    macroprocesosService.delete(idMacroproceso);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.MACROPROCESO_NO_ENCONTRADO,
-                        idMacroproceso,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idMacroproceso}")
+//    @Operation(
+//            summary = "Eliminar macroproceso",
+//            description = "Elimina de forma lógica o definitiva un macroproceso del sistema.",
+//            tags={"Cuadro de Turnos"}
+//    )
+//    public ResponseEntity<Object> delete(@PathVariable Long idMacroproceso){
+//        return macroprocesosService.findById(idMacroproceso)
+//                .map(macroprocesosDTO-> {
+//                    macroprocesosService.delete(idMacroproceso);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.MACROPROCESO_NO_ENCONTRADO,
+//                        idMacroproceso,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }

@@ -109,20 +109,20 @@ public class RolesController {
                 ));
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar rol", description = "Elimina un rol por su ID",
-            tags={"Usuarios"})
-    public ResponseEntity<Object> delete(@PathVariable Long id){
-        return rolesService.findById(id)
-                .map(rolesDTO-> {
-                    rolesService.delete(id);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.ROL_NO_ENCONTRADO,
-                        id,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{id}")
+//    @Operation(summary = "Eliminar rol", description = "Elimina un rol por su ID",
+//            tags={"Usuarios"})
+//    public ResponseEntity<Object> delete(@PathVariable Long id){
+//        return rolesService.findById(id)
+//                .map(rolesDTO-> {
+//                    rolesService.delete(id);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.ROL_NO_ENCONTRADO,
+//                        id,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }

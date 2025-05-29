@@ -120,23 +120,23 @@ public class CambiosCuadroTurnoController {
 
 
 
-    @DeleteMapping("/{idCambioCuadro}")
-    @Operation(
-            summary = "Eliminar un cambio de cuadro de turnos",
-            description = "Elimina un registro de cambio asociado a un cuadro de turnos, si existe.",
-            tags={"Cuadro de Turnos"}
-    )
-    public ResponseEntity<Object> delete(@PathVariable Long idCambioCuadro){
-        return cambiosCuadroTurnoService.findById(idCambioCuadro)
-                .map(cambiosCuadroTurnoDTO-> {
-                    cambiosCuadroTurnoService.delete(idCambioCuadro);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.CAMBIOS_CUADRO_NO_ENCONTRADO,
-                        idCambioCuadro,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idCambioCuadro}")
+//    @Operation(
+//            summary = "Eliminar un cambio de cuadro de turnos",
+//            description = "Elimina un registro de cambio asociado a un cuadro de turnos, si existe.",
+//            tags={"Cuadro de Turnos"}
+//    )
+//    public ResponseEntity<Object> delete(@PathVariable Long idCambioCuadro){
+//        return cambiosCuadroTurnoService.findById(idCambioCuadro)
+//                .map(cambiosCuadroTurnoDTO-> {
+//                    cambiosCuadroTurnoService.delete(idCambioCuadro);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.CAMBIOS_CUADRO_NO_ENCONTRADO,
+//                        idCambioCuadro,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }

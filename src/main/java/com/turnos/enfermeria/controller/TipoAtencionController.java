@@ -105,20 +105,20 @@ public class TipoAtencionController {
                 ));
     }
 
-    @DeleteMapping("/{idTipoAtencion}")
-    @Operation(summary = "Eliminar tipo de atención", description = "Elimina un tipo de atención por su ID",
-            tags={"Contratos"})
-    public ResponseEntity<Object> delete(@PathVariable Long idTipoAtencion){
-        return tipoAtencionService.findById(idTipoAtencion)
-                .map(tipoAtencionDTO-> {
-                    tipoAtencionService.delete(idTipoAtencion);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.TIPO_ATENCION_NO_ENCONTRADA,
-                        idTipoAtencion,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idTipoAtencion}")
+//    @Operation(summary = "Eliminar tipo de atención", description = "Elimina un tipo de atención por su ID",
+//            tags={"Contratos"})
+//    public ResponseEntity<Object> delete(@PathVariable Long idTipoAtencion){
+//        return tipoAtencionService.findById(idTipoAtencion)
+//                .map(tipoAtencionDTO-> {
+//                    tipoAtencionService.delete(idTipoAtencion);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.TIPO_ATENCION_NO_ENCONTRADA,
+//                        idTipoAtencion,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }

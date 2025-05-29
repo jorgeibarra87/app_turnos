@@ -110,20 +110,20 @@ public class SeccionesServicioController {
 
 
 
-    @DeleteMapping("/{idSeccionServicio}")
-    @Operation(summary = "Eliminar sección", description = "Elimina una sección de servicio por su ID",
-            tags={"Servicios"})
-    public ResponseEntity<Object> delete(@PathVariable Long idSeccionServicio){
-        return seccionesServicioService.findById(idSeccionServicio)
-                .map(seccionesServicioDTO-> {
-                    seccionesServicioService.delete(idSeccionServicio);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.SECCION_SERVICIO_NO_ENCONTRADA,
-                        idSeccionServicio,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idSeccionServicio}")
+//    @Operation(summary = "Eliminar sección", description = "Elimina una sección de servicio por su ID",
+//            tags={"Servicios"})
+//    public ResponseEntity<Object> delete(@PathVariable Long idSeccionServicio){
+//        return seccionesServicioService.findById(idSeccionServicio)
+//                .map(seccionesServicioDTO-> {
+//                    seccionesServicioService.delete(idSeccionServicio);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.SECCION_SERVICIO_NO_ENCONTRADA,
+//                        idSeccionServicio,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }
