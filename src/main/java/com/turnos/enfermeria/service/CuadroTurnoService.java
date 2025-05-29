@@ -1,6 +1,5 @@
 package com.turnos.enfermeria.service;
 
-import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.CambiosCuadroTurnoDTO;
 import com.turnos.enfermeria.model.dto.CuadroTurnoDTO;
 import com.turnos.enfermeria.model.dto.TurnoDTO;
@@ -29,6 +28,7 @@ public class CuadroTurnoService {
     private final MacroprocesosRepository macroprocesosRepository;
     private final ProcesosRepository procesosRepository;
     private final ServicioRepository servicioRepository;
+    private final EquipoRepository equipoRepository;
     private final SeccionesServicioRepository seccionesServicioRepository;
     private final ProcesosAtencionRepository procesosAtencionRepository;
     private final CambiosCuadroTurnoRepository cambiosCuadroTurnoRepository;
@@ -62,6 +62,11 @@ public class CuadroTurnoService {
             procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
                     .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
         }
+        Equipo equipo = null;
+        if(cuadroTurnoDTO.getIdEquipo() != null){
+            equipo = equipoRepository.findById(cuadroTurnoDTO.getIdEquipo())
+                    .orElseThrow(() -> new RuntimeException("Equipo no encontrado."));
+        }
         // Convertir DTO a Entidad
         CuadroTurno cuadroTurno = modelMapper.map(cuadroTurnoDTO, CuadroTurno.class);
 
@@ -73,6 +78,7 @@ public class CuadroTurnoService {
         cuadroTurno.setMacroProcesos(macroprocesos);
         cuadroTurno.setProcesos(procesos);
         cuadroTurno.setServicios(servicio);
+        cuadroTurno.setEquipos(equipo);
         cuadroTurno.setProcesosAtencion(procesosAtencion);
         cuadroTurno.setSeccionesServicios(seccionesServicio);
         cuadroTurno.setTurnoExcepcion(cuadroTurnoDTO.getTurnoExcepcion());
@@ -141,6 +147,11 @@ public class CuadroTurnoService {
             procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
                     .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
         }
+        Equipo equipo = null;
+        if(cuadroTurnoDTO.getIdEquipo() != null){
+            equipo = equipoRepository.findById(cuadroTurnoDTO.getIdEquipo())
+                    .orElseThrow(() -> new RuntimeException("Equipo no encontrado."));
+        }
         Optional<CuadroTurno> optionalCuadro = cuadroTurnoRepository.findById(id);
         if (optionalCuadro.isPresent()) {
             CuadroTurno cuadroExistente = optionalCuadro.get();
@@ -155,6 +166,7 @@ public class CuadroTurnoService {
             cuadroExistente.setMacroProcesos(macroprocesos);
             cuadroExistente.setProcesos(procesos);
             cuadroExistente.setServicios(servicio);
+            cuadroExistente.setEquipos(equipo);
             cuadroExistente.setProcesosAtencion(procesosAtencion);
             cuadroExistente.setSeccionesServicios(seccionesServicio);
             // Si el estado cambia a "cerrado", generamos una nueva versión
@@ -204,6 +216,11 @@ public class CuadroTurnoService {
             servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicios())
                     .orElseThrow(() -> new RuntimeException("Servicio no encontrado."));
         }
+        Equipo equipo = null;
+        if(cuadroTurnoDTO.getIdEquipo() != null){
+            equipo = equipoRepository.findById(cuadroTurnoDTO.getIdEquipo())
+                    .orElseThrow(() -> new RuntimeException("Equipo no encontrado."));
+        }
         SeccionesServicio seccionesServicio = null;
         if (cuadroTurnoDTO.getIdSeccionesServicios() != null) {
             seccionesServicio = seccionesServicioRepository.findById(cuadroTurnoDTO.getIdSeccionesServicios())
@@ -214,6 +231,7 @@ public class CuadroTurnoService {
             procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
                     .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
         }
+
         // Convertimos el DTO a la entidad CambiosCuadroTurno
         CambiosCuadroTurno cambio = modelMapper.map(cuadroTurnoDTO, CambiosCuadroTurno.class);
         // Obtener la entidad CuadroTurno desde el repositorio usando el ID del DTO
@@ -230,6 +248,7 @@ public class CuadroTurnoService {
         cambio.setMacroProcesos(macroprocesos);
         cambio.setProcesos(procesos);
         cambio.setServicios(servicio);
+        cambio.setEquipos(equipo);
         cambio.setProcesoAtencion(procesosAtencion);
         cambio.setSeccionesServicios(seccionesServicio);
         cambiosCuadroTurnoRepository.save(cambio);

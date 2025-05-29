@@ -42,6 +42,10 @@ public class CuadroTurno {
     @JoinColumn(name = "id_proceso_atencion", referencedColumnName = "id_proceso_atencion")
     private ProcesosAtencion procesosAtencion;
 
+    @ManyToOne
+    @JoinColumn(name = "id_equipo", referencedColumnName = "id_equipo")
+    private Equipo equipos;
+
     @Column(name = "nombre")
     private String nombre;
 

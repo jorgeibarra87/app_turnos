@@ -16,9 +16,9 @@ public class EquipoMapper {
         EquipoDTO dto = new EquipoDTO();
         dto.setIdEquipo(equipo.getIdEquipo());
         dto.setNombre(equipo.getNombre());
-        dto.setIdCuadroTurno(
-                equipo.getCuadroTurno() != null ? equipo.getCuadroTurno().getIdCuadroTurno() : null
-        );
+//        dto.setIdCuadroTurno(
+//                equipo.getCuadroTurno() != null ? equipo.getCuadroTurno().getIdCuadroTurno() : null
+//        );
 
         return dto;
     }

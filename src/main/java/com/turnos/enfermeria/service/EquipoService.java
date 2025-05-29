@@ -1,7 +1,6 @@
 package com.turnos.enfermeria.service;
 
 import com.turnos.enfermeria.model.dto.EquipoDTO;
-import com.turnos.enfermeria.model.entity.CuadroTurno;
 import com.turnos.enfermeria.model.entity.Equipo;
 import com.turnos.enfermeria.model.entity.TipoFormacionAcademica;
 import com.turnos.enfermeria.model.entity.TitulosFormacionAcademica;
@@ -30,16 +29,17 @@ public class EquipoService {
     private final CuadroTurnoRepository cuadroTurnoRepository;
     private final TitulosFormacionAcademicaRepository titulosRepository;
     private final TipoFormacionAcademicaRepository tipoFormacionRepository;
+    private final UsuarioService usuarioService;
 
     public EquipoDTO create(EquipoDTO equipoDTO) {
 
-        CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(equipoDTO.getIdCuadroTurno())
-                .orElseThrow(() -> new RuntimeException("Cuadro de turno no encontrado."));
+//        CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(equipoDTO.getIdCuadroTurno())
+//                .orElseThrow(() -> new RuntimeException("Cuadro de turno no encontrado."));
 
         Equipo equipo = modelMapper.map(equipoDTO, Equipo.class);
         equipo.setIdEquipo(equipoDTO.getIdEquipo());
         equipo.setNombre(equipoDTO.getNombre());
-        equipo.setCuadroTurno(cuadroTurno);
+//        equipo.setCuadroTurno(cuadroTurno);
 
         Equipo equipoGuardado = equipoRepository.save(equipo);
 
@@ -51,8 +51,8 @@ public class EquipoService {
         Equipo equipoExistente = equipoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
 
-        CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(detalleEquipoDTO.getIdCuadroTurno())
-                .orElseThrow(() -> new RuntimeException("Cuadro de turno no encontrado."));
+//        CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(detalleEquipoDTO.getIdCuadroTurno())
+//                .orElseThrow(() -> new RuntimeException("Cuadro de turno no encontrado."));
 
         EquipoDTO equipoDTO = modelMapper.map(equipoExistente, EquipoDTO.class);
 
@@ -62,9 +62,6 @@ public class EquipoService {
         }
         if (detalleEquipoDTO.getNombre() != null) {
             equipoExistente.setNombre(detalleEquipoDTO.getNombre());
-        }
-        if (detalleEquipoDTO.getIdCuadroTurno() != null) {
-            equipoExistente.setCuadroTurno(cuadroTurno);
         }
 
         // Guardar en la base de datos
@@ -104,17 +101,12 @@ public class EquipoService {
     /**
      * Crea un equipo basado en un perfil específico (título de formación académica)
      * @param idTitulo ID del título de formación académica
-     * @param idCuadroTurno ID del cuadro de turno al que pertenecerá el equipo
      * @return EquipoDTO del equipo creado
      */
-    public EquipoDTO createEquipoByPerfil(Long idTitulo, Long idCuadroTurno) {
+    public EquipoDTO createEquipoByPerfil(Long idTitulo, List<Long> idsUsuarios) {
         // Validar que existe el título
         TitulosFormacionAcademica titulo = titulosRepository.findById(idTitulo)
                 .orElseThrow(() -> new RuntimeException("Título de formación académica no encontrado."));
-
-        // Validar que existe el cuadro de turno
-        CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(idCuadroTurno)
-                .orElseThrow(() -> new RuntimeException("Cuadro de turno no encontrado."));
 
         // Obtener el nombre del perfil y limpiar caracteres especiales
         String nombrePerfil = limpiarNombrePerfil(titulo.getTitulo());
@@ -125,10 +117,15 @@ public class EquipoService {
         // Crear el equipo
         Equipo nuevoEquipo = new Equipo();
         nuevoEquipo.setNombre(nombreEquipo);
-        nuevoEquipo.setCuadroTurno(cuadroTurno);
 
         // Guardar el equipo
         Equipo equipoGuardado = equipoRepository.save(nuevoEquipo);
+
+        // Crear las asociaciones usuario-equipo con los IDs proporcionados
+        if (idsUsuarios != null && !idsUsuarios.isEmpty()) {
+            usuarioService.actualizarUsuariosDeEquipo(equipoGuardado.getIdEquipo(), idsUsuarios);
+        }
+
 
         return modelMapper.map(equipoGuardado, EquipoDTO.class);
     }
