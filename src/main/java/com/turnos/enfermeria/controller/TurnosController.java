@@ -112,23 +112,23 @@ public class TurnosController {
     }
 
 
-    /** 📌 Eliminar un turno */
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar un turno", description = "Elimina un turno específico a partir de su ID.",
-            tags={"Turnos"})
-    public ResponseEntity<Object> delete(@PathVariable Long id) {
-        return turnosService.findById(id)
-                .map(turno -> {
-                    turnosService.eliminarTurno(id);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.TURNO_NO_ENCONTRADO,
-                        id,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    /** 📌 Eliminar un turno */
+//    @DeleteMapping("/{id}")
+//    @Operation(summary = "Eliminar un turno", description = "Elimina un turno específico a partir de su ID.",
+//            tags={"Turnos"})
+//    public ResponseEntity<Object> delete(@PathVariable Long id) {
+//        return turnosService.findById(id)
+//                .map(turno -> {
+//                    turnosService.eliminarTurno(id);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.TURNO_NO_ENCONTRADO,
+//                        id,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 
     @GetMapping("/cambios/{idTurno}")
     @Operation(summary = "Obtener cambios de un turno", description = "Devuelve los cambios registrados asociados a un turno específico.",

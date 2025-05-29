@@ -111,30 +111,30 @@ public class BloqueServicioController {
         }
     }
 
-    @DeleteMapping("/{idBloqueServicio}")
-    @Operation(summary = "Eliminar un bloque de servicio",
-            description = "Elimina un bloque de servicio del sistema por su ID.",
-            tags={"Servicios"})
-    public ResponseEntity<Void> delete(@PathVariable("idBloqueServicio") Long idBloqueServicio) {
-        try {
-            bloqueServicioService.findById(idBloqueServicio)
-                    .orElseThrow(() -> new GenericNotFoundException(
-                            CodigoError.BLOQUE_SERVICIO_NO_ENCONTRADO,
-                            idBloqueServicio,
-                            request.getMethod(),
-                            request.getRequestURI()
-                    ));
-
-            bloqueServicioService.delete(idBloqueServicio);
-            return ResponseEntity.noContent().build();
-
-        } catch (IllegalStateException e) {
-            throw new GenericConflictException(
-                    CodigoError.BLOQUE_SERVICIO_CONFLICTO,
-                    "No se puede eliminar: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
-        }
-    }
+//    @DeleteMapping("/{idBloqueServicio}")
+//    @Operation(summary = "Eliminar un bloque de servicio",
+//            description = "Elimina un bloque de servicio del sistema por su ID.",
+//            tags={"Servicios"})
+//    public ResponseEntity<Void> delete(@PathVariable("idBloqueServicio") Long idBloqueServicio) {
+//        try {
+//            bloqueServicioService.findById(idBloqueServicio)
+//                    .orElseThrow(() -> new GenericNotFoundException(
+//                            CodigoError.BLOQUE_SERVICIO_NO_ENCONTRADO,
+//                            idBloqueServicio,
+//                            request.getMethod(),
+//                            request.getRequestURI()
+//                    ));
+//
+//            bloqueServicioService.delete(idBloqueServicio);
+//            return ResponseEntity.noContent().build();
+//
+//        } catch (IllegalStateException e) {
+//            throw new GenericConflictException(
+//                    CodigoError.BLOQUE_SERVICIO_CONFLICTO,
+//                    "No se puede eliminar: " + e.getMessage(),
+//                    request.getMethod(),
+//                    request.getRequestURI()
+//            );
+//        }
+//    }
 }

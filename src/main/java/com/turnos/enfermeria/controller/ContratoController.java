@@ -116,25 +116,25 @@ public class ContratoController {
                 ));
     }
 
-    @DeleteMapping("/{idContrato}")
-    @Operation(
-            summary = "Eliminar contrato",
-            description = "Elimina un contrato del sistema usando su identificador.",
-            tags={"Contratos"}
-    )
-    public ResponseEntity<Object> delete(@PathVariable Long idContrato){
-        return contratoService.findById(idContrato)
-                .map(bloqueServicioDTO-> {
-                    contratoService.delete(idContrato);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.CONTRATO_NO_ENCONTRADO,
-                        idContrato,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idContrato}")
+//    @Operation(
+//            summary = "Eliminar contrato",
+//            description = "Elimina un contrato del sistema usando su identificador.",
+//            tags={"Contratos"}
+//    )
+//    public ResponseEntity<Object> delete(@PathVariable Long idContrato){
+//        return contratoService.findById(idContrato)
+//                .map(bloqueServicioDTO-> {
+//                    contratoService.delete(idContrato);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.CONTRATO_NO_ENCONTRADO,
+//                        idContrato,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 
     @PostMapping("{idContrato}/titulo/{idTitulo}")
     @Operation(

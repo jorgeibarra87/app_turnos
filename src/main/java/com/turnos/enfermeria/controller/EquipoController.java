@@ -119,25 +119,25 @@ public class EquipoController {
 
 
 
-    @DeleteMapping("/{idEquipo}")
-    @Operation(
-            summary = "Eliminar equipo",
-            description = "Elimina un equipo existente del sistema según su ID.",
-            tags={"Cuadro de Turnos"}
-    )
-    public ResponseEntity<Object> delete(@PathVariable Long idEquipo){
-        return equipoService.findById(idEquipo)
-                .map(equipoDTO-> {
-                    equipoService.delete(idEquipo);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.EQUIPO_NO_ENCONTRADO,
-                        idEquipo,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idEquipo}")
+//    @Operation(
+//            summary = "Eliminar equipo",
+//            description = "Elimina un equipo existente del sistema según su ID.",
+//            tags={"Cuadro de Turnos"}
+//    )
+//    public ResponseEntity<Object> delete(@PathVariable Long idEquipo){
+//        return equipoService.findById(idEquipo)
+//                .map(equipoDTO-> {
+//                    equipoService.delete(idEquipo);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.EQUIPO_NO_ENCONTRADO,
+//                        idEquipo,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 
 
 

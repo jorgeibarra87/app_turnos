@@ -101,20 +101,20 @@ public class TipoTurnoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{idTipoTurno}")
-    @Operation(summary = "Eliminar tipo de turno", description = "Elimina un tipo de turno existente por su ID",
-            tags={"Contratos"})
-    public ResponseEntity<Object> delete(@PathVariable Long idTipoTurno){
-        return tipoTurnoService.findById(idTipoTurno)
-                .map(tipoTurnoDTO-> {
-                    tipoTurnoService.delete(idTipoTurno);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.TIPO_TURNO_NO_ENCONTRADO,
-                        idTipoTurno,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idTipoTurno}")
+//    @Operation(summary = "Eliminar tipo de turno", description = "Elimina un tipo de turno existente por su ID",
+//            tags={"Contratos"})
+//    public ResponseEntity<Object> delete(@PathVariable Long idTipoTurno){
+//        return tipoTurnoService.findById(idTipoTurno)
+//                .map(tipoTurnoDTO-> {
+//                    tipoTurnoService.delete(idTipoTurno);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.TIPO_TURNO_NO_ENCONTRADO,
+//                        idTipoTurno,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }

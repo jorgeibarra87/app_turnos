@@ -111,20 +111,20 @@ public class CambiosTurnoController {
                 ));
     }
 
-    @DeleteMapping("/{idCambio}")
-    @Operation(summary = "Eliminar un cambio de turno", description = "Elimina un cambio del historial mediante su ID.",
-            tags={"Turnos"})
-    public ResponseEntity<Object> delete(@PathVariable Long idCambio){
-        return cambiosTurnoService.findById(idCambio)
-                .map(cambiosTurnoDTO-> {
-                    cambiosTurnoService.delete(idCambio);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.CAMBIOS_TURNO_NO_ENCONTRADO,
-                        idCambio,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idCambio}")
+//    @Operation(summary = "Eliminar un cambio de turno", description = "Elimina un cambio del historial mediante su ID.",
+//            tags={"Turnos"})
+//    public ResponseEntity<Object> delete(@PathVariable Long idCambio){
+//        return cambiosTurnoService.findById(idCambio)
+//                .map(cambiosTurnoDTO-> {
+//                    cambiosTurnoService.delete(idCambio);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.CAMBIOS_TURNO_NO_ENCONTRADO,
+//                        idCambio,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }

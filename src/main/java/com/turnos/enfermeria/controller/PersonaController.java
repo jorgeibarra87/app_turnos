@@ -121,23 +121,23 @@ public class PersonaController {
                 ));
     }
 
-    @DeleteMapping("/{idPersona}")
-    @Operation(
-            summary = "Eliminar persona",
-            description = "Elimina del sistema una persona registrada según su ID.",
-            tags={"Usuarios"}
-    )
-    public ResponseEntity<Object> delete(@PathVariable Long idPersona){
-        return personaService.findById(idPersona)
-                .map(personaDTO-> {
-                    personaService.delete(idPersona);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.PERSONA_NO_ENCONTRADA,
-                        idPersona,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idPersona}")
+//    @Operation(
+//            summary = "Eliminar persona",
+//            description = "Elimina del sistema una persona registrada según su ID.",
+//            tags={"Usuarios"}
+//    )
+//    public ResponseEntity<Object> delete(@PathVariable Long idPersona){
+//        return personaService.findById(idPersona)
+//                .map(personaDTO-> {
+//                    personaService.delete(idPersona);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.PERSONA_NO_ENCONTRADA,
+//                        idPersona,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }

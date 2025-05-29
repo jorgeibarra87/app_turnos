@@ -115,22 +115,22 @@ public class NotificacionesController {
                 ));
     }
 
-    @DeleteMapping("/{idNotificacion}")
-    @Operation(
-            summary = "Eliminar notificación",
-            description = "Elimina una notificación específica por su ID."
-    )
-    public ResponseEntity<Object> delete(@PathVariable("idNotificacion") Long idNotificacion){
-        return notificacionesService.findById(idNotificacion)
-                .map(notificacionDTO-> {
-                    notificacionesService.delete(idNotificacion);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.NOTIFICACION_NO_ENCONTRADA,
-                        idNotificacion,
-                        request.getMethod(),
-                        request.getRequestURI()
-                ));
-    }
+//    @DeleteMapping("/{idNotificacion}")
+//    @Operation(
+//            summary = "Eliminar notificación",
+//            description = "Elimina una notificación específica por su ID."
+//    )
+//    public ResponseEntity<Object> delete(@PathVariable("idNotificacion") Long idNotificacion){
+//        return notificacionesService.findById(idNotificacion)
+//                .map(notificacionDTO-> {
+//                    notificacionesService.delete(idNotificacion);
+//                    return ResponseEntity.noContent().build();
+//                })
+//                .orElseThrow(() -> new GenericNotFoundException(
+//                        CodigoError.NOTIFICACION_NO_ENCONTRADA,
+//                        idNotificacion,
+//                        request.getMethod(),
+//                        request.getRequestURI()
+//                ));
+//    }
 }
