@@ -14,6 +14,7 @@ public class CuadroTurnoDTO {
     private Long idServicios;
     private Long idSeccionesServicios;
     private Long idProcesosAtencion;
+    private Long idEquipo;
     private String nombre;
     private String anio;
     private String mes;

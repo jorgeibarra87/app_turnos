@@ -39,6 +39,10 @@ public class CambiosCuadroTurno {
     @JoinColumn(name = "id_proceso_atencion", referencedColumnName = "id_proceso_atencion")
     private ProcesosAtencion procesoAtencion;
 
+    @ManyToOne
+    @JoinColumn(name = "id_equipo", referencedColumnName = "id_equipo")
+    private Equipo equipos;
+
     @Column(name = "fecha_cambio")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime fechaCambio;

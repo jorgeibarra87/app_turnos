@@ -6,5 +6,4 @@ import lombok.Data;
 public class EquipoDTO {
     private Long idEquipo;
     private String nombre;
-    private Long idCuadroTurno;
 }

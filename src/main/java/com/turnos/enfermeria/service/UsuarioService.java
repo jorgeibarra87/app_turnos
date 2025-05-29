@@ -153,15 +153,6 @@ public class UsuarioService {
         return equipoMapper.toDTOList(usuario.getEquipos());
     }
 
-//    public List<Usuario> obtenerUsuariosPorEquipo(Long idEquipo) {
-//        Equipo equipo = equipoRepository.findById(idEquipo)
-//                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
-//
-//        return usuarioRepo.findAll().stream()
-//                .filter(usuario -> usuario.getEquipos().contains(equipo))
-//                .collect(Collectors.toList());
-//    }
-
     public List<PersonaEquipoDTO> obtenerUsuariosPorEquipo(Long idEquipo) {
         List<Usuario> usuarios = usuarioRepo.findUsuariosByEquipos_IdEquipo(idEquipo);
         return usuarios.stream()

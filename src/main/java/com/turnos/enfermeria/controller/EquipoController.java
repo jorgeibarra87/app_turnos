@@ -7,7 +7,6 @@ import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.EquipoDTO;
 import com.turnos.enfermeria.service.EquipoService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,17 +144,18 @@ public class EquipoController {
     /**
      * Crea un equipo basado en un perfil específico
      */
-    @PostMapping("/crear-por-perfil")
+    // OPCIÓN 1: Usando @RequestParam (más simple, para pocos usuarios)
+    @PostMapping("/crear-por-perfil/{idTitulo}")
     @Operation(
             summary = "crear por perfil",
-            description = "Crea un equipo basado en un perfil específico.",
+            description = "Crea un equipo basado en un perfil específico con usuarios seleccionados.",
             tags={"Cuadro de Turnos"}
     )
     public ResponseEntity<EquipoDTO> crearEquipoPorPerfil(
-            @RequestParam Long idTitulo,
-            @RequestParam Long idCuadroTurno) {
+            @PathVariable Long idTitulo,
+            @RequestBody(required = false)  List<Long> idsUsuarios) {
         try {
-            EquipoDTO equipoCreado = equipoService.createEquipoByPerfil(idTitulo, idCuadroTurno);
+            EquipoDTO equipoCreado = equipoService.createEquipoByPerfil(idTitulo, idsUsuarios);
             return ResponseEntity.ok(equipoCreado);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
@@ -196,5 +196,21 @@ public class EquipoController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+
+    public class CrearEquipoRequest {
+        private Long idTitulo;
+        private List<Long> idsUsuarios;
+
+        // Constructores
+        public CrearEquipoRequest() {}
+
+        // Getters y Setters
+        public Long getIdTitulo() { return idTitulo; }
+        public void setIdTitulo(Long idTitulo) { this.idTitulo = idTitulo; }
+
+        public List<Long> getIdsUsuarios() { return idsUsuarios; }
+        public void setIdsUsuarios(List<Long> idsUsuarios) { this.idsUsuarios = idsUsuarios; }
     }
 }
