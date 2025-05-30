@@ -4,12 +4,9 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.TipoFormacionAcademicaDTO;
-import com.turnos.enfermeria.model.entity.TipoFormacionAcademica;
 import com.turnos.enfermeria.service.TipoFormacionAcademicaService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +16,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @Validated
 @RestController
 @RequestMapping("/tipoFormacionAcademica")
-//@Tag(name = "Tipo Formación Académica", description = "Operaciones CRUD sobre los tipos de formación académica del personal")
 public class TipoFormacionAcademicaController {
 
     @Autowired
@@ -107,9 +102,6 @@ public class TipoFormacionAcademicaController {
                         request.getRequestURI()
                 ));
     }
-
-
-
 //    @DeleteMapping("/{idTipoFormacionAcademica}")
 //    @Operation(summary = "Eliminar tipo de formación académica", description = "Elimina un tipo de formación existente por su ID",
 //            tags={"Títulos de Formación Académica"})

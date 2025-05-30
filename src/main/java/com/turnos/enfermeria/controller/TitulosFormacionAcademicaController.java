@@ -4,9 +4,7 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.TitulosFormacionAcademicaDTO;
-import com.turnos.enfermeria.model.entity.TitulosFormacionAcademica;
 import com.turnos.enfermeria.service.TitulosFormacionAcademicaService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @Validated
 @RestController
@@ -117,9 +114,6 @@ public class TitulosFormacionAcademicaController {
                         request.getRequestURI()
                 ));
     }
-
-
-
 //    @DeleteMapping("/{idTitulo}")
 //    @Operation(
 //            summary = "Eliminar título académico",

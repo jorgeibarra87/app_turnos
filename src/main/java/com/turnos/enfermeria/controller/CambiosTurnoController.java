@@ -1,17 +1,12 @@
 package com.turnos.enfermeria.controller;
 
-import com.turnos.enfermeria.exception.ApiException;
 import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.CambiosTurnoDTO;
-import com.turnos.enfermeria.model.entity.CambiosTurno;
-import com.turnos.enfermeria.model.entity.Usuario;
 import com.turnos.enfermeria.service.CambiosTurnoService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

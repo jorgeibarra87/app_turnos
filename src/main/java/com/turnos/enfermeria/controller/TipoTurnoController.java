@@ -4,11 +4,9 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.TipoTurnoDTO;
 import com.turnos.enfermeria.service.TipoTurnoService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,7 +98,6 @@ public class TipoTurnoController {
                 .map(tipoTurnoExistente -> ResponseEntity.ok(tipoTurnoService.***REMOVED***(tipoTurnoDTO, idTipoTurno)))
                 .orElse(ResponseEntity.notFound().build());
     }
-
 //    @DeleteMapping("/{idTipoTurno}")
 //    @Operation(summary = "Eliminar tipo de turno", description = "Elimina un tipo de turno existente por su ID",
 //            tags={"Contratos"})

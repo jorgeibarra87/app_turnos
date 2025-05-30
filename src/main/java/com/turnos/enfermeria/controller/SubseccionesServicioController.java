@@ -4,12 +4,9 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.SubseccionesServicioDTO;
-import com.turnos.enfermeria.model.entity.SubseccionesServicio;
 import com.turnos.enfermeria.service.SubseccionesServicioService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,9 +104,6 @@ public class SubseccionesServicioController {
                         request.getRequestURI()
                 ));
     }
-
-
-
 //    @DeleteMapping("/{idSubseccionServicio}")
 //    @Operation(summary = "Eliminar subsección", description = "Elimina una subsección existente por su ID",
 //            tags={"Servicios"})
