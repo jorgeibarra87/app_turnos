@@ -5,17 +5,20 @@ import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.*;
+import com.turnos.enfermeria.model.entity.Contrato;
 import com.turnos.enfermeria.service.ContratoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @Validated
 @RestController
@@ -266,6 +269,141 @@ public class ContratoController {
                     request.getMethod(),
                     request.getRequestURI()
             );
+        }
+    }
+
+
+    /**
+     * Endpoint para guardar un nuevo contrato completo
+     */
+    @PostMapping("/guardar")
+    public ResponseEntity<?> guardarContrato(@RequestBody ContratoTotalDTO contratoDTO) {
+        try {
+            // Validaciones básicas
+            if (contratoDTO.getNumContrato() == null || contratoDTO.getNumContrato().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "El número de contrato es obligatorio"));
+            }
+
+            if (contratoDTO.getSupervisor() == null || contratoDTO.getSupervisor().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "El supervisor es obligatorio"));
+            }
+
+            if (contratoDTO.getContratista() == null || contratoDTO.getContratista().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "El contratista es obligatorio"));
+            }
+
+            if (contratoDTO.getFechaInicio() == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "La fecha de inicio es obligatoria"));
+            }
+
+            if (contratoDTO.getFechaTerminacion() == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "La fecha de terminación es obligatoria"));
+            }
+
+            // Validar que la fecha de inicio sea anterior a la fecha de terminación
+            if (contratoDTO.getFechaInicio().isAfter(contratoDTO.getFechaTerminacion())) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "La fecha de inicio debe ser anterior a la fecha de terminación"));
+            }
+
+            Contrato contratoGuardado = contratoService.guardarContratoCompleto(contratoDTO);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Contrato guardado exitosamente",
+                    "contrato", contratoGuardado,
+                    "id", contratoGuardado.getIdContrato()
+            ));
+
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMessage().contains("num_contrato")) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Ya existe un contrato con este número"));
+            }
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Error de integridad de datos: " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error interno del servidor: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para actualizar un contrato existente
+     */
+    @PutMapping("/actualizar/{id}")
+    public ResponseEntity<?> actualizarContrato(
+            @PathVariable Long id,
+            @RequestBody ContratoTotalDTO contratoDTO) {
+        try {
+            Contrato contratoActualizado = contratoService.actualizarContratoCompleto(id, contratoDTO);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Contrato actualizado exitosamente",
+                    "contrato", contratoActualizado
+            ));
+
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Contrato no encontrado"));
+            }
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error interno del servidor: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para obtener un contrato por ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerContrato(@PathVariable Long id) {
+        try {
+            ContratoTotalDTO contrato = contratoService.obtenerContratoCompleto(id);
+            return ResponseEntity.ok(contrato);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Contrato no encontrado"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error interno del servidor: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para obtener todos los contratos
+     */
+    @GetMapping("/todos")
+    public ResponseEntity<?> obtenerTodosLosContratos() {
+        try {
+            List<Contrato> contratos = contratoService.obtenerTodosLosContratos();
+            return ResponseEntity.ok(contratos);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error interno del servidor: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para verificar si un número de contrato ya existe
+     */
+    @GetMapping("/verificar-numero/{numContrato}")
+    public ResponseEntity<Map<String, Boolean>> verificarNumeroContrato(@PathVariable String numContrato) {
+        try {
+            boolean existe = contratoService.existeNumeroContrato(numContrato);
+            return ResponseEntity.ok(Map.of("existe", existe));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", true));
         }
     }
 }
