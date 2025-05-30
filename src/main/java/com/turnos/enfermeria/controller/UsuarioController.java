@@ -107,9 +107,7 @@ public class UsuarioController {
                         request.getRequestURI()
                 ));
     }
-
-
-
+    
 //    @DeleteMapping("/{id}")
 //    @Operation(summary = "Eliminar un usuario", description = "Elimina un usuario del sistema por su ID.",
 //            tags={"Usuarios"})

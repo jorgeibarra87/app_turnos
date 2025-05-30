@@ -25,6 +25,156 @@ public class ContratoService {
     private final TitulosFormacionAcademicaRepository titulosFormacionAcademicaRepository;
     private final TitulosContratoMapper titulosContratoMapper;
 
+    /**
+     * Guarda un contrato completo con todas sus relaciones
+     */
+    public Contrato guardarContratoCompleto(ContratoTotalDTO contratoDTO) {
+        try {
+            // 1. Crear y configurar la entidad Contrato principal
+            Contrato contrato = new Contrato();
+            contrato.setNumContrato(contratoDTO.getNumContrato());
+            contrato.setSupervisor(contratoDTO.getSupervisor());
+            contrato.setApoyoSupervision(contratoDTO.getApoyoSupervision());
+            contrato.setObjeto(contratoDTO.getObjeto());
+            contrato.setContratista(contratoDTO.getContratista());
+            contrato.setFechaInicio(contratoDTO.getFechaInicio());
+            contrato.setFechaTerminacion(contratoDTO.getFechaTerminacion());
+            contrato.setAnio(contratoDTO.getAnio());
+            contrato.setObservaciones(contratoDTO.getObservaciones());
+
+            // 2. Establecer relaciones Many-to-Many
+
+            // Títulos de Formación Académica
+            if (contratoDTO.getTitulosIds() != null && !contratoDTO.getTitulosIds().isEmpty()) {
+                List<TitulosFormacionAcademica> titulos = titulosFormacionAcademicaRepository.findAllById(contratoDTO.getTitulosIds());
+                contrato.setTitulosFormacionAcademica(titulos);
+            }
+
+            // 3. Guardar el contrato (esto también guardará las relaciones Many-to-Many)
+            Contrato contratoGuardado = contratoRepository.save(contrato);
+
+            // 4. Guardar relaciones en tablas intermedias adicionales
+            guardarTiposAtencion(contratoGuardado.getIdContrato(), contratoDTO.getTiposAtencionIds());
+            guardarTiposTurno(contratoGuardado.getIdContrato(), contratoDTO.getTiposTurnoIds());
+            guardarProcesos(contratoGuardado.getIdContrato(), contratoDTO.getProcesosIds());
+
+            return contratoGuardado;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al guardar el contrato: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Actualiza un contrato existente
+     */
+    public Contrato actualizarContratoCompleto(Long contratoId, ContratoTotalDTO contratoDTO) {
+        try {
+            Contrato contratoExistente = contratoRepository.findById(contratoId)
+                    .orElseThrow(() -> new RuntimeException("Contrato no found with id: " + contratoId));
+
+            // Actualizar campos básicos
+            contratoExistente.setNumContrato(contratoDTO.getNumContrato());
+            contratoExistente.setSupervisor(contratoDTO.getSupervisor());
+            contratoExistente.setApoyoSupervision(contratoDTO.getApoyoSupervision());
+            contratoExistente.setObjeto(contratoDTO.getObjeto());
+            contratoExistente.setContratista(contratoDTO.getContratista());
+            contratoExistente.setFechaInicio(contratoDTO.getFechaInicio());
+            contratoExistente.setFechaTerminacion(contratoDTO.getFechaTerminacion());
+            contratoExistente.setAnio(contratoDTO.getAnio());
+            contratoExistente.setObservaciones(contratoDTO.getObservaciones());
+
+            // Actualizar títulos
+            if (contratoDTO.getTitulosIds() != null) {
+                List<TitulosFormacionAcademica> titulos = titulosFormacionAcademicaRepository.findAllById(contratoDTO.getTitulosIds());
+                contratoExistente.setTitulosFormacionAcademica(titulos);
+            }
+
+            // Guardar cambios
+            Contrato contratoActualizado = contratoRepository.save(contratoExistente);
+
+            // Eliminar relaciones existentes y crear nuevas
+            eliminarRelacionesExistentes(contratoId);
+            guardarTiposAtencion(contratoId, contratoDTO.getTiposAtencionIds());
+            guardarTiposTurno(contratoId, contratoDTO.getTiposTurnoIds());
+            guardarProcesos(contratoId, contratoDTO.getProcesosIds());
+
+            return contratoActualizado;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al actualizar el contrato: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Elimina las relaciones existentes de un contrato
+     */
+    private void eliminarRelacionesExistentes(Long contratoId) {
+        contratoRepository.deleteContratoTiposAtencion(contratoId);
+        contratoRepository.deleteContratoTiposTurno(contratoId);
+        contratoRepository.deleteContratoProcesos(contratoId);
+    }
+
+    /**
+     * Obtiene un contrato completo con todas sus relaciones
+     */
+    public ContratoTotalDTO obtenerContratoCompleto(Long contratoId) {
+        Contrato contrato = contratoRepository.findById(contratoId)
+                .orElseThrow(() -> new RuntimeException("Contrato not found with id: " + contratoId));
+
+        ContratoTotalDTO dto = new ContratoTotalDTO();
+        dto.setNumContrato(contrato.getNumContrato());
+        dto.setSupervisor(contrato.getSupervisor());
+        dto.setApoyoSupervision(contrato.getApoyoSupervision());
+        dto.setObjeto(contrato.getObjeto());
+        dto.setContratista(contrato.getContratista());
+        dto.setFechaInicio(contrato.getFechaInicio());
+        dto.setFechaTerminacion(contrato.getFechaTerminacion());
+        dto.setAnio(contrato.getAnio());
+        dto.setObservaciones(contrato.getObservaciones());
+
+        // Obtener IDs de relaciones
+        if (contrato.getTitulosFormacionAcademica() != null) {
+            dto.setTitulosIds(contrato.getTitulosFormacionAcademica().stream()
+                    .map(TitulosFormacionAcademica::getIdTipoFormacionAcademica)
+                    .collect(Collectors.toList()));
+        }
+
+        dto.setTiposAtencionIds(contratoRepository.findTiposAtencionByContratoId(contratoId));
+        dto.setTiposTurnoIds(contratoRepository.findTiposTurnoByContratoId(contratoId));
+        dto.setProcesosIds(contratoRepository.findProcesosByContratoId(contratoId));
+
+        return dto;
+    }
+
+    /**
+     * Obtiene todos los contratos
+     */
+    public List<Contrato> obtenerTodosLosContratos() {
+        return contratoRepository.findAll();
+    }
+
+    /**
+     * Elimina un contrato y todas sus relaciones
+     */
+    public void eliminarContrato(Long contratoId) {
+        Contrato contrato = contratoRepository.findById(contratoId)
+                .orElseThrow(() -> new RuntimeException("Contrato not found with id: " + contratoId));
+
+        // Eliminar relaciones primero
+        eliminarRelacionesExistentes(contratoId);
+
+        // Eliminar el contrato
+        contratoRepository.delete(contrato);
+    }
+
+    /**
+     * Verifica si existe un número de contrato
+     */
+    public boolean existeNumeroContrato(String numContrato) {
+        return contratoRepository.existsByNumContrato(numContrato);
+    }
+
     public ContratoDTO create(ContratoDTO contratoDTO) {
 
 
@@ -169,5 +319,43 @@ public class ContratoService {
 
         contrato.getTitulosFormacionAcademica().remove(titulosFormacionAcademica);
         contratoRepository.save(contrato);
+    }
+
+
+
+    /**
+     * Guarda la relación entre contrato y tipos de atención
+     */
+    private void guardarTiposAtencion(Long contratoId, List<Long> tiposAtencionIds) {
+        if (tiposAtencionIds != null && !tiposAtencionIds.isEmpty()) {
+            for (Long tipoAtencionId : tiposAtencionIds) {
+                // Usar query nativa para insertar en la tabla intermedia
+                contratoRepository.insertContratoTipoAtencion(contratoId, tipoAtencionId);
+            }
+        }
+    }
+
+    /**
+     * Guarda la relación entre contrato y tipos de turno
+     */
+    private void guardarTiposTurno(Long contratoId, List<Long> tiposTurnoIds) {
+        if (tiposTurnoIds != null && !tiposTurnoIds.isEmpty()) {
+            for (Long tipoTurnoId : tiposTurnoIds) {
+                // Usar query nativa para insertar en la tabla intermedia
+                contratoRepository.insertContratoTipoTurno(contratoId, tipoTurnoId);
+            }
+        }
+    }
+
+    /**
+     * Guarda la relación entre contrato y procesos
+     */
+    private void guardarProcesos(Long contratoId, List<Long> procesosIds) {
+        if (procesosIds != null && !procesosIds.isEmpty()) {
+            for (Long procesoId : procesosIds) {
+                // Usar query nativa para insertar en la tabla intermedia
+                contratoRepository.insertContratoProceso(contratoId, procesoId);
+            }
+        }
     }
 }

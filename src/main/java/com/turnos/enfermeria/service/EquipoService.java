@@ -154,7 +154,6 @@ public class EquipoService {
      */
     private int obtenerSiguienteNumero(List<Equipo> equiposExistentes, String prefijo) {
         int maxNumero = 0;
-
         // Patrón para extraer el número al final del nombre
         Pattern patron = Pattern.compile(Pattern.quote(prefijo) + "(\\d+)$");
 
@@ -165,7 +164,6 @@ public class EquipoService {
                 maxNumero = Math.max(maxNumero, numero);
             }
         }
-
         return maxNumero + 1;
     }
 
@@ -178,7 +176,6 @@ public class EquipoService {
         if (nombreOriginal == null || nombreOriginal.trim().isEmpty()) {
             return "SinEspecificar";
         }
-
         return nombreOriginal
                 .trim()
                 .replaceAll("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]", "") // Remover caracteres especiales excepto letras y espacios

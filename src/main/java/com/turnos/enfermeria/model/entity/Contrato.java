@@ -18,13 +18,12 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "contrato", schema = "public")
 public class Contrato {
-
     @Id
     @Column(name = "id_contrato", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idContrato;
 
-    @Column(name = "num_contrato", nullable = false)
+    @Column(name = "num_contrato", nullable = false, unique = true)
     private String numContrato;
 
     @Column(name = "supervisor", nullable = false)
@@ -59,5 +58,4 @@ public class Contrato {
 
     @Column(name = "observaciones", nullable = false)
     private String observaciones;
-
 }
