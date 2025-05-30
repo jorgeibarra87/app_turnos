@@ -277,6 +277,11 @@ public class ContratoController {
      * Endpoint para guardar un nuevo contrato completo
      */
     @PostMapping("/guardar")
+    @Operation(
+            summary = "Guardar contrato completo",
+            description = "Endpoint para guardar un nuevo contrato completo.",
+            tags={"Contratos"}
+    )
     public ResponseEntity<?> guardarContrato(@RequestBody ContratoTotalDTO contratoDTO) {
         try {
             // Validaciones básicas
@@ -336,6 +341,11 @@ public class ContratoController {
      * Endpoint para actualizar un contrato existente
      */
     @PutMapping("/actualizar/{id}")
+    @Operation(
+            summary = "Actualizar contrato completo",
+            description = "Endpoint para actualizar un contrato existente completo.",
+            tags={"Contratos"}
+    )
     public ResponseEntity<?> actualizarContrato(
             @PathVariable Long id,
             @RequestBody ContratoTotalDTO contratoDTO) {
@@ -354,39 +364,6 @@ public class ContratoController {
             }
             return ResponseEntity.badRequest()
                     .body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Error interno del servidor: " + e.getMessage()));
-        }
-    }
-
-    /**
-     * Endpoint para obtener un contrato por ID
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<?> obtenerContrato(@PathVariable Long id) {
-        try {
-            ContratoTotalDTO contrato = contratoService.obtenerContratoCompleto(id);
-            return ResponseEntity.ok(contrato);
-
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Contrato no encontrado"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Error interno del servidor: " + e.getMessage()));
-        }
-    }
-
-    /**
-     * Endpoint para obtener todos los contratos
-     */
-    @GetMapping("/todos")
-    public ResponseEntity<?> obtenerTodosLosContratos() {
-        try {
-            List<Contrato> contratos = contratoService.obtenerTodosLosContratos();
-            return ResponseEntity.ok(contratos);
-
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Error interno del servidor: " + e.getMessage()));

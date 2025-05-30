@@ -6,15 +6,12 @@ import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.CambiosTurnoDTO;
 import com.turnos.enfermeria.model.dto.TurnoDTO;
-import com.turnos.enfermeria.model.entity.CambiosTurno;
-import com.turnos.enfermeria.model.entity.Turnos;
 import com.turnos.enfermeria.service.TurnosService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -110,8 +107,6 @@ public class TurnosController {
                 request.getRequestURI()
         ));
     }
-
-
 //    /** 📌 Eliminar un turno */
 //    @DeleteMapping("/{id}")
 //    @Operation(summary = "Eliminar un turno", description = "Elimina un turno específico a partir de su ID.",

@@ -4,9 +4,7 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.ServicioDTO;
-import com.turnos.enfermeria.model.entity.Servicio;
 import com.turnos.enfermeria.service.ServicioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,7 +17,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @Validated
 @RestController
