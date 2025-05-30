@@ -19,36 +19,6 @@ public interface ContratoRepository extends JpaRepository<Contrato, Long>, JpaSp
     @Query("SELECT t FROM Contrato c JOIN c.titulosFormacionAcademica t WHERE c.idContrato = :idContrato")
     Optional<List<TitulosFormacionAcademica>> findTitulosByIdContrato(@Param("idContrato") Long idContrato);
 
-
-
-    // Métodos para insertar relaciones en tablas intermedias
-
-    @Modifying
-    @Query(value = "INSERT INTO tipo_atencion (id_contrato, id_tipo_atencion) VALUES (?1, ?2)", nativeQuery = true)
-    void insertContratoTipoAtencion(Long contratoId, Long tipoAtencionId);
-
-    @Modifying
-    @Query(value = "INSERT INTO tipo_turno (id_contrato, id_tipo_turno) VALUES (?1, ?2)", nativeQuery = true)
-    void insertContratoTipoTurno(Long contratoId, Long tipoTurnoId);
-
-    @Modifying
-    @Query(value = "INSERT INTO procesos_contrato (id_contrato, id_proceso) VALUES (?1, ?2)", nativeQuery = true)
-    void insertContratoProceso(Long contratoId, Long procesoId);
-
-    // Métodos para eliminar relaciones existentes
-
-    @Modifying
-    @Query(value = "DELETE FROM tipo_atencion WHERE id_contrato = ?1", nativeQuery = true)
-    void deleteContratoTiposAtencion(Long contratoId);
-
-    @Modifying
-    @Query(value = "DELETE FROM tipo_turno WHERE id_contrato = ?1", nativeQuery = true)
-    void deleteContratoTiposTurno(Long contratoId);
-
-    @Modifying
-    @Query(value = "DELETE FROM procesos_contrato WHERE id_contrato = ?1", nativeQuery = true)
-    void deleteContratoProcesos(Long contratoId);
-
     // Métodos para obtener IDs de relaciones
 
     @Query(value = "SELECT id_tipo_atencion FROM tipo_atencion WHERE id_contrato = ?1", nativeQuery = true)
