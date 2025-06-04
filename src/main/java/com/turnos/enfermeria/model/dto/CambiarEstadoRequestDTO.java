@@ -9,5 +9,4 @@ public class CambiarEstadoRequestDTO {
     private String estadoActual;
     private String nuevoEstado;
     private List<Long> idsCuadros;
-    private List<Long> idsTurnos;
 }

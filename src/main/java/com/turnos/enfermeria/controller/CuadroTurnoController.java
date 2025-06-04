@@ -183,8 +183,7 @@ public class CuadroTurnoController {
         try {
             CambiosEstadoDTO cambios = cuadroTurnoService.cambiarEstadoDeCuadrosYTurnos(request.getEstadoActual(),
                     request.getNuevoEstado(),
-                    request.getIdsCuadros(),
-                    request.getIdsTurnos());
+                    request.getIdsCuadros());
             return ResponseEntity.ok(cambios);
         }catch (IllegalArgumentException e) {
             throw new GenericBadRequestException(

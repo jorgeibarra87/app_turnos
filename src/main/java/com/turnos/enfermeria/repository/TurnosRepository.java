@@ -50,4 +50,6 @@ public interface TurnosRepository extends JpaRepository<Turnos, Long>, JpaSpecif
     @Query("SELECT t FROM Turnos t WHERE t.usuario.idPersona = :usuarioId AND DATE(t.fechaInicio) = :fecha")
     List<Turnos> obtenerTurnosPorFecha(@Param("usuarioId") Long usuarioId, @Param("fecha") LocalDate fecha);
 
+    List<Turnos> findByCuadroTurnoIdCuadroTurnoIn(List<Long> idsCuadros);
+
 }

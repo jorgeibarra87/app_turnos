@@ -286,8 +286,9 @@ public class CuadroTurnoService {
         // Convertir la entidad actualizada a DTO antes de devolverla
         return modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
     }
+
     @Transactional
-    public CambiosEstadoDTO cambiarEstadoDeCuadrosYTurnos(String estadoActual, String nuevoEstado, List<Long> idsCuadros, List<Long> idsTurnos) {
+    public CambiosEstadoDTO cambiarEstadoDeCuadrosYTurnos(String estadoActual, String nuevoEstado, List<Long> idsCuadros) {
         // 1️⃣ Cambiar estado de los cuadros de turno seleccionados
         List<CuadroTurno> cuadros = cuadroTurnoRepository.findAllById(idsCuadros).stream()
                 .filter(cuadro -> estadoActual.equals(cuadro.getEstadoCuadro()))
@@ -303,8 +304,9 @@ public class CuadroTurnoService {
                 .collect(Collectors.toList());
         cambiosCuadroTurnoRepository.saveAll(cambios);
 
-        // 3️⃣ Cambiar estado de los turnos seleccionados
-        List<Turnos> turnos = turnosRepository.findAllById(idsTurnos).stream()
+        // 3️⃣ Cambiar estado de los turnos asociados a los cuadros seleccionados
+        List<Turnos> turnos = turnosRepository
+                .findByCuadroTurnoIdCuadroTurnoIn(idsCuadros).stream()
                 .filter(turno -> estadoActual.equals(turno.getEstadoTurno()))
                 .peek(turno -> turno.setEstadoTurno(nuevoEstado))
                 .collect(Collectors.toList());
@@ -325,6 +327,7 @@ public class CuadroTurnoService {
         dto.setTurnosActualizados(turnosDTO);
         return dto;
     }
+
 
     public CuadroTurnoDTO actualizarTurnoExcepcion(Long id, Boolean nuevoValor, String tipoCambio) {
         CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(id)
