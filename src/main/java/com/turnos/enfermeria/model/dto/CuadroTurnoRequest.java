@@ -23,6 +23,7 @@ public class CuadroTurnoRequest {
     private String anio;
     private String mes;
     private Boolean turnoExcepcion = false;
+    private String categoria;
 
     // Métodos de conveniencia para manejar procesos de atención
     public void addIdProcesoAtencion(Long idProcesoAtencion) {
