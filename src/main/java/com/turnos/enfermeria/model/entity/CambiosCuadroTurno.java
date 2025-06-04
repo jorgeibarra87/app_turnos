@@ -35,9 +35,9 @@ public class CambiosCuadroTurno {
     @JoinColumn(name = "id_seccion_servicio", referencedColumnName = "id_seccion_servicio")
     private SeccionesServicio seccionesServicios;
 
-    @ManyToOne
-    @JoinColumn(name = "id_proceso_atencion", referencedColumnName = "id_proceso_atencion")
-    private ProcesosAtencion procesoAtencion;
+//    @ManyToOne
+//    @JoinColumn(name = "id_proceso_atencion", referencedColumnName = "id_proceso_atencion")
+//    private ProcesosAtencion procesoAtencion;
 
     @ManyToOne
     @JoinColumn(name = "id_equipo", referencedColumnName = "id_equipo")
@@ -80,8 +80,8 @@ public class CambiosCuadroTurno {
     public Long getIdSeccionServicio() {
         return seccionesServicios != null ? seccionesServicios.getIdSeccionServicio() : null;
     }
-    public Long getIdProcesoAtencion() {
-        return procesoAtencion != null ? procesoAtencion.getIdProcesoAtencion() : null;
-    }
+//    public Long getIdProcesoAtencion() {
+//        return procesoAtencion != null ? procesoAtencion.getIdProcesoAtencion() : null;
+//    }
 
 }

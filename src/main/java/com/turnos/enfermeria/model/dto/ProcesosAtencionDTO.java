@@ -6,6 +6,6 @@ import lombok.Data;
 public class ProcesosAtencionDTO {
 
     private Long idProcesoAtencion;
-    private String nombre;
+    private String detalle;
     private Long idProceso;
 }

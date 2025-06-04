@@ -33,7 +33,7 @@ public class ProcesosAtencionService {
 
         ProcesosAtencion procesosAtencion = modelMapper.map(procesosAtencionDTO, ProcesosAtencion.class);
         procesosAtencion.setIdProcesoAtencion(procesosAtencionDTO.getIdProcesoAtencion());
-        procesosAtencion.setNombre(procesosAtencionDTO.getNombre());
+        procesosAtencion.setDetalle(procesosAtencionDTO.getDetalle());
         procesosAtencion.setProcesos(procesos);
 
         ProcesosAtencion procesosAtencionGuardado = procesosAtencionRepo.save(procesosAtencion);
@@ -56,11 +56,11 @@ public class ProcesosAtencionService {
         if (detalleProcesosAtencionDTO.getIdProcesoAtencion()!= null) {
             procesosAtencionoExistente.setIdProcesoAtencion(detalleProcesosAtencionDTO.getIdProcesoAtencion());
         }
-        if (detalleProcesosAtencionDTO.getNombre() != null) {
-            procesosAtencionoExistente.setNombre(detalleProcesosAtencionDTO.getNombre());
+        if (detalleProcesosAtencionDTO.getDetalle() != null) {
+            procesosAtencionoExistente.setDetalle(detalleProcesosAtencionDTO.getDetalle());
         }
-        if (detalleProcesosAtencionDTO.getNombre() != null) {
-            procesosAtencionoExistente.setNombre(detalleProcesosAtencionDTO.getNombre());
+        if (detalleProcesosAtencionDTO.getDetalle() != null) {
+            procesosAtencionoExistente.setDetalle(detalleProcesosAtencionDTO.getDetalle());
         }
 
         // Guardar en la base de datos

@@ -1,11 +1,14 @@
 package com.turnos.enfermeria.controller;
 
 import com.turnos.enfermeria.exception.CodigoError;
+import com.turnos.enfermeria.exception.custom.ApiResponse;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.CambiosCuadroTurnoDTO;
 import com.turnos.enfermeria.model.dto.CuadroTurnoDTO;
+import com.turnos.enfermeria.model.dto.CuadroTurnoRequest;
+import com.turnos.enfermeria.model.entity.CuadroTurno;
 import com.turnos.enfermeria.service.CuadroTurnoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -248,4 +251,32 @@ public class CuadroTurnoController {
             );
         }
     }
+
+    /**
+     * Crear un nuevo cuadro de turno con nombre generado automáticamente
+     * Soporta múltiples procesos de atención
+     */
+    @PostMapping("/crear-total")
+    public ResponseEntity<?> crearCuadroTurnoTotal(@RequestBody CuadroTurnoRequest request) {
+        try {
+            CuadroTurno cuadroTurno = cuadroTurnoService.crearCuadroTurnoTotal(request);
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponse(true, "Cuadro de turno creado exitosamente", cuadroTurno));
+
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(false, e.getMessage()));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse(false, "Datos inválidos: " + e.getMessage()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(false, "Error interno del servidor"));
+        }
+    }
+
+
 }
