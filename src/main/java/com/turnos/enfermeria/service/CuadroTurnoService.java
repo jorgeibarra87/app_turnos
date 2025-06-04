@@ -1,9 +1,6 @@
 package com.turnos.enfermeria.service;
 
-import com.turnos.enfermeria.model.dto.CambiosCuadroTurnoDTO;
-import com.turnos.enfermeria.model.dto.CuadroTurnoDTO;
-import com.turnos.enfermeria.model.dto.CuadroTurnoRequest;
-import com.turnos.enfermeria.model.dto.TurnoDTO;
+import com.turnos.enfermeria.model.dto.*;
 import com.turnos.enfermeria.model.entity.*;
 import com.turnos.enfermeria.repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,7 +28,6 @@ public class CuadroTurnoService {
     private final ProcesosAtencionRepository procesosAtencionRepository;
     private final CambiosCuadroTurnoRepository cambiosCuadroTurnoRepository;
     private final CambiosCuadroTurnoService cambiosCuadroTurnoService;
-    //private final CuadroTurnoRequest cuadroTurnoRequest;
     private final ModelMapper modelMapper;
 
     @Transactional
@@ -291,21 +287,30 @@ public class CuadroTurnoService {
         return modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
     }
     @Transactional
-    public Map<String, List<?>> cambiarEstadoDeCuadrosYTurnos(String estadoActual, String nuevoEstado) {
-        // 1️⃣ Cambiar estado de los cuadros de turno
-        List<CuadroTurno> cuadros = cuadroTurnoRepository.findByEstadoCuadro(estadoActual);
-        for (CuadroTurno cuadro : cuadros) {
-            cuadro.setEstadoCuadro(nuevoEstado);
-        }
+    public CambiosEstadoDTO cambiarEstadoDeCuadrosYTurnos(String estadoActual, String nuevoEstado, List<Long> idsCuadros, List<Long> idsTurnos) {
+        // 1️⃣ Cambiar estado de los cuadros de turno seleccionados
+        List<CuadroTurno> cuadros = cuadroTurnoRepository.findAllById(idsCuadros).stream()
+                .filter(cuadro -> estadoActual.equals(cuadro.getEstadoCuadro()))
+                .peek(cuadro -> cuadro.setEstadoCuadro(nuevoEstado))
+                .collect(Collectors.toList());
         cuadroTurnoRepository.saveAll(cuadros);
-        // 2️⃣ Cambiar estado de los turnos asociados
-        List<Turnos> turnos = turnosRepository.findByEstadoTurno(estadoActual);
-        for (Turnos turno : turnos) {
-            turno.setEstadoTurno(nuevoEstado);
-        }
+
+        // 2️⃣ Cambiar estado en cambios_cuadro_turno en base a la relación con cuadroTurno
+        List<CambiosCuadroTurno> cambios = cambiosCuadroTurnoRepository
+                .findByCuadroTurnoIdCuadroTurnoIn(idsCuadros).stream()
+                .filter(cambio -> estadoActual.equals(cambio.getEstadoCuadro()))
+                .peek(cambio -> cambio.setEstadoCuadro(nuevoEstado))
+                .collect(Collectors.toList());
+        cambiosCuadroTurnoRepository.saveAll(cambios);
+
+        // 3️⃣ Cambiar estado de los turnos seleccionados
+        List<Turnos> turnos = turnosRepository.findAllById(idsTurnos).stream()
+                .filter(turno -> estadoActual.equals(turno.getEstadoTurno()))
+                .peek(turno -> turno.setEstadoTurno(nuevoEstado))
+                .collect(Collectors.toList());
         turnosRepository.saveAll(turnos);
 
-        // 3️⃣ Convertir las listas a DTOs
+        // 4️⃣ Convertir a DTOs
         List<CuadroTurnoDTO> cuadrosDTO = cuadros.stream()
                 .map(cuadro -> modelMapper.map(cuadro, CuadroTurnoDTO.class))
                 .collect(Collectors.toList());
@@ -314,12 +319,13 @@ public class CuadroTurnoService {
                 .map(turno -> modelMapper.map(turno, TurnoDTO.class))
                 .collect(Collectors.toList());
 
-        // 4️⃣ Retornar ambas listas en un mapa
-        Map<String, List<?>> cambios = new HashMap<>();
-        cambios.put("cuadrosActualizados", cuadrosDTO);
-        cambios.put("turnosActualizados", turnosDTO);
-        return cambios;
+        // 5️⃣ Armar el DTO de salida
+        CambiosEstadoDTO dto = new CambiosEstadoDTO();
+        dto.setCuadrosActualizados(cuadrosDTO);
+        dto.setTurnosActualizados(turnosDTO);
+        return dto;
     }
+
     public CuadroTurnoDTO actualizarTurnoExcepcion(Long id, Boolean nuevoValor, String tipoCambio) {
         CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("CuadroTurno no encontrado"));
@@ -333,10 +339,8 @@ public class CuadroTurnoService {
 
 
 
-
     /**
      * Crea un nuevo cuadro de turno con nombre generado automáticamente
-     * Ahora soporta múltiples procesos de atención
      */
     public CuadroTurno crearCuadroTurnoTotal(CuadroTurnoRequest request) {
         CuadroTurno cuadroTurno = new CuadroTurno();
@@ -396,48 +400,49 @@ public class CuadroTurnoService {
         cuadroTurno.setNombre(nombreGenerado);
 
         // Generar versión
-        String version = generarVersionCuadroTurno(cuadroTurno);
-        cuadroTurno.setVersion(version);
-
+        cuadroTurno.setVersion(generarNuevaVersion(cuadroTurno.getVersion(), cuadroTurno.getAnio(), cuadroTurno.getMes()));
         // Establecer valores por defecto
         cuadroTurno.setEstadoCuadro("abierto");
         cuadroTurno.setTurnoExcepcion(false);
+        cambiosCuadroTurnoService.registrarCambioCuadroTurno(cuadroTurno, "CREACION");
 
         return cuadroTurnoRepository.save(cuadroTurno);
+
     }
 
     /**
      * Genera el nombre del cuadro de turno basado en la selección del usuario
-     * Formato: CT_{Categoria}_{Identificador}_{Año}_{Mes}_{Equipo}
-     * ACTUALIZADO: Maneja múltiples procesos de atención
+     * Formato: CT_{consecutivo}_{Categoria}_{Identificador}_{Equipo}
      */
     private String generarNombreCuadroTurno(CuadroTurno cuadroTurno) {
-        StringBuilder nombreBuilder = new StringBuilder("CT_");
+        StringBuilder nombreBaseBuilder = new StringBuilder(); // sin "CT_"
 
-        // Determinar la categoría principal seleccionada
+        // Determinar la categoría principal
         String categoria = determinarCategoriaPrincipal(cuadroTurno);
-        nombreBuilder.append(categoria).append("_");
+        nombreBaseBuilder.append(categoria).append("_");
 
         // Agregar identificador específico
         String identificador = obtenerIdentificadorEspecifico(cuadroTurno, categoria);
-        nombreBuilder.append(identificador).append("_");
-
-        // Agregar año y mes
-        nombreBuilder.append(cuadroTurno.getAnio()).append("_")
-                .append(String.format("%02d", Integer.parseInt(cuadroTurno.getMes())));
+        nombreBaseBuilder.append(identificador);
 
         // Agregar equipo si está disponible
         if (cuadroTurno.getEquipos() != null) {
             String equipoNombre = limpiarNombreParaId(cuadroTurno.getEquipos().getNombre());
-            nombreBuilder.append("_").append(equipoNombre);
+            nombreBaseBuilder.append("_").append(equipoNombre);
         }
 
-        return nombreBuilder.toString();
+        String nombreBase = nombreBaseBuilder.toString();
+
+        // Buscar nombres similares en base al nombre generado
+        List<String> nombresSimilares = cuadroTurnoRepository.findNombresByBase(nombreBase);
+        long count = nombresSimilares.size();
+
+        return String.format("CT_%02d_%s", count + 1, nombreBase);
     }
+
 
     /**
      * Determina la categoría principal basada en la jerarquía de selección
-     * ACTUALIZADO: Considera múltiples procesos de atención
      */
     private String determinarCategoriaPrincipal(CuadroTurno cuadroTurno) {
         if (cuadroTurno.getProcesosAtencion() != null && !cuadroTurno.getProcesosAtencion().isEmpty()) {
@@ -457,7 +462,6 @@ public class CuadroTurnoService {
 
     /**
      * Obtiene el identificador específico basado en la categoría
-     * ACTUALIZADO: Maneja múltiples procesos de atención
      */
     private String obtenerIdentificadorEspecifico(CuadroTurno cuadroTurno, String categoria) {
         switch (categoria) {
@@ -492,29 +496,10 @@ public class CuadroTurnoService {
     private String limpiarNombreParaId(String nombre) {
         if (nombre == null) return "UNKNOWN";
 
-        return nombre.replaceAll("[^a-zA-Z0-9]", "_")
-                .replaceAll("_+", "_")
-                .replaceAll("^_|_$", "")
+        return nombre.replaceAll("[^\\p{L}\\p{N}]", "_") // permite letras y números de cualquier idioma
+                .replaceAll("_+", "_")              // reemplaza múltiples _ por uno solo
+                .replaceAll("^_|_$", "")            // elimina _ al inicio o final
                 .toUpperCase();
-    }
-
-    /**
-     * Genera la versión del cuadro de turno
-     * ACTUALIZADO: Considera múltiples procesos de atención en el conteo
-     */
-    private String generarVersionCuadroTurno(CuadroTurno cuadroTurno) {
-        // Contar cuántos cuadros similares existen para este período
-        Long count = cuadroTurnoRepository.countByAnioAndMesAndCategoria(
-                cuadroTurno.getAnio(),
-                cuadroTurno.getMes(),
-                determinarCategoriaPrincipal(cuadroTurno)
-        );
-
-        return String.format("v%02d_%s%s",
-                count + 1,
-                cuadroTurno.getMes().length() == 1 ? "0" + cuadroTurno.getMes() : cuadroTurno.getMes(),
-                cuadroTurno.getAnio().substring(2)
-        );
     }
 
     /**
@@ -533,6 +518,4 @@ public class CuadroTurnoService {
                 request.getMes()
         );
     }
-
-
 }

@@ -195,4 +195,8 @@ public interface CuadroTurnoRepository extends JpaRepository<CuadroTurno, Long> 
             @Param("mes") String mes,
             @Param("categoria") String categoria
     );
+
+
+    @Query("SELECT c.nombre FROM CuadroTurno c WHERE c.nombre LIKE CONCAT('%', :nombreBase)")
+    List<String> findNombresByBase(@Param("nombreBase") String nombreBase);
 }
