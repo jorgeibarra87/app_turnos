@@ -70,6 +70,9 @@ public class CuadroTurno {
     @Column(name = "turno_excepcion")
     private Boolean turnoExcepcion = false;
 
+    @Column(name = "categoria")
+    private String categoria;
+
 
     // Métodos de conveniencia para obtener IDs
     public Long getIdMacroproceso() {

@@ -348,70 +348,86 @@ public class CuadroTurnoService {
     public CuadroTurno crearCuadroTurnoTotal(CuadroTurnoRequest request) {
         CuadroTurno cuadroTurno = new CuadroTurno();
 
-        // Establecer las relaciones basadas en la selección del usuario
-        if (request.getIdMacroproceso() != null) {
-            Macroprocesos macroproceso = macroprocesosRepository.findById(request.getIdMacroproceso())
-                    .orElseThrow(() -> new EntityNotFoundException("Macroproceso no encontrado"));
-            cuadroTurno.setMacroProcesos(macroproceso);
+        // Establecer datos comunes según categoría
+        switch (request.getCategoria().toLowerCase()) {
+            case "macroproceso":
+                if (request.getIdMacroproceso() != null) {
+                    Macroprocesos macro = macroprocesosRepository.findById(request.getIdMacroproceso())
+                            .orElseThrow(() -> new EntityNotFoundException("Macroproceso no encontrado"));
+                    cuadroTurno.setMacroProcesos(macro);
+                }
+                break;
+
+            case "proceso":
+                if (request.getIdProceso() != null) {
+                    Procesos proceso = procesosRepository.findById(request.getIdProceso())
+                            .orElseThrow(() -> new EntityNotFoundException("Proceso no encontrado"));
+                    cuadroTurno.setProcesos(proceso);
+                }
+                break;
+
+            case "servicio":
+                if (request.getIdServicio() != null) {
+                    Servicio servicio = servicioRepository.findById(request.getIdServicio())
+                            .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
+                    cuadroTurno.setServicios(servicio);
+                }
+                break;
+
+            case "seccion":
+                if (request.getIdSeccionServicio() != null) {
+                    SeccionesServicio seccion = seccionesServicioRepository.findById(request.getIdSeccionServicio())
+                            .orElseThrow(() -> new EntityNotFoundException("Sección de servicio no encontrada"));
+                    cuadroTurno.setSeccionesServicios(seccion);
+                }
+                break;
+
+            case "multiproceso":
+                // Esta categoría usa múltiples procesos base
+                if (request.getIdsProcesosAtencion() != null && !request.getIdsProcesosAtencion().isEmpty()) {
+                    List<ProcesosAtencion> procesosAtencion = new ArrayList<>();
+
+                    for (Long idProcesoBase : request.getIdsProcesosAtencion()) {
+                        Procesos procesoBase = procesosRepository.findById(idProcesoBase)
+                                .orElseThrow(() -> new EntityNotFoundException("Proceso base no encontrado con ID: " + idProcesoBase));
+
+                        ProcesosAtencion nuevoProcesoAtencion = new ProcesosAtencion();
+                        nuevoProcesoAtencion.setProcesos(procesoBase);
+                        nuevoProcesoAtencion.setDetalle(procesoBase.getNombre()); // o como desees generar el detalle
+                        nuevoProcesoAtencion.setCuadroTurno(cuadroTurno); // se asigna el cuadroTurno antes de guardar
+
+                        procesosAtencion.add(nuevoProcesoAtencion);
+                    }
+
+                    cuadroTurno.setProcesosAtencion(procesosAtencion);
+                }
+                break;
+
+            default:
+                throw new IllegalArgumentException("Categoría no válida: " + request.getCategoria());
         }
 
-        if (request.getIdProceso() != null) {
-            Procesos proceso = procesosRepository.findById(request.getIdProceso())
-                    .orElseThrow(() -> new EntityNotFoundException("Proceso no encontrado"));
-            cuadroTurno.setProcesos(proceso);
-        }
-
-        if (request.getIdServicio() != null) {
-            Servicio servicio = servicioRepository.findById(request.getIdServicio())
-                    .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
-            cuadroTurno.setServicios(servicio);
-        }
-
-        if (request.getIdSeccionServicio() != null) {
-            SeccionesServicio seccionServicio = seccionesServicioRepository.findById(request.getIdSeccionServicio())
-                    .orElseThrow(() -> new EntityNotFoundException("Sección de servicio no encontrada"));
-            cuadroTurno.setSeccionesServicios(seccionServicio);
-        }
-
-        // NUEVO: Manejar múltiples procesos de atención
-        if (request.getIdsProcesosAtencion() != null && !request.getIdsProcesosAtencion().isEmpty()) {
-            List<ProcesosAtencion> procesosAtencion = new ArrayList<>();
-
-            for (Long idProcesoAtencion : request.getIdsProcesosAtencion()) {
-                ProcesosAtencion procesoAtencion = procesosAtencionRepository.findById(idProcesoAtencion)
-                        .orElseThrow(() -> new EntityNotFoundException(
-                                "Proceso de atención no encontrado con ID: " + idProcesoAtencion));
-                procesosAtencion.add(procesoAtencion);
-            }
-
-            // Asumir que CuadroTurno tiene una relación @OneToMany o @ManyToMany con ProcesosAtencion
-            cuadroTurno.setProcesosAtencion(procesosAtencion);
-        }
-
+        // Relación con equipo (opcional)
         if (request.getIdEquipo() != null) {
             Equipo equipo = equipoRepository.findById(request.getIdEquipo())
                     .orElseThrow(() -> new EntityNotFoundException("Equipo no encontrado"));
             cuadroTurno.setEquipos(equipo);
         }
 
-        // Establecer año y mes
+        // Establecer año, mes, nombre y versión
         cuadroTurno.setAnio(request.getAnio());
         cuadroTurno.setMes(request.getMes());
-
-        // Generar el nombre automáticamente
-        String nombreGenerado = generarNombreCuadroTurno(cuadroTurno);
-        cuadroTurno.setNombre(nombreGenerado);
-
-        // Generar versión
+        cuadroTurno.setNombre(generarNombreCuadroTurno(cuadroTurno));
         cuadroTurno.setVersion(generarNuevaVersion(cuadroTurno.getVersion(), cuadroTurno.getAnio(), cuadroTurno.getMes()));
-        // Establecer valores por defecto
         cuadroTurno.setEstadoCuadro("abierto");
         cuadroTurno.setTurnoExcepcion(false);
+        cuadroTurno.setCategoria(request.getCategoria());
+
         cambiosCuadroTurnoService.registrarCambioCuadroTurno(cuadroTurno, "CREACION");
 
         return cuadroTurnoRepository.save(cuadroTurno);
-
     }
+
 
     /**
      * Genera el nombre del cuadro de turno basado en la selección del usuario
