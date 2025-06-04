@@ -57,7 +57,7 @@ public class CambiosCuadroTurnoService {
         cambiosCuadroTurno.setProcesos(procesos);
         cambiosCuadroTurno.setServicios(servicio);
         cambiosCuadroTurno.setSeccionesServicios(seccionesServicio);
-        cambiosCuadroTurno.setProcesoAtencion(procesosAtencion);
+        //cambiosCuadroTurno.setProcesoAtencion(procesosAtencion);
         cambiosCuadroTurno.setFechaCambio(cambiosCuadroTurnoDTO.getFechaCambio());
         cambiosCuadroTurno.setNombre(cambiosCuadroTurnoDTO.getNombre());
         cambiosCuadroTurno.setMes(cambiosCuadroTurnoDTO.getMes());
@@ -115,9 +115,9 @@ public class CambiosCuadroTurnoService {
         if (cambiosCuadroTurnoDetallesDTO.getIdSeccionesServicios() != null) {
             cambiosCuadroTurnoExistente.setSeccionesServicios(seccionesServicio);
         }
-        if (cambiosCuadroTurnoDetallesDTO.getIdProcesoAtencion()!= null) {
-            cambiosCuadroTurnoExistente.setProcesoAtencion(procesosAtencion);
-        }
+//        if (cambiosCuadroTurnoDetallesDTO.getIdProcesoAtencion()!= null) {
+//            cambiosCuadroTurnoExistente.setProcesoAtencion(procesosAtencion);
+//        }
 
         if (cambiosCuadroTurnoDetallesDTO.getFechaCambio() != null) {
             cambiosCuadroTurnoExistente.setFechaCambio(cambiosCuadroTurnoDetallesDTO.getFechaCambio());
@@ -189,7 +189,7 @@ public class CambiosCuadroTurnoService {
         cambio.setMacroProcesos(cuadroTurno.getMacroProcesos());
         cambio.setProcesos(cuadroTurno.getProcesos());
         cambio.setServicios(cuadroTurno.getServicios());
-        cambio.setProcesoAtencion(cuadroTurno.getProcesosAtencion());
+        //cambio.setProcesoAtencion(cuadroTurno.getProcesosAtencion());
         cambio.setSeccionesServicios(cuadroTurno.getSeccionesServicios());
 
         // Guardar el cambio en la BD

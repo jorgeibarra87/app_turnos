@@ -16,14 +16,18 @@ public class ProcesosAtencion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idProcesoAtencion;
 
-    @Column(name = "nombre", nullable = false)
-    private String nombre;
+    @Column(name = "detalle")
+    private String detalle;
 
     @ManyToOne
     @JoinColumn(name = "id_proceso", referencedColumnName = "id_proceso")
     private Procesos procesos;
 
-    public Long getIdProceso() {
-        return procesos != null ? procesos.getIdProceso() : null;
-    }
+    @ManyToOne
+    @JoinColumn(name = "id_cuadro_turno", referencedColumnName = "id_cuadro_turno")
+    private CuadroTurno cuadroTurno;
+
+//    public Long getIdProceso() {
+//        return procesos != null ? procesos.getIdProceso() : null;
+//    }
 }

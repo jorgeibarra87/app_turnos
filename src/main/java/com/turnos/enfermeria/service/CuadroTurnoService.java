@@ -2,6 +2,7 @@ package com.turnos.enfermeria.service;
 
 import com.turnos.enfermeria.model.dto.CambiosCuadroTurnoDTO;
 import com.turnos.enfermeria.model.dto.CuadroTurnoDTO;
+import com.turnos.enfermeria.model.dto.CuadroTurnoRequest;
 import com.turnos.enfermeria.model.dto.TurnoDTO;
 import com.turnos.enfermeria.model.entity.*;
 import com.turnos.enfermeria.repository.*;
@@ -11,10 +12,7 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -33,6 +31,7 @@ public class CuadroTurnoService {
     private final ProcesosAtencionRepository procesosAtencionRepository;
     private final CambiosCuadroTurnoRepository cambiosCuadroTurnoRepository;
     private final CambiosCuadroTurnoService cambiosCuadroTurnoService;
+    //private final CuadroTurnoRequest cuadroTurnoRequest;
     private final ModelMapper modelMapper;
 
     @Transactional
@@ -42,31 +41,31 @@ public class CuadroTurnoService {
             macroprocesos = macroprocesosRepository.findById(cuadroTurnoDTO.getIdMacroproceso())
                     .orElseThrow(() -> new RuntimeException("macroproceso no encontrado."));
         }
+
         Procesos procesos = null;
         if (cuadroTurnoDTO.getIdProceso() != null) {
             procesos = procesosRepository.findById(cuadroTurnoDTO.getIdProceso())
                     .orElseThrow(() -> new RuntimeException("Proceso no encontrado."));
         }
+
         Servicio servicio = null;
         if (cuadroTurnoDTO.getIdServicios() != null) {
             servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicios())
                     .orElseThrow(() -> new RuntimeException("Servicio no encontrado."));
         }
+
         SeccionesServicio seccionesServicio = null;
         if (cuadroTurnoDTO.getIdSeccionesServicios() != null) {
             seccionesServicio = seccionesServicioRepository.findById(cuadroTurnoDTO.getIdSeccionesServicios())
                     .orElseThrow(() -> new RuntimeException("Seccion Servicio no encontrada."));
         }
-        ProcesosAtencion procesosAtencion = null;
-        if (cuadroTurnoDTO.getIdProcesosAtencion() != null) {
-            procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
-                    .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
-        }
+
         Equipo equipo = null;
         if(cuadroTurnoDTO.getIdEquipo() != null){
             equipo = equipoRepository.findById(cuadroTurnoDTO.getIdEquipo())
                     .orElseThrow(() -> new RuntimeException("Equipo no encontrado."));
         }
+
         // Convertir DTO a Entidad
         CuadroTurno cuadroTurno = modelMapper.map(cuadroTurnoDTO, CuadroTurno.class);
 
@@ -79,12 +78,21 @@ public class CuadroTurnoService {
         cuadroTurno.setProcesos(procesos);
         cuadroTurno.setServicios(servicio);
         cuadroTurno.setEquipos(equipo);
-        cuadroTurno.setProcesosAtencion(procesosAtencion);
         cuadroTurno.setSeccionesServicios(seccionesServicio);
         cuadroTurno.setTurnoExcepcion(cuadroTurnoDTO.getTurnoExcepcion());
 
-        // Guardar en la base de datos
+        // Guardar en la base de datos primero
         CuadroTurno nuevoCuadro = cuadroTurnoRepository.save(cuadroTurno);
+
+        // Manejar procesos de atención si existen en el DTO
+        if (cuadroTurnoDTO.getIdsProcesosAtencion() != null && !cuadroTurnoDTO.getIdsProcesosAtencion().isEmpty()) {
+            for (Long idProcesoAtencion : cuadroTurnoDTO.getIdsProcesosAtencion()) {
+                ProcesosAtencion procesoAtencion = procesosAtencionRepository.findById(idProcesoAtencion)
+                        .orElseThrow(() -> new RuntimeException("Proceso de atención no encontrado: " + idProcesoAtencion));
+                procesoAtencion.setCuadroTurno(nuevoCuadro);
+                procesosAtencionRepository.save(procesoAtencion);
+            }
+        }
 
         // Registrar cambio
         cambiosCuadroTurnoService.registrarCambioCuadroTurno(nuevoCuadro, "CREACION");
@@ -142,11 +150,11 @@ public class CuadroTurnoService {
             seccionesServicio = seccionesServicioRepository.findById(cuadroTurnoDTO.getIdSeccionesServicios())
                     .orElseThrow(() -> new RuntimeException("Seccion Servicio no encontrada."));
         }
-        ProcesosAtencion procesosAtencion = null;
-        if (cuadroTurnoDTO.getIdProcesosAtencion() != null) {
-            procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
-                    .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
-        }
+//        ProcesosAtencion procesosAtencion = null;
+//        if (cuadroTurnoDTO.getIdProcesosAtencion() != null) {
+//            procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
+//                    .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
+//        }
         Equipo equipo = null;
         if(cuadroTurnoDTO.getIdEquipo() != null){
             equipo = equipoRepository.findById(cuadroTurnoDTO.getIdEquipo())
@@ -167,7 +175,7 @@ public class CuadroTurnoService {
             cuadroExistente.setProcesos(procesos);
             cuadroExistente.setServicios(servicio);
             cuadroExistente.setEquipos(equipo);
-            cuadroExistente.setProcesosAtencion(procesosAtencion);
+            //cuadroExistente.setProcesosAtencion(procesosAtencion);
             cuadroExistente.setSeccionesServicios(seccionesServicio);
             // Si el estado cambia a "cerrado", generamos una nueva versión
             if (!"cerrado".equalsIgnoreCase(cuadroExistente.getEstadoCuadro()) &&
@@ -226,11 +234,11 @@ public class CuadroTurnoService {
             seccionesServicio = seccionesServicioRepository.findById(cuadroTurnoDTO.getIdSeccionesServicios())
                     .orElseThrow(() -> new RuntimeException("Seccion Servicio no encontrada."));
         }
-        ProcesosAtencion procesosAtencion = null;
-        if (cuadroTurnoDTO.getIdProcesosAtencion() != null) {
-            procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
-                    .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
-        }
+//        ProcesosAtencion procesosAtencion = null;
+//        if (cuadroTurnoDTO.getIdProcesosAtencion() != null) {
+//            procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
+//                    .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
+//        }
 
         // Convertimos el DTO a la entidad CambiosCuadroTurno
         CambiosCuadroTurno cambio = modelMapper.map(cuadroTurnoDTO, CambiosCuadroTurno.class);
@@ -249,7 +257,7 @@ public class CuadroTurnoService {
         cambio.setProcesos(procesos);
         cambio.setServicios(servicio);
         cambio.setEquipos(equipo);
-        cambio.setProcesoAtencion(procesosAtencion);
+        //cambio.setProcesoAtencion(procesosAtencion);
         cambio.setSeccionesServicios(seccionesServicio);
         cambiosCuadroTurnoRepository.save(cambio);
     }
@@ -322,4 +330,209 @@ public class CuadroTurnoService {
         registrarCambioCuadroTurno(dto, tipoCambio);
         return dto;
     }
+
+
+
+
+    /**
+     * Crea un nuevo cuadro de turno con nombre generado automáticamente
+     * Ahora soporta múltiples procesos de atención
+     */
+    public CuadroTurno crearCuadroTurnoTotal(CuadroTurnoRequest request) {
+        CuadroTurno cuadroTurno = new CuadroTurno();
+
+        // Establecer las relaciones basadas en la selección del usuario
+        if (request.getIdMacroproceso() != null) {
+            Macroprocesos macroproceso = macroprocesosRepository.findById(request.getIdMacroproceso())
+                    .orElseThrow(() -> new EntityNotFoundException("Macroproceso no encontrado"));
+            cuadroTurno.setMacroProcesos(macroproceso);
+        }
+
+        if (request.getIdProceso() != null) {
+            Procesos proceso = procesosRepository.findById(request.getIdProceso())
+                    .orElseThrow(() -> new EntityNotFoundException("Proceso no encontrado"));
+            cuadroTurno.setProcesos(proceso);
+        }
+
+        if (request.getIdServicio() != null) {
+            Servicio servicio = servicioRepository.findById(request.getIdServicio())
+                    .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
+            cuadroTurno.setServicios(servicio);
+        }
+
+        if (request.getIdSeccionServicio() != null) {
+            SeccionesServicio seccionServicio = seccionesServicioRepository.findById(request.getIdSeccionServicio())
+                    .orElseThrow(() -> new EntityNotFoundException("Sección de servicio no encontrada"));
+            cuadroTurno.setSeccionesServicios(seccionServicio);
+        }
+
+        // NUEVO: Manejar múltiples procesos de atención
+        if (request.getIdsProcesosAtencion() != null && !request.getIdsProcesosAtencion().isEmpty()) {
+            List<ProcesosAtencion> procesosAtencion = new ArrayList<>();
+
+            for (Long idProcesoAtencion : request.getIdsProcesosAtencion()) {
+                ProcesosAtencion procesoAtencion = procesosAtencionRepository.findById(idProcesoAtencion)
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "Proceso de atención no encontrado con ID: " + idProcesoAtencion));
+                procesosAtencion.add(procesoAtencion);
+            }
+
+            // Asumir que CuadroTurno tiene una relación @OneToMany o @ManyToMany con ProcesosAtencion
+            cuadroTurno.setProcesosAtencion(procesosAtencion);
+        }
+
+        if (request.getIdEquipo() != null) {
+            Equipo equipo = equipoRepository.findById(request.getIdEquipo())
+                    .orElseThrow(() -> new EntityNotFoundException("Equipo no encontrado"));
+            cuadroTurno.setEquipos(equipo);
+        }
+
+        // Establecer año y mes
+        cuadroTurno.setAnio(request.getAnio());
+        cuadroTurno.setMes(request.getMes());
+
+        // Generar el nombre automáticamente
+        String nombreGenerado = generarNombreCuadroTurno(cuadroTurno);
+        cuadroTurno.setNombre(nombreGenerado);
+
+        // Generar versión
+        String version = generarVersionCuadroTurno(cuadroTurno);
+        cuadroTurno.setVersion(version);
+
+        // Establecer valores por defecto
+        cuadroTurno.setEstadoCuadro("abierto");
+        cuadroTurno.setTurnoExcepcion(false);
+
+        return cuadroTurnoRepository.save(cuadroTurno);
+    }
+
+    /**
+     * Genera el nombre del cuadro de turno basado en la selección del usuario
+     * Formato: CT_{Categoria}_{Identificador}_{Año}_{Mes}_{Equipo}
+     * ACTUALIZADO: Maneja múltiples procesos de atención
+     */
+    private String generarNombreCuadroTurno(CuadroTurno cuadroTurno) {
+        StringBuilder nombreBuilder = new StringBuilder("CT_");
+
+        // Determinar la categoría principal seleccionada
+        String categoria = determinarCategoriaPrincipal(cuadroTurno);
+        nombreBuilder.append(categoria).append("_");
+
+        // Agregar identificador específico
+        String identificador = obtenerIdentificadorEspecifico(cuadroTurno, categoria);
+        nombreBuilder.append(identificador).append("_");
+
+        // Agregar año y mes
+        nombreBuilder.append(cuadroTurno.getAnio()).append("_")
+                .append(String.format("%02d", Integer.parseInt(cuadroTurno.getMes())));
+
+        // Agregar equipo si está disponible
+        if (cuadroTurno.getEquipos() != null) {
+            String equipoNombre = limpiarNombreParaId(cuadroTurno.getEquipos().getNombre());
+            nombreBuilder.append("_").append(equipoNombre);
+        }
+
+        return nombreBuilder.toString();
+    }
+
+    /**
+     * Determina la categoría principal basada en la jerarquía de selección
+     * ACTUALIZADO: Considera múltiples procesos de atención
+     */
+    private String determinarCategoriaPrincipal(CuadroTurno cuadroTurno) {
+        if (cuadroTurno.getProcesosAtencion() != null && !cuadroTurno.getProcesosAtencion().isEmpty()) {
+            return "ProcesoAtencion";
+        } else if (cuadroTurno.getSeccionesServicios() != null) {
+            return "Seccion";
+        } else if (cuadroTurno.getServicios() != null) {
+            return "Servicio";
+        } else if (cuadroTurno.getProcesos() != null) {
+            return "Proceso";
+        } else if (cuadroTurno.getMacroProcesos() != null) {
+            return "Macroproceso";
+        } else {
+            return "General";
+        }
+    }
+
+    /**
+     * Obtiene el identificador específico basado en la categoría
+     * ACTUALIZADO: Maneja múltiples procesos de atención
+     */
+    private String obtenerIdentificadorEspecifico(CuadroTurno cuadroTurno, String categoria) {
+        switch (categoria) {
+            case "ProcesoAtencion":
+                // Para múltiples procesos, crear un identificador compuesto
+                if (cuadroTurno.getProcesosAtencion() != null && !cuadroTurno.getProcesosAtencion().isEmpty()) {
+                    if (cuadroTurno.getProcesosAtencion().size() == 1) {
+                        // Un solo proceso
+                        return limpiarNombreParaId(cuadroTurno.getProcesosAtencion().get(0).getDetalle());
+                    } else {
+                        // Múltiples procesos: usar un identificador genérico más contador
+                        return "MULTIPROCESO_" + cuadroTurno.getProcesosAtencion().size();
+                    }
+                }
+                return "PROCESO_ATENCION";
+            case "Seccion":
+                return limpiarNombreParaId(cuadroTurno.getSeccionesServicios().getNombre());
+            case "Servicio":
+                return limpiarNombreParaId(cuadroTurno.getServicios().getNombre());
+            case "Proceso":
+                return limpiarNombreParaId(cuadroTurno.getProcesos().getNombre());
+            case "Macroproceso":
+                return limpiarNombreParaId(cuadroTurno.getMacroProcesos().getNombre());
+            default:
+                return "GENERAL";
+        }
+    }
+
+    /**
+     * Limpia el nombre para usar como identificador (sin espacios, caracteres especiales)
+     */
+    private String limpiarNombreParaId(String nombre) {
+        if (nombre == null) return "UNKNOWN";
+
+        return nombre.replaceAll("[^a-zA-Z0-9]", "_")
+                .replaceAll("_+", "_")
+                .replaceAll("^_|_$", "")
+                .toUpperCase();
+    }
+
+    /**
+     * Genera la versión del cuadro de turno
+     * ACTUALIZADO: Considera múltiples procesos de atención en el conteo
+     */
+    private String generarVersionCuadroTurno(CuadroTurno cuadroTurno) {
+        // Contar cuántos cuadros similares existen para este período
+        Long count = cuadroTurnoRepository.countByAnioAndMesAndCategoria(
+                cuadroTurno.getAnio(),
+                cuadroTurno.getMes(),
+                determinarCategoriaPrincipal(cuadroTurno)
+        );
+
+        return String.format("v%02d_%s%s",
+                count + 1,
+                cuadroTurno.getMes().length() == 1 ? "0" + cuadroTurno.getMes() : cuadroTurno.getMes(),
+                cuadroTurno.getAnio().substring(2)
+        );
+    }
+
+    /**
+     * Valida si ya existe un cuadro de turno similar
+     * ACTUALIZADO: Considera múltiples procesos de atención
+     */
+    public boolean existeCuadroTurnoSimilar(CuadroTurnoRequest request) {
+        return cuadroTurnoRepository.existsBySimilarConfigurationWithMultipleProcesses(
+                request.getIdMacroproceso(),
+                request.getIdProceso(),
+                request.getIdServicio(),
+                request.getIdSeccionServicio(),
+                request.getIdsProcesosAtencion(), // Ahora es una lista
+                request.getIdEquipo(),
+                request.getAnio(),
+                request.getMes()
+        );
+    }
+
+
 }

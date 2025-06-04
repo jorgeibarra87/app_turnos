@@ -7,22 +7,21 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DTO actualizado para la creación de cuadros de turno con múltiples procesos
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CuadroTurnoDTO {
-    private Long idCuadroTurno;
+public class CuadroTurnoRequest {
     private Long idMacroproceso;
     private Long idProceso;
-    private Long idServicios;
-    private Long idSeccionesServicios;
-    private List<Long> idsProcesosAtencion; // Cambiado de Long a List<Long>
+    private Long idServicio;
+    private Long idSeccionServicio;
+    private List<Long> idsProcesosAtencion; // CAMBIO: de Long a List<Long>
     private Long idEquipo;
-    private String nombre;
     private String anio;
     private String mes;
-    private String estadoCuadro = "abierto"; // "abierto" o "cerrado"
-    private String version; // Ejemplo: "v01_0225"
     private Boolean turnoExcepcion = false;
 
     // Métodos de conveniencia para manejar procesos de atención
@@ -48,5 +47,4 @@ public class CuadroTurnoDTO {
     public int getCantidadProcesosAtencion() {
         return idsProcesosAtencion != null ? idsProcesosAtencion.size() : 0;
     }
-
 }
