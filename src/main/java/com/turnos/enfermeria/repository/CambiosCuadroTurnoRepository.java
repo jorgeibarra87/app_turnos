@@ -13,4 +13,6 @@ public interface CambiosCuadroTurnoRepository extends JpaRepository<CambiosCuadr
      * Encuentra el historial de cambios de un cuadro de turno específico.
      */
     List<CambiosCuadroTurno> findByCuadroTurno_IdCuadroTurno(Long idCuadroTurno);
+
+    List<CambiosCuadroTurno> findByCuadroTurnoIdCuadroTurnoIn(List<Long> idsCuadros);
 }

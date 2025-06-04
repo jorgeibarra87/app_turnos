@@ -5,9 +5,7 @@ import com.turnos.enfermeria.exception.custom.ApiResponse;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-import com.turnos.enfermeria.model.dto.CambiosCuadroTurnoDTO;
-import com.turnos.enfermeria.model.dto.CuadroTurnoDTO;
-import com.turnos.enfermeria.model.dto.CuadroTurnoRequest;
+import com.turnos.enfermeria.model.dto.*;
 import com.turnos.enfermeria.model.entity.CuadroTurno;
 import com.turnos.enfermeria.service.CuadroTurnoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,7 +28,7 @@ public class CuadroTurnoController {
     @Autowired
     private CuadroTurnoService cuadroTurnoService;
     @Autowired
-    private HttpServletRequest request;
+    private HttpServletRequest requestHttp;
 
     @PostMapping
     @Operation(summary = "Crear un cuadro de turnos", description = "Crea un nuevo cuadro de turnos con su información básica.",
@@ -43,15 +41,15 @@ public class CuadroTurnoController {
             throw new GenericBadRequestException(
                     CodigoError.CUADRO_TURNO_DATOS_INVALIDOS,
                     e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
         } catch (Exception e) {
             throw new GenericConflictException(
                     CodigoError.CUADRO_TURNO_CONFLICTO,
                     "Error al crear el Cuadro de turno: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
         }
     }
@@ -73,8 +71,8 @@ public class CuadroTurnoController {
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.CUADRO_TURNO_NO_ENCONTRADO,
                         idCuadroTurno,
-                        request.getMethod(),
-                        request.getRequestURI()
+                        requestHttp.getMethod(),
+                        requestHttp.getRequestURI()
                 ));
     }
 
@@ -87,8 +85,8 @@ public class CuadroTurnoController {
             throw new GenericNotFoundException(
                     CodigoError.HISTORIAL_CUADRO_TURNO_NO_ENCONTRADO,
                     id,
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
         }
         return historial.isEmpty()
@@ -108,31 +106,31 @@ public class CuadroTurnoController {
             throw new GenericNotFoundException(
                     CodigoError.CUADRO_TURNO_NO_ENCONTRADO,
                     id,
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
         } catch (IllegalArgumentException e) {
             throw new GenericBadRequestException(
                     CodigoError.CUADRO_TURNO_DATOS_INVALIDOS,
                     e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
 
         } catch (IllegalStateException e) {
             throw new GenericConflictException(
                     CodigoError.CUADRO_TURNOS_ESTADO_INVALIDO,
                     "No se puede actualizar: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
 
         } catch (Exception e) {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
                     "Error al actualizar el cuadro: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
         }
     }
@@ -148,31 +146,31 @@ public class CuadroTurnoController {
             throw new GenericNotFoundException(
                     CodigoError.CUADRO_TURNO_NO_ENCONTRADO,
                     idCambio,
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
         } catch (IllegalArgumentException e) {
             throw new GenericBadRequestException(
                     CodigoError.CUADRO_TURNO_DATOS_INVALIDOS,
                     e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
 
         } catch (IllegalStateException e) {
             throw new GenericConflictException(
                     CodigoError.CUADRO_TURNOS_ESTADO_INVALIDO,
                     "No se pudo restaurar: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
 
         } catch (Exception e) {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
                     "Error al restaurar el cuadro: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
         }
     }
@@ -180,34 +178,36 @@ public class CuadroTurnoController {
     @PutMapping("/cambiar-estado")
     @Operation(summary = "Cambiar estado de cuadros y turnos", description = "Cambia el estado de todos los cuadros y turnos que coincidan con un estado actual.",
             tags={"Cuadro de Turnos"})
-    public ResponseEntity<Map<String, List<?>>> cambiarEstadoCuadrosYTurnos(
-            @RequestParam String estadoActual,
-            @RequestParam String nuevoEstado) {
+    public ResponseEntity<CambiosEstadoDTO> cambiarEstadoCuadrosYTurnos(
+            @RequestBody CambiarEstadoRequestDTO request) {
         try {
-            Map<String, List<?>> cambios = cuadroTurnoService.cambiarEstadoDeCuadrosYTurnos(estadoActual, nuevoEstado);
+            CambiosEstadoDTO cambios = cuadroTurnoService.cambiarEstadoDeCuadrosYTurnos(request.getEstadoActual(),
+                    request.getNuevoEstado(),
+                    request.getIdsCuadros(),
+                    request.getIdsTurnos());
             return ResponseEntity.ok(cambios);
         }catch (IllegalArgumentException e) {
             throw new GenericBadRequestException(
                     CodigoError.CUADRO_TURNO_DATOS_INVALIDOS,
                     e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
 
         } catch (IllegalStateException e) {
             throw new GenericConflictException(
                     CodigoError.CUADRO_TURNOS_ESTADO_INVALIDO,
-                    "No se pudo restaurar: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    "No se pudo cambiar el estado: " + e.getMessage(),
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
 
         } catch (Exception e) {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
                     "Error al restaurar el cuadro: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
         }
     }
@@ -223,31 +223,31 @@ public class CuadroTurnoController {
             throw new GenericNotFoundException(
                     CodigoError.CUADRO_TURNO_NO_ENCONTRADO,
                     id,
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
         } catch (IllegalArgumentException e) {
             throw new GenericBadRequestException(
                     CodigoError.CUADRO_TURNO_DATOS_INVALIDOS,
                     e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
 
         } catch (IllegalStateException e) {
             throw new GenericConflictException(
                     CodigoError.CUADRO_TURNOS_ESTADO_INVALIDO,
                     "No se pudo restaurar: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
 
         } catch (Exception e) {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
                     "Error al restaurar el cuadro: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
             );
         }
     }
@@ -257,7 +257,7 @@ public class CuadroTurnoController {
      * Soporta múltiples procesos de atención
      */
     @PostMapping("/crear-total")
-    public ResponseEntity<?> crearCuadroTurnoTotal(@RequestBody CuadroTurnoRequest request) {
+    public ResponseEntity<ApiResponse> crearCuadroTurnoTotal(@RequestBody CuadroTurnoRequest request) {
         try {
             CuadroTurno cuadroTurno = cuadroTurnoService.crearCuadroTurnoTotal(request);
 

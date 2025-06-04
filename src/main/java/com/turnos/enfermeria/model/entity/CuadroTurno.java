@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import jakarta.persistence.*;
@@ -41,6 +42,7 @@ public class CuadroTurno {
     @JoinColumn(name = "id_seccion_servicio", referencedColumnName = "id_seccion_servicio")
     private SeccionesServicio seccionesServicios;
 
+    @JsonIgnoreProperties("cuadroTurno")
     @OneToMany(mappedBy = "cuadroTurno", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProcesosAtencion> procesosAtencion;
 
