@@ -1,10 +1,14 @@
 package com.turnos.enfermeria.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Entity
@@ -35,9 +39,9 @@ public class CambiosCuadroTurno {
     @JoinColumn(name = "id_seccion_servicio", referencedColumnName = "id_seccion_servicio")
     private SeccionesServicio seccionesServicios;
 
-//    @ManyToOne
-//    @JoinColumn(name = "id_proceso_atencion", referencedColumnName = "id_proceso_atencion")
-//    private ProcesosAtencion procesoAtencion;
+    @JsonIgnoreProperties("CambiosCuadroTurno")
+    @OneToMany
+    private List<ProcesosAtencion> procesosAtencion;
 
     @ManyToOne
     @JoinColumn(name = "id_equipo", referencedColumnName = "id_equipo")
@@ -65,6 +69,9 @@ public class CambiosCuadroTurno {
     @Column(name = "turno_excepcion")
     private Boolean TurnoExcepcion;
 
+    @Column(name = "categoria")
+    private String categoria;
+
     public Long getIdCuadroTurno() {
         return cuadroTurno != null ? cuadroTurno.getIdCuadroTurno() : null;
     }
@@ -80,8 +87,38 @@ public class CambiosCuadroTurno {
     public Long getIdSeccionServicio() {
         return seccionesServicios != null ? seccionesServicios.getIdSeccionServicio() : null;
     }
-//    public Long getIdProcesoAtencion() {
-//        return procesoAtencion != null ? procesoAtencion.getIdProcesoAtencion() : null;
-//    }
+    public void addProcesoAtencion(ProcesosAtencion procesoAtencion) {
+        if (this.procesosAtencion == null) {
+            this.procesosAtencion = new ArrayList<>();
+        }
+        if (!this.procesosAtencion.contains(procesoAtencion)) {
+            this.procesosAtencion.add(procesoAtencion);
+        }
+    }
+
+    public void removeProcesoAtencion(ProcesosAtencion procesoAtencion) {
+        if (this.procesosAtencion != null) {
+            this.procesosAtencion.remove(procesoAtencion);
+        }
+    }
+
+    public boolean hasProcesoAtencion(Long idProcesoAtencion) {
+        return procesosAtencion != null &&
+                procesosAtencion.stream()
+                        .anyMatch(pa -> pa.getIdProcesoAtencion().equals(idProcesoAtencion));
+    }
+
+    public int getCantidadProcesosAtencion() {
+        return procesosAtencion != null ? procesosAtencion.size() : 0;
+    }
+
+    public String getNombresProcesosAtencion() {
+        if (procesosAtencion == null || procesosAtencion.isEmpty()) {
+            return "";
+        }
+        return procesosAtencion.stream()
+                .map(ProcesosAtencion::getDetalle)
+                .collect(Collectors.joining(", "));
+    }
 
 }
