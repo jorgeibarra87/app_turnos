@@ -146,11 +146,7 @@ public class CuadroTurnoService {
             seccionesServicio = seccionesServicioRepository.findById(cuadroTurnoDTO.getIdSeccionesServicios())
                     .orElseThrow(() -> new RuntimeException("Seccion Servicio no encontrada."));
         }
-//        ProcesosAtencion procesosAtencion = null;
-//        if (cuadroTurnoDTO.getIdProcesosAtencion() != null) {
-//            procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
-//                    .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
-//        }
+
         Equipo equipo = null;
         if(cuadroTurnoDTO.getIdEquipo() != null){
             equipo = equipoRepository.findById(cuadroTurnoDTO.getIdEquipo())
@@ -230,11 +226,6 @@ public class CuadroTurnoService {
             seccionesServicio = seccionesServicioRepository.findById(cuadroTurnoDTO.getIdSeccionesServicios())
                     .orElseThrow(() -> new RuntimeException("Seccion Servicio no encontrada."));
         }
-//        ProcesosAtencion procesosAtencion = null;
-//        if (cuadroTurnoDTO.getIdProcesosAtencion() != null) {
-//            procesosAtencion = procesosAtencionRepository.findById(cuadroTurnoDTO.getIdProcesosAtencion())
-//                    .orElseThrow(() -> new RuntimeException("Proceso Atencion no encontrado."));
-//        }
 
         // Convertimos el DTO a la entidad CambiosCuadroTurno
         CambiosCuadroTurno cambio = modelMapper.map(cuadroTurnoDTO, CambiosCuadroTurno.class);
@@ -253,10 +244,17 @@ public class CuadroTurnoService {
         cambio.setProcesos(procesos);
         cambio.setServicios(servicio);
         cambio.setEquipos(equipo);
-        //cambio.setProcesoAtencion(procesosAtencion);
         cambio.setSeccionesServicios(seccionesServicio);
+        cambio.setCategoria(cuadroTurnoDTO.getCategoria());
+
+        // Agregar procesosAtencion si la categoría es multiproceso
+        if ("multiproceso".equalsIgnoreCase(cuadroTurno.getCategoria())) {
+            List<ProcesosAtencion> procesosAtencionList = new ArrayList<>(cuadroTurno.getProcesosAtencion());
+            cambio.setProcesosAtencion(procesosAtencionList);
+        }
         cambiosCuadroTurnoRepository.save(cambio);
     }
+
     private String generarNuevaVersion(String versionAnterior, String anio, String mes) {
         String baseVersion = mes + anio.substring(2);
         int nuevaVersion = 1;

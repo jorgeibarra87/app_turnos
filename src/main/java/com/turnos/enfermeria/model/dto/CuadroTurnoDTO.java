@@ -24,6 +24,7 @@ public class CuadroTurnoDTO {
     private String estadoCuadro = "abierto"; // "abierto" o "cerrado"
     private String version; // Ejemplo: "v01_0225"
     private Boolean turnoExcepcion = false;
+    private String categoria;
 
     // Métodos de conveniencia para manejar procesos de atención
     public void addIdProcesoAtencion(Long idProcesoAtencion) {
