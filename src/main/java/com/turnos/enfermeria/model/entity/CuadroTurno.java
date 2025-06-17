@@ -42,9 +42,13 @@ public class CuadroTurno {
     @JoinColumn(name = "id_seccion_servicio", referencedColumnName = "id_seccion_servicio")
     private SeccionesServicio seccionesServicios;
 
-    @JsonIgnoreProperties("cuadroTurno")
-    @OneToMany(mappedBy = "cuadroTurno", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ProcesosAtencion> procesosAtencion;
+//    @JsonIgnoreProperties("cuadroTurno")
+//    @OneToMany(mappedBy = "cuadroTurno", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private List<ProcesosAtencion> procesosAtencion;
+
+//    @JsonIgnoreProperties("cuadroTurno")
+//    @OneToMany(mappedBy = "cuadroTurno", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+//    private List<ProcesosAtencion> procesosAtencion;
 
     @ManyToOne
     @JoinColumn(name = "id_equipo", referencedColumnName = "id_equipo")
@@ -73,6 +77,9 @@ public class CuadroTurno {
     @Column(name = "categoria")
     private String categoria;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
 
     // Métodos de conveniencia para obtener IDs
     public Long getIdMacroproceso() {
@@ -95,47 +102,47 @@ public class CuadroTurno {
         return equipos != null ? equipos.getIdEquipo() : null;
     }
 
-    // Nuevos métodos para manejar múltiples procesos de atención
-    public List<Long> getIdsProcesosAtencion() {
-        if (procesosAtencion == null || procesosAtencion.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return procesosAtencion.stream()
-                .map(ProcesosAtencion::getIdProcesoAtencion)
-                .collect(Collectors.toList());
-    }
-
-    public void addProcesoAtencion(ProcesosAtencion procesoAtencion) {
-        if (this.procesosAtencion == null) {
-            this.procesosAtencion = new ArrayList<>();
-        }
-        if (!this.procesosAtencion.contains(procesoAtencion)) {
-            this.procesosAtencion.add(procesoAtencion);
-        }
-    }
-
-    public void removeProcesoAtencion(ProcesosAtencion procesoAtencion) {
-        if (this.procesosAtencion != null) {
-            this.procesosAtencion.remove(procesoAtencion);
-        }
-    }
-
-    public boolean hasProcesoAtencion(Long idProcesoAtencion) {
-        return procesosAtencion != null &&
-                procesosAtencion.stream()
-                        .anyMatch(pa -> pa.getIdProcesoAtencion().equals(idProcesoAtencion));
-    }
-
-    public int getCantidadProcesosAtencion() {
-        return procesosAtencion != null ? procesosAtencion.size() : 0;
-    }
-
-    public String getNombresProcesosAtencion() {
-        if (procesosAtencion == null || procesosAtencion.isEmpty()) {
-            return "";
-        }
-        return procesosAtencion.stream()
-                .map(ProcesosAtencion::getDetalle)
-                .collect(Collectors.joining(", "));
-    }
+//    // Nuevos métodos para manejar múltiples procesos de atención
+//    public List<Long> getIdsProcesosAtencion() {
+//        if (procesosAtencion == null || procesosAtencion.isEmpty()) {
+//            return new ArrayList<>();
+//        }
+//        return procesosAtencion.stream()
+//                .map(ProcesosAtencion::getIdProcesoAtencion)
+//                .collect(Collectors.toList());
+//    }
+//
+//    public void addProcesoAtencion(ProcesosAtencion procesoAtencion) {
+//        if (this.procesosAtencion == null) {
+//            this.procesosAtencion = new ArrayList<>();
+//        }
+//        if (!this.procesosAtencion.contains(procesoAtencion)) {
+//            this.procesosAtencion.add(procesoAtencion);
+//        }
+//    }
+//
+//    public void removeProcesoAtencion(ProcesosAtencion procesoAtencion) {
+//        if (this.procesosAtencion != null) {
+//            this.procesosAtencion.remove(procesoAtencion);
+//        }
+//    }
+//
+//    public boolean hasProcesoAtencion(Long idProcesoAtencion) {
+//        return procesosAtencion != null &&
+//                procesosAtencion.stream()
+//                        .anyMatch(pa -> pa.getIdProcesoAtencion().equals(idProcesoAtencion));
+//    }
+//
+//    public int getCantidadProcesosAtencion() {
+//        return procesosAtencion != null ? procesosAtencion.size() : 0;
+//    }
+//
+//    public String getNombresProcesosAtencion() {
+//        if (procesosAtencion == null || procesosAtencion.isEmpty()) {
+//            return "";
+//        }
+//        return procesosAtencion.stream()
+//                .map(ProcesosAtencion::getDetalle)
+//                .collect(Collectors.joining(", "));
+//    }
 }

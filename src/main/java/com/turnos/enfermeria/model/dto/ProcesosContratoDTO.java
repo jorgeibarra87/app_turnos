@@ -8,4 +8,5 @@ public class ProcesosContratoDTO {
     private String detalle;
     private Long idProceso;
     private Long idContrato;
+    private Boolean estado = true;
 }

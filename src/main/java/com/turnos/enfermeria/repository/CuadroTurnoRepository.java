@@ -99,15 +99,12 @@ public interface CuadroTurnoRepository extends JpaRepository<CuadroTurno, Long> 
             "(:idProceso IS NULL OR c.procesos.id = :idProceso) AND " +
             "(:idServicio IS NULL OR c.servicios.id = :idServicio) AND " +
             "(:idSeccionServicio IS NULL OR c.seccionesServicios.id = :idSeccionServicio) AND " +
-            "(:idEquipo IS NULL OR c.equipos.id = :idEquipo) AND " +
-            "(:#{#idsProcesosAtencion == null || #idsProcesosAtencion.isEmpty()} = true OR " +
-            " EXISTS (SELECT 1 FROM c.procesosAtencion pa WHERE pa.id IN :idsProcesosAtencion))")
+            "(:idEquipo IS NULL OR c.equipos.id = :idEquipo)")
     boolean existsBySimilarConfigurationWithMultipleProcesses(
             @Param("idMacroproceso") Long idMacroproceso,
             @Param("idProceso") Long idProceso,
             @Param("idServicio") Long idServicio,
             @Param("idSeccionServicio") Long idSeccionServicio,
-            @Param("idsProcesosAtencion") List<Long> idsProcesosAtencion,
             @Param("idEquipo") Long idEquipo,
             @Param("anio") String anio,
             @Param("mes") String mes
@@ -120,15 +117,15 @@ public interface CuadroTurnoRepository extends JpaRepository<CuadroTurno, Long> 
 
 
     // Para múltiples procesos de atención
-    @Query("SELECT CASE WHEN COUNT(ct) > 0 THEN true ELSE false END " +
-            "FROM CuadroTurno ct " +
-            "JOIN ct.procesosAtencion pa " +
-            "WHERE ct.anio = :anio AND ct.mes = :mes AND pa.idProcesoAtencion IN :idsProcesosAtencion")
-    boolean existsByAnioAndMesAndProcesosAtencionIn(
-            @Param("anio") String anio,
-            @Param("mes") String mes,
-            @Param("idsProcesosAtencion") List<Long> idsProcesosAtencion
-    );
+//    @Query("SELECT CASE WHEN COUNT(ct) > 0 THEN true ELSE false END " +
+//            "FROM CuadroTurno ct " +
+//            "JOIN ct.procesosAtencion pa " +
+//            "WHERE ct.anio = :anio AND ct.mes = :mes AND pa.idProcesoAtencion IN :idsProcesosAtencion")
+//    boolean existsByAnioAndMesAndProcesosAtencionIn(
+//            @Param("anio") String anio,
+//            @Param("mes") String mes,
+//            @Param("idsProcesosAtencion") List<Long> idsProcesosAtencion
+//    );
 
     // Para sección de servicio
     @Query("SELECT CASE WHEN COUNT(ct) > 0 THEN true ELSE false END " +
@@ -185,7 +182,6 @@ public interface CuadroTurnoRepository extends JpaRepository<CuadroTurno, Long> 
             "WHERE (:anio IS NULL OR ct.anio = :anio) " +
             "AND (:mes IS NULL OR ct.mes = :mes) " +
             "AND (:categoria IS NULL OR " +
-            "      (ct.procesosAtencion IS NOT EMPTY AND :categoria = 'ProcesoAtencion') OR " +
             "      (ct.seccionesServicios IS NOT NULL AND :categoria = 'Seccion') OR " +
             "      (ct.servicios IS NOT NULL AND :categoria = 'Servicio') OR " +
             "      (ct.procesos IS NOT NULL AND :categoria = 'Proceso') OR " +

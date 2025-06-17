@@ -7,4 +7,5 @@ public class BloqueServicioDTO {
 
     private Long idBloqueServicio;
     private String nombre;
+    private Boolean estado = true;
 }

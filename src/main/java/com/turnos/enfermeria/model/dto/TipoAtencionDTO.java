@@ -9,4 +9,5 @@ public class TipoAtencionDTO {
     private String descripcionTipoAtencion;
     private String estadoTipoAtencion;
     private Long idContrato;
+    private Boolean estado = true;
 }

@@ -20,5 +20,8 @@ public class Macroprocesos {
     @Column(name = "nombre", nullable = false)
     private String nombre;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
 
 }

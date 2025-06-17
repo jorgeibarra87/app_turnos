@@ -37,7 +37,8 @@ public interface CambiosTurnoRepository extends JpaRepository<CambiosTurno, Long
         ct.jornada,
         ct.tipoTurno,
         ct.version,
-        ct.comentarios
+        ct.comentarios,
+        ct.estado
     )
     FROM CambiosTurno ct
     WHERE ct.turno.idTurno = :idTurno

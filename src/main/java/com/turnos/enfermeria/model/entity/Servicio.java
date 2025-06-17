@@ -24,6 +24,9 @@ public class Servicio {
     @Column(name = "tipo")
     private String tipo;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
     @ManyToOne
     @JoinColumn(name = "id_bloque_servicio", referencedColumnName = "id_bloque_servicio")
     private BloqueServicio bloqueServicios;

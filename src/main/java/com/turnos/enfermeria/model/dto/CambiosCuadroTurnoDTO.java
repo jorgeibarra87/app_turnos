@@ -22,5 +22,6 @@ public class CambiosCuadroTurnoDTO {
     private String estadoCuadro; // "abierto" o "cerrado"
     private String version; // Ejemplo: "v01_0225"
     private boolean TurnoExcepcion;
+    private Boolean estado;
     private String categoria;
 }

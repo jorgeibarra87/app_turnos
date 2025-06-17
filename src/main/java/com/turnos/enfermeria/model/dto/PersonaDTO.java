@@ -15,4 +15,5 @@ public class PersonaDTO {
     private String nombreCompleto;
     private String nombres;
     private String telefono;
+    private Boolean estado = true;
 }

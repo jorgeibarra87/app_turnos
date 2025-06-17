@@ -12,7 +12,6 @@ public class UsuarioDTO {
 
     @NotBlank(message = "La contraseña es obligatoria")
     private String password;
-
     private Boolean estado = true; // Valor por defecto
 //    private Long idRol;
 //    private Long idTitulo;

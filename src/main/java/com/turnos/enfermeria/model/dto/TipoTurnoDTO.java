@@ -9,4 +9,5 @@ public class TipoTurnoDTO {
     private boolean presencial;
     private boolean disponibilidad;
     private Long idContrato;
+    private Boolean estado = true;
 }

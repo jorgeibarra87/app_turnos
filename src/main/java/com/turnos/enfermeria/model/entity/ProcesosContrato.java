@@ -19,6 +19,9 @@ public class ProcesosContrato {
     @Column(name = "detalle", nullable = false)
     private String detalle;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
     @ManyToOne
     @JoinColumn(name = "id_proceso", referencedColumnName = "id_proceso")
     private Procesos procesos;

@@ -8,13 +8,17 @@ import lombok.Data;
  */
 @Data
 @Entity
-@Table(name = "procesos_atencion", schema = "public")
-public class ProcesosAtencion {
+@Table(name = "cambios_procesos_atencion", schema = "public")
+public class CambiosProcesosAtencion {
 
     @Id
-    @Column(name = "id_proceso_atencion", nullable = false)
+    @Column(name = "id_cambio_proceso_atencion", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idProcesoAtencion;
+    private Long idCambioProcesoAtencion;
+
+    @ManyToOne
+    @JoinColumn(name = "id_cambio_cuadro", referencedColumnName = "id_cambio_cuadro")
+    private CambiosCuadroTurno cambioCuadroTurno;
 
     @Column(name = "detalle")
     private String detalle;
@@ -30,7 +34,4 @@ public class ProcesosAtencion {
     @JoinColumn(name = "id_cuadro_turno", referencedColumnName = "id_cuadro_turno")
     private CuadroTurno cuadroTurno;
 
-//    public Long getIdProceso() {
-//        return procesos != null ? procesos.getIdProceso() : null;
-//    }
 }

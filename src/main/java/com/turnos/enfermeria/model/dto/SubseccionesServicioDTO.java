@@ -7,4 +7,5 @@ public class SubseccionesServicioDTO {
     private Long idSubseccionServicio;
     private String nombre;
     private Long idSeccionServicio;
+    private Boolean estado = true;
 }

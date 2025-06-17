@@ -21,6 +21,9 @@ public class TitulosFormacionAcademica {
     @Column(name = "titulo", nullable = false)
     private String titulo;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
     @ManyToOne
     @JoinColumn(name = "id_tipo_formacion_academica", referencedColumnName = "id_tipo_formacion_academica")
     private TipoFormacionAcademica tipoFormacionAcademica;

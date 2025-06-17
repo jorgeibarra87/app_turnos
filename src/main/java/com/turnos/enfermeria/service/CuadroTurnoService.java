@@ -27,6 +27,7 @@ public class CuadroTurnoService {
     private final SeccionesServicioRepository seccionesServicioRepository;
     private final ProcesosAtencionRepository procesosAtencionRepository;
     private final CambiosCuadroTurnoRepository cambiosCuadroTurnoRepository;
+    private final CambiosProcesosAtencionRepository cambiosProcesosAtencionRepository;
     private final CambiosCuadroTurnoService cambiosCuadroTurnoService;
     private final ModelMapper modelMapper;
 
@@ -247,10 +248,16 @@ public class CuadroTurnoService {
         cambio.setSeccionesServicios(seccionesServicio);
         cambio.setCategoria(cuadroTurnoDTO.getCategoria());
 
+//        // Agregar procesosAtencion si la categoría es multiproceso
+//        if ("multiproceso".equalsIgnoreCase(cuadroTurno.getCategoria())) {
+//            List<ProcesosAtencion> procesosAtencionList = new ArrayList<>(cuadroTurno.getProcesosAtencion());
+//            cambio.setProcesosAtencion(procesosAtencionList);
+//        }
         // Agregar procesosAtencion si la categoría es multiproceso
         if ("multiproceso".equalsIgnoreCase(cuadroTurno.getCategoria())) {
-            List<ProcesosAtencion> procesosAtencionList = new ArrayList<>(cuadroTurno.getProcesosAtencion());
-            cambio.setProcesosAtencion(procesosAtencionList);
+            // 🔁 CONSULTA los procesos desde el repositorio (sin usar relación directa en CuadroTurno)
+            //List<ProcesosAtencion> procesosAtencionList = procesosAtencionRepository.findByCuadroTurnoId(cuadroTurno.getIdCuadroTurno());
+            //cambio.setProcesosAtencion(procesosAtencionList);
         }
         cambiosCuadroTurnoRepository.save(cambio);
     }
@@ -393,11 +400,12 @@ public class CuadroTurnoService {
                         nuevoProcesoAtencion.setProcesos(procesoBase);
                         nuevoProcesoAtencion.setDetalle(procesoBase.getNombre()); // o como desees generar el detalle
                         nuevoProcesoAtencion.setCuadroTurno(cuadroTurno); // se asigna el cuadroTurno antes de guardar
-
+                        procesosAtencionRepository.save(nuevoProcesoAtencion);
                         procesosAtencion.add(nuevoProcesoAtencion);
                     }
 
-                    cuadroTurno.setProcesosAtencion(procesosAtencion);
+
+                    //cuadroTurno.setProcesosAtencion(procesosAtencion);
                 }
                 break;
 
@@ -462,9 +470,10 @@ public class CuadroTurnoService {
      * Determina la categoría principal basada en la jerarquía de selección
      */
     private String determinarCategoriaPrincipal(CuadroTurno cuadroTurno) {
-        if (cuadroTurno.getProcesosAtencion() != null && !cuadroTurno.getProcesosAtencion().isEmpty()) {
-            return "ProcesoAtencion";
-        } else if (cuadroTurno.getSeccionesServicios() != null) {
+//        if (cuadroTurno.getProcesosAtencion() != null && !cuadroTurno.getProcesosAtencion().isEmpty()) {
+//            return "ProcesoAtencion";
+//        }
+        if (cuadroTurno.getSeccionesServicios() != null) {
             return "Seccion";
         } else if (cuadroTurno.getServicios() != null) {
             return "Servicio";
@@ -482,18 +491,18 @@ public class CuadroTurnoService {
      */
     private String obtenerIdentificadorEspecifico(CuadroTurno cuadroTurno, String categoria) {
         switch (categoria) {
-            case "ProcesoAtencion":
-                // Para múltiples procesos, crear un identificador compuesto
-                if (cuadroTurno.getProcesosAtencion() != null && !cuadroTurno.getProcesosAtencion().isEmpty()) {
-                    if (cuadroTurno.getProcesosAtencion().size() == 1) {
-                        // Un solo proceso
-                        return limpiarNombreParaId(cuadroTurno.getProcesosAtencion().get(0).getDetalle());
-                    } else {
-                        // Múltiples procesos: usar un identificador genérico más contador
-                        return "MULTIPROCESO_" + cuadroTurno.getProcesosAtencion().size();
-                    }
-                }
-                return "PROCESO_ATENCION";
+//            case "ProcesoAtencion":
+//                // Para múltiples procesos, crear un identificador compuesto
+//                if (cuadroTurno.getProcesosAtencion() != null && !cuadroTurno.getProcesosAtencion().isEmpty()) {
+//                    if (cuadroTurno.getProcesosAtencion().size() == 1) {
+//                        // Un solo proceso
+//                        return limpiarNombreParaId(cuadroTurno.getProcesosAtencion().get(0).getDetalle());
+//                    } else {
+//                        // Múltiples procesos: usar un identificador genérico más contador
+//                        return "MULTIPROCESO_" + cuadroTurno.getProcesosAtencion().size();
+//                    }
+//                }
+//                return "PROCESO_ATENCION";
             case "Seccion":
                 return limpiarNombreParaId(cuadroTurno.getSeccionesServicios().getNombre());
             case "Servicio":
@@ -529,7 +538,7 @@ public class CuadroTurnoService {
                 request.getIdProceso(),
                 request.getIdServicio(),
                 request.getIdSeccionServicio(),
-                request.getIdsProcesosAtencion(), // Ahora es una lista
+                //request.getIdsProcesosAtencion(), // Ahora es una lista
                 request.getIdEquipo(),
                 request.getAnio(),
                 request.getMes()

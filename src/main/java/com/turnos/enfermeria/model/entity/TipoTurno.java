@@ -35,6 +35,9 @@ public class TipoTurno {
     @Column(name = "disponibilidad")
     private boolean disponibilidad;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
     @ManyToOne
     @JoinColumn(name = "id_contrato", referencedColumnName = "id_contrato")
     private Contrato contratos;

@@ -6,13 +6,10 @@ import lombok.Data;
 public class NotificacionDTO {
 
     private Long idNotificacion;
-
     private String correo;
-
     private String mensaje;
-
-    private String estado;
-
+    private String estadoNotificacion;
     private Boolean permanente;
+    private Boolean estado = true;
 
 }

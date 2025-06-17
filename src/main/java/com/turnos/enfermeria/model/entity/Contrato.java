@@ -49,6 +49,9 @@ public class Contrato {
     @Column(name = "anio")
     private String anio;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinTable(
             name = "contratos_titulos", joinColumns = @JoinColumn(name = "idContrato", referencedColumnName = "id_contrato"),

@@ -21,8 +21,11 @@ public class Notificaciones {
     @Column(name = "mensaje")
     private String mensaje;
 
+    @Column(name = "estado_notificacion")
+    private String estadoNotificacion;
+
     @Column(name = "estado")
-    private String estado;
+    private Boolean estado;
 
     @Column(name = "permanente")
     private Boolean permanente;

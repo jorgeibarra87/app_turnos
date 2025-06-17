@@ -21,4 +21,7 @@ public class TipoFormacionAcademica {
     @Column(name = "tipo")
     private String tipo;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
 }
