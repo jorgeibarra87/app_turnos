@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class MacroprocesosDTO {
     private Long idMacroproceso;
     private String nombre;
+    private Boolean estado = true;
 }

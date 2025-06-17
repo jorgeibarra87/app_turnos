@@ -38,5 +38,8 @@ public class Persona {
     @Column(name = "telefono")
     private String telefono;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
 
 }

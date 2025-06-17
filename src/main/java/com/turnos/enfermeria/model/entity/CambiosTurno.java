@@ -60,6 +60,9 @@ public class CambiosTurno {
     @Column(name = "comentarios")
     private String comentarios;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
     public Long getIdTurno() {
         return turno != null ? turno.getIdTurno() : null;
     }

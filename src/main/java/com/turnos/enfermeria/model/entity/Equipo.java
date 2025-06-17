@@ -19,12 +19,8 @@ public class Equipo {
     @Column(name = "nombre", nullable = false)
     private String nombre;
 
-//    @ManyToOne
-//    @JoinColumn(name = "id_cuadro_turno", referencedColumnName = "id_cuadro_turno")
-//    private CuadroTurno cuadroTurno;
-//
-//    public Long getIdCuadroTurno() {
-//        return cuadroTurno != null ? cuadroTurno.getIdCuadroTurno() : null;
-//    }
+    @Column(name = "estado")
+    private Boolean estado;
+
 
 }

@@ -9,4 +9,5 @@ public class ServicioDTO {
     private String tipo;
     private Long idBloqueServicio;
     private Long idProceso;
+    private Boolean estado = true;
 }

@@ -72,6 +72,9 @@ public class CambiosCuadroTurno {
     @Column(name = "categoria")
     private String categoria;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
     public Long getIdCuadroTurno() {
         return cuadroTurno != null ? cuadroTurno.getIdCuadroTurno() : null;
     }

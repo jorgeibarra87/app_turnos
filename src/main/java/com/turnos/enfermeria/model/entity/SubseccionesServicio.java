@@ -21,6 +21,8 @@ public class SubseccionesServicio {
     @Column(name = "nombre")
     private String nombre;
 
+    @Column(name = "estado")
+    private Boolean estado;
 
     @ManyToOne
     @JoinColumn(name = "id_seccion_servicio", referencedColumnName = "id_seccion_servicio")

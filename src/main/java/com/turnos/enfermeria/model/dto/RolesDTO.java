@@ -8,4 +8,5 @@ public class RolesDTO {
     private Long id;
     private String rol;
     private String descripcion;
+    private Boolean estado = true;
 }

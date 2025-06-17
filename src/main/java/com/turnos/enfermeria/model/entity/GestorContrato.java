@@ -28,6 +28,9 @@ public class GestorContrato {
     @JoinColumn(name = "id_contrato", referencedColumnName = "id_contrato")
     private Contrato contrato;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
     public Long getIdContrato() {
         return contrato != null ? contrato.getIdContrato() : null;
     }

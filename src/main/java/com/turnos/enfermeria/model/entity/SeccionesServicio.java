@@ -21,6 +21,9 @@ public class SeccionesServicio {
     @Column(name = "nombre", nullable = false)
     private String nombre;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
     @ManyToOne
     @JoinColumn(name = "id_servicio", referencedColumnName = "id_servicio")
     private Servicio servicio;

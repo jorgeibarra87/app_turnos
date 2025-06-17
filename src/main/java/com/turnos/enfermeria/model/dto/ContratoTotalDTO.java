@@ -18,6 +18,7 @@ public class ContratoTotalDTO {
     private LocalDate fechaTerminacion;
     private String anio;
     private String observaciones;
+    private Boolean estado = true;
 
     // IDs de las entidades relacionadas
     private List<Long> tiposAtencionIds;

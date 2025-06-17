@@ -24,4 +24,7 @@ public class Roles {
     @Column(name = "descripcion")
     private String descripcion;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
 }

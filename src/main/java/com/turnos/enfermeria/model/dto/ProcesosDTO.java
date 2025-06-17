@@ -14,4 +14,5 @@ public class ProcesosDTO {
     private Long idProceso;
     private String nombre;
     private Long idMacroproceso;
+    private Boolean estado = true;
 }

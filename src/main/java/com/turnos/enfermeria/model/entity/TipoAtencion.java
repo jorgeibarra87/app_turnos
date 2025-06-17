@@ -29,6 +29,9 @@ public class TipoAtencion {
     @Column(name = "estado_tipo_atencion")
     private String estadoTipoAtencion;
 
+    @Column(name = "estado")
+    private Boolean estado;
+
     @ManyToOne
     @JoinColumn(name = "id_contrato", referencedColumnName = "id_contrato")
     private Contrato contratos;

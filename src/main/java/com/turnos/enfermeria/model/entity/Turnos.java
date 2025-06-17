@@ -59,6 +59,9 @@ public class Turnos {
 
     @Column(name = "comentarios")
     private String comentarios;
+
+    @Column(name = "estado")
+    private Boolean estado;
 }
 
 //    @PrePersist
