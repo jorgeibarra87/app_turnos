@@ -39,9 +39,9 @@ public class CambiosCuadroTurno {
     @JoinColumn(name = "id_seccion_servicio", referencedColumnName = "id_seccion_servicio")
     private SeccionesServicio seccionesServicios;
 
-    @JsonIgnoreProperties("CambiosCuadroTurno")
-    @OneToMany
-    private List<ProcesosAtencion> procesosAtencion;
+//    @JsonIgnoreProperties("CambiosCuadroTurno")
+//    @OneToMany
+//    private List<ProcesosAtencion> procesosAtencion;
 
     @ManyToOne
     @JoinColumn(name = "id_equipo", referencedColumnName = "id_equipo")
@@ -90,38 +90,38 @@ public class CambiosCuadroTurno {
     public Long getIdSeccionServicio() {
         return seccionesServicios != null ? seccionesServicios.getIdSeccionServicio() : null;
     }
-    public void addProcesoAtencion(ProcesosAtencion procesoAtencion) {
-        if (this.procesosAtencion == null) {
-            this.procesosAtencion = new ArrayList<>();
-        }
-        if (!this.procesosAtencion.contains(procesoAtencion)) {
-            this.procesosAtencion.add(procesoAtencion);
-        }
-    }
-
-    public void removeProcesoAtencion(ProcesosAtencion procesoAtencion) {
-        if (this.procesosAtencion != null) {
-            this.procesosAtencion.remove(procesoAtencion);
-        }
-    }
-
-    public boolean hasProcesoAtencion(Long idProcesoAtencion) {
-        return procesosAtencion != null &&
-                procesosAtencion.stream()
-                        .anyMatch(pa -> pa.getIdProcesoAtencion().equals(idProcesoAtencion));
-    }
-
-    public int getCantidadProcesosAtencion() {
-        return procesosAtencion != null ? procesosAtencion.size() : 0;
-    }
-
-    public String getNombresProcesosAtencion() {
-        if (procesosAtencion == null || procesosAtencion.isEmpty()) {
-            return "";
-        }
-        return procesosAtencion.stream()
-                .map(ProcesosAtencion::getDetalle)
-                .collect(Collectors.joining(", "));
-    }
+//    public void addProcesoAtencion(ProcesosAtencion procesoAtencion) {
+//        if (this.procesosAtencion == null) {
+//            this.procesosAtencion = new ArrayList<>();
+//        }
+//        if (!this.procesosAtencion.contains(procesoAtencion)) {
+//            this.procesosAtencion.add(procesoAtencion);
+//        }
+//    }
+//
+//    public void removeProcesoAtencion(ProcesosAtencion procesoAtencion) {
+//        if (this.procesosAtencion != null) {
+//            this.procesosAtencion.remove(procesoAtencion);
+//        }
+//    }
+//
+//    public boolean hasProcesoAtencion(Long idProcesoAtencion) {
+//        return procesosAtencion != null &&
+//                procesosAtencion.stream()
+//                        .anyMatch(pa -> pa.getIdProcesoAtencion().equals(idProcesoAtencion));
+//    }
+//
+//    public int getCantidadProcesosAtencion() {
+//        return procesosAtencion != null ? procesosAtencion.size() : 0;
+//    }
+//
+//    public String getNombresProcesosAtencion() {
+//        if (procesosAtencion == null || procesosAtencion.isEmpty()) {
+//            return "";
+//        }
+//        return procesosAtencion.stream()
+//                .map(ProcesosAtencion::getDetalle)
+//                .collect(Collectors.joining(", "));
+//    }
 
 }

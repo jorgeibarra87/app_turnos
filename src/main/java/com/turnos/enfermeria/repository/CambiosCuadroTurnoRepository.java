@@ -1,7 +1,6 @@
 package com.turnos.enfermeria.repository;
 
 import com.turnos.enfermeria.model.entity.CambiosCuadroTurno;
-import com.turnos.enfermeria.model.entity.CambiosTurno;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
