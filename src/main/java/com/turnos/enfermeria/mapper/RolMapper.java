@@ -15,7 +15,7 @@ public class RolMapper {
         if(roles == null) return null;
 
         RolesDTO dto = new RolesDTO();
-        dto.setId(roles.getId());
+        dto.setIdRol(roles.getIdRol());
         dto.setRol(roles.getRol());
         dto.setDescripcion(roles.getDescripcion());
 

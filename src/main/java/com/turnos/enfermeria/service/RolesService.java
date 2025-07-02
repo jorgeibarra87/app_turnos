@@ -24,7 +24,7 @@ public class RolesService {
 
     public RolesDTO create(RolesDTO rolesDTO) {
         Roles roles = modelMapper.map(rolesDTO, Roles.class);
-        roles.setId(rolesDTO.getId());
+        roles.setIdRol(rolesDTO.getIdRol());
         roles.setRol(rolesDTO.getRol());
         roles.setDescripcion(rolesDTO.getDescripcion());
 
@@ -41,8 +41,8 @@ public class RolesService {
         RolesDTO rolesDTO = modelMapper.map(rolExistente, RolesDTO.class);
 
         // Actualizar los campos si no son nulos
-        if (detalleRolesDTO.getId()!= null) {
-            rolExistente.setId(detalleRolesDTO.getId());
+        if (detalleRolesDTO.getIdRol()!= null) {
+            rolExistente.setIdRol(detalleRolesDTO.getIdRol());
         }
         if (detalleRolesDTO.getRol() != null) {
             rolExistente.setRol(detalleRolesDTO.getRol());

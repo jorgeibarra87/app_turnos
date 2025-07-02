@@ -22,7 +22,7 @@ public class UsuarioRolMapper {
 
         List<RolesDTO> rolesDTO = usuario.getRoles().stream().map(rol -> {
             RolesDTO t = new RolesDTO();
-            t.setId(rol.getId());
+            t.setIdRol(rol.getIdRol());
             t.setRol(rol.getRol());
             t.setDescripcion(rol.getDescripcion());
             return t;

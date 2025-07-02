@@ -4,8 +4,8 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-import com.turnos.enfermeria.model.dto.GestorContratoDTO;
-import com.turnos.enfermeria.service.GestorContratoService;
+import com.turnos.enfermeria.model.dto.UsuarioContratoDTO;
+import com.turnos.enfermeria.service.UsuarioContratoService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,34 +19,34 @@ import java.util.List;
 
 @Validated
 @RestController
-@RequestMapping("/gestorContrato")
-//@Tag(name = "Gestor de Contrato", description = "Operaciones relacionadas con los gestores responsables de los contratos")
-public class GestorContratoController {
+@RequestMapping("/usuarioContrato")
+//@Tag(name = "Usuario de Contrato", description = "Operaciones relacionadas con los Usuarios responsables de los contratos")
+public class UsuarioContratoController {
     @Autowired
-    private GestorContratoService gestorContratoService;
+    private UsuarioContratoService usuarioContratoService;
     @Autowired
     private HttpServletRequest request;
 
     @PostMapping
     @Operation(
-            summary = "Crear un nuevo gestor de contrato",
-            description = "Registra un nuevo gestor de contrato con sus datos personales y vinculaciones.",
+            summary = "Crear un nuevo usuario de contrato",
+            description = "Registra un nuevo usuario de contrato con sus datos personales y vinculaciones.",
             tags={"Contratos"}
     )
-    public ResponseEntity<GestorContratoDTO> create(@RequestBody GestorContratoDTO gestorContratoDTO){
+    public ResponseEntity<UsuarioContratoDTO> create(@RequestBody UsuarioContratoDTO usuarioContratoDTO){
         try {
-            GestorContratoDTO nuevoGestorContratoDTO = gestorContratoService.create(gestorContratoDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoGestorContratoDTO);
+            UsuarioContratoDTO nuevoUsuarioContratoDTO = usuarioContratoService.create(usuarioContratoDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuarioContratoDTO);
         }catch (EntityNotFoundException e) {
             throw new GenericNotFoundException(
-                    CodigoError.GESTOR_CONTRATO_NO_ENCONTRADO,
-                    gestorContratoDTO.getIdGestorContrato(),
+                    CodigoError.USUARIO_CONTRATO_NO_ENCONTRADO,
+                    usuarioContratoDTO.getIdUsuarioContrato(),
                     request.getMethod(),
                     request.getRequestURI()
             );
         } catch (IllegalArgumentException e) {
             throw new GenericBadRequestException(
-                    CodigoError.GESTOR_CONTRATO_DATOS_INVALIDOS,
+                    CodigoError.USUARIO_CONTRATO_DATOS_INVALIDOS,
                     e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
@@ -54,8 +54,8 @@ public class GestorContratoController {
 
         } catch (IllegalStateException e) {
             throw new GenericConflictException(
-                    CodigoError.GESTOR_CONTRATO_ESTADO_INVALIDO,
-                    "No se pudo crear gestor: " + e.getMessage(),
+                    CodigoError.USUARIO_CONTRATO_ESTADO_INVALIDO,
+                    "No se pudo crear usuario contrato: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
@@ -63,7 +63,7 @@ public class GestorContratoController {
         } catch (Exception e) {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el gestor: " + e.getMessage(),
+                    "Error al crear el usuario contrato: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
@@ -72,41 +72,41 @@ public class GestorContratoController {
 
     @GetMapping
     @Operation(
-            summary = "Listar todos los gestores de contrato",
-            description = "Devuelve una lista con todos los gestores de contrato registrados en el sistema.",
+            summary = "Listar todos los usuarios de contrato",
+            description = "Devuelve una lista con todos los usuarios de contrato registrados en el sistema.",
             tags={"Contratos"}
     )
-    public ResponseEntity<List<GestorContratoDTO>> findAll(){
-        List<GestorContratoDTO> gestorContratoDTO = gestorContratoService.findAll();
-        return gestorContratoDTO.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(gestorContratoDTO);
+    public ResponseEntity<List<UsuarioContratoDTO>> findAll(){
+        List<UsuarioContratoDTO> usuarioContratoDTO = usuarioContratoService.findAll();
+        return usuarioContratoDTO.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(usuarioContratoDTO);
     }
 
-    @GetMapping("/{idGestorContrato}")
+    @GetMapping("/{idUsuarioContrato}")
     @Operation(
-            summary = "Buscar gestor de contrato por ID",
-            description = "Devuelve la información de un gestor de contrato a partir de su ID.",
+            summary = "Buscar usuario de contrato por ID",
+            description = "Devuelve la información de un usuario de contrato a partir de su ID.",
             tags={"Contratos"}
     )
-    public ResponseEntity<GestorContratoDTO> findById(@PathVariable Long idGestorContrato){
-        return gestorContratoService.findById(idGestorContrato)
+    public ResponseEntity<UsuarioContratoDTO> findById(@PathVariable Long idUsuarioContrato){
+        return usuarioContratoService.findById(idUsuarioContrato)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.GESTOR_CONTRATO_NO_ENCONTRADO,
-                        idGestorContrato,
+                        CodigoError.USUARIO_CONTRATO_NO_ENCONTRADO,
+                        idUsuarioContrato,
                         request.getMethod(),
                         request.getRequestURI()
                 ));
     }
 
-    @PutMapping("/{idGestorContrato}")
-    @Operation(summary = "Actualizar gestor de contrato",description = "Actualiza los datos de un gestor de contrato existente.",
+    @PutMapping("/{idUsuarioContrato}")
+    @Operation(summary = "Actualizar usuario de contrato",description = "Actualiza los datos de un usuario de contrato existente.",
             tags={"Contratos"})
-    public ResponseEntity<GestorContratoDTO> update(@RequestBody GestorContratoDTO gestorContratoDTO, @PathVariable Long idGestorContrato){
-        return gestorContratoService.findById(idGestorContrato)
-                .map(gestorContratoExistente -> ResponseEntity.ok(gestorContratoService.update(gestorContratoDTO, idGestorContrato)))
+    public ResponseEntity<UsuarioContratoDTO> update(@RequestBody UsuarioContratoDTO usuarioContratoDTO, @PathVariable Long idUsuarioContrato){
+        return usuarioContratoService.findById(idUsuarioContrato)
+                .map(usuarioContratoExistente -> ResponseEntity.ok(usuarioContratoService.update(usuarioContratoDTO, idUsuarioContrato)))
                 .orElseThrow(() -> new GenericNotFoundException(
-                        CodigoError.GESTOR_CONTRATO_NO_ENCONTRADO,
-                        idGestorContrato,
+                        CodigoError.USUARIO_CONTRATO_NO_ENCONTRADO,
+                        idUsuarioContrato,
                         request.getMethod(),
                         request.getRequestURI()
                 ));

@@ -38,7 +38,7 @@ public class RolesController {
         }catch (EntityNotFoundException e) {
             throw new GenericNotFoundException(
                     CodigoError.ROL_NO_ENCONTRADO,
-                    rolesDTO.getId(),
+                    rolesDTO.getIdRol(),
                     request.getMethod(),
                     request.getRequestURI()
             );
