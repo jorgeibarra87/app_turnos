@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class RolesDTO {
 
-    private Long id;
+    private Long idRol;
     private String rol;
     private String descripcion;
     private Boolean estado = true;

@@ -3,8 +3,6 @@ package com.turnos.enfermeria.repository;
 import com.turnos.enfermeria.model.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,7 +22,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>, JpaSpec
 //    Optional<Usuario> findUsuarioCompleto(@Param("idPersona") Long idPersona);
 
     List<Usuario> findUsuariosByEquipos_IdEquipo(Long idEquipo);
-    List<Usuario> findUsuariosByRoles_Id(Long id);
+    List<Usuario> findUsuariosByRoles_IdRol(Long idRol);
     Optional<Usuario> findByPersona_Documento(String documento);
     //List<Usuario> findUsuariosByContratos_IdContrato(Long idContrato);
 }

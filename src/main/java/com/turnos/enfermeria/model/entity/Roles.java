@@ -14,9 +14,9 @@ import java.util.List;
 public class Roles {
 
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(name = "id_rol", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long idRol;
 
     @Column(name = "rol", nullable = false)
     private String rol;

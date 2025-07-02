@@ -24,7 +24,7 @@ public class TurnosService {
     private final TurnosRepository turnosRepository;
     private final ContratoRepository contratoRepository;
     private final TipoTurnoRepository tipoTurnoRepository;
-    private final GestorContratoRepository gestorContratoRepository;
+    private final UsuarioContratoRepository usuarioContratoRepository;
     private final UsuarioRepository usuarioRepository;
     private final CuadroTurnoRepository cuadroTurnoRepository;
     private final CambiosTurnoRepository cambiosTurnoRepository;

@@ -336,15 +336,15 @@ public class UsuarioService {
         return rolMapper.toDTOList(usuario.getRoles());
     }
 
-    public List<PersonaRolDTO> obtenerUsuariosPorRol(Long id) {
-        List<Usuario> usuarios = usuarioRepo.findUsuariosByRoles_Id(id);
+    public List<PersonaRolDTO> obtenerUsuariosPorRol(Long idRol) {
+        List<Usuario> usuarios = usuarioRepo.findUsuariosByRoles_IdRol(idRol);
         return usuarios.stream()
                 .map(usuarioRolMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    public RolesDTO actualizarUsuariosDeRol(Long id, List<Long> nuevosUsuariosIds) {
-        Roles roles = rolesRepository.findById(id)
+    public RolesDTO actualizarUsuariosDeRol(Long idRol, List<Long> nuevosUsuariosIds) {
+        Roles roles = rolesRepository.findById(idRol)
                 .orElseThrow(() -> new RuntimeException("rol no encontrado"));
         // Usuarios actuales
         List<Usuario> todos = usuarioRepo.findAll();
