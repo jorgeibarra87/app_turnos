@@ -46,9 +46,7 @@ public class UsuarioContratoService {
         usuarioContrato.setRoles(roles);
 
         UsuarioContrato usuarioContratoGuardado = usuarioContratoRepository.save(usuarioContrato);
-
         return modelMapper.map(usuarioContratoGuardado, UsuarioContratoDTO.class);
-
     }
 
     public UsuarioContratoDTO update(UsuarioContratoDTO detalleUsuarioContratoDTO, Long id) {
