@@ -5,6 +5,7 @@ import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.UsuarioContratoDTO;
+import com.turnos.enfermeria.model.dto.UsuarioContratoTotalDTO;
 import com.turnos.enfermeria.service.UsuarioContratoService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityNotFoundException;
@@ -110,6 +111,16 @@ public class UsuarioContratoController {
                         request.getMethod(),
                         request.getRequestURI()
                 ));
+    }
+
+    @GetMapping("/info/{documento}")
+    public ResponseEntity<UsuarioContratoTotalDTO> obtenerInformacionUsuario(@PathVariable String documento) {
+        try {
+            UsuarioContratoTotalDTO dto = usuarioContratoService.obtenerInformacionUsuarioCompleta(documento);
+            return ResponseEntity.ok(dto);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 //    @DeleteMapping("/{idGestorContrato}")
