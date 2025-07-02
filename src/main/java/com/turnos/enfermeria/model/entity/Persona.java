@@ -40,6 +40,4 @@ public class Persona {
 
     @Column(name = "estado")
     private Boolean estado;
-
-
 }

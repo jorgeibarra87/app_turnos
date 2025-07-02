@@ -1,6 +1,7 @@
 package com.turnos.enfermeria.service;
 
 import com.turnos.enfermeria.model.dto.UsuarioContratoDTO;
+import com.turnos.enfermeria.model.dto.UsuarioContratoTotalDTO;
 import com.turnos.enfermeria.model.entity.Contrato;
 import com.turnos.enfermeria.model.entity.Roles;
 import com.turnos.enfermeria.model.entity.UsuarioContrato;
@@ -15,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -100,6 +102,93 @@ public class UsuarioContratoService {
         UsuarioContratoDTO usuarioContratoDTO = modelMapper.map(usuarioContratoEliminar, UsuarioContratoDTO.class);
 
         usuarioContratoRepository.deleteById(idUsuarioContrato);
+    }
+
+//    public UsuarioContratoTotalDTO obtenerInformacionUsuario(String documento) {
+//        UsuarioContratoTotalDTO info = usuarioContratoRepository.findUsuarioInfoByDocumento(documento);
+//
+//        if (info == null) {
+//            throw new EntityNotFoundException("Usuario no encontrado con documento: " + documento);
+//        }
+//
+//        return info;
+//    }
+//
+//    public UsuarioContratoTotalDTO obtenerInformacionUsuarioCompleta(String documento) {
+//        List<UsuarioContratoTotalDTO> resultados = usuarioContratoRepository.findAllUsuarioInfoByDocumento(documento);
+//
+//        if (resultados.isEmpty()) {
+//            throw new EntityNotFoundException("Usuario no encontrado con documento: " + documento);
+//        }
+//
+//        // Tomar el primer resultado y concatenar múltiples valores
+//        UsuarioContratoTotalDTO primer = resultados.get(0);
+//
+//        String profesiones = resultados.stream()
+//                .map(UsuarioContratoTotalDTO::getProfesion)
+//                .filter(Objects::nonNull)
+//                .distinct()
+//                .collect(Collectors.joining(", "));
+//
+//        String contratos = resultados.stream()
+//                .map(UsuarioContratoTotalDTO::getContrato)
+//                .filter(Objects::nonNull)
+//                .distinct()
+//                .collect(Collectors.joining(", "));
+//
+//        String roles = resultados.stream()
+//                .map(UsuarioContratoTotalDTO::getRol)
+//                .filter(Objects::nonNull)
+//                .distinct()
+//                .collect(Collectors.joining(", "));
+//
+//        return new UsuarioContratoTotalDTO(
+//                primer.getDocumento(),
+//                primer.getNombre(),
+//                primer.getTelefono(),
+//                primer.getEmail(),
+//                profesiones.isEmpty() ? "Sin profesión" : profesiones,
+//                contratos.isEmpty() ? "Sin contrato" : contratos,
+//                roles.isEmpty() ? "Sin rol" : roles
+//        );
+//    }
+
+    public UsuarioContratoTotalDTO obtenerInformacionUsuarioCompleta(String documento) {
+        List<UsuarioContratoTotalDTO> resultados = usuarioContratoRepository.findAllUsuarioInfoByDocumento(documento);
+
+        if (resultados.isEmpty()) {
+            throw new EntityNotFoundException("Usuario no encontrado con documento: " + documento);
+        }
+
+        UsuarioContratoTotalDTO base = resultados.get(0);
+
+        String profesiones = resultados.stream()
+                .map(UsuarioContratoTotalDTO::getProfesion)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.joining(", "));
+
+        String contratos = resultados.stream()
+                .map(UsuarioContratoTotalDTO::getContrato)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.joining(", "));
+
+        String roles = resultados.stream()
+                .map(UsuarioContratoTotalDTO::getRol)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.joining(", "));
+
+        return new UsuarioContratoTotalDTO(
+                base.getDocumento(),
+                base.getNombre(),
+                base.getTelefono(),
+                base.getEmail(),
+                profesiones.isEmpty() ? "Sin profesión" : profesiones,
+                contratos.isEmpty() ? "Sin contrato" : contratos,
+                roles.isEmpty() ? "Sin rol" : roles
+        );
     }
 
 }
