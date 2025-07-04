@@ -35,4 +35,8 @@ public interface TitulosFormacionAcademicaRepository extends JpaRepository<Titul
      */
     List<TitulosFormacionAcademica> findByTituloContainingIgnoreCase(String titulo);
 
+    //boolean existsByUsuario_IdPersonaAndTitulo(Long idPersona, String titulo);
+
+    //void deleteByUsuario_IdPersona(Long idPersona);
+
 }

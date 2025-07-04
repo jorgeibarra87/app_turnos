@@ -38,4 +38,6 @@ public interface UsuarioContratoRepository extends JpaRepository<UsuarioContrato
 """)
     List<UsuarioContratoTotalDTO> findAllUsuarioInfoByDocumento(@Param("documento") String documento);
 
+    boolean existsByUsuario_IdPersonaAndContrato_IdContrato(Long idPersona, Long idContrato);
+
 }

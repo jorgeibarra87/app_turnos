@@ -2,18 +2,13 @@ package com.turnos.enfermeria.service;
 
 import com.turnos.enfermeria.model.dto.UsuarioContratoDTO;
 import com.turnos.enfermeria.model.dto.UsuarioContratoTotalDTO;
-import com.turnos.enfermeria.model.entity.Contrato;
-import com.turnos.enfermeria.model.entity.Roles;
-import com.turnos.enfermeria.model.entity.UsuarioContrato;
-import com.turnos.enfermeria.model.entity.Usuario;
-import com.turnos.enfermeria.repository.ContratoRepository;
-import com.turnos.enfermeria.repository.RolesRepository;
-import com.turnos.enfermeria.repository.UsuarioContratoRepository;
-import com.turnos.enfermeria.repository.UsuarioRepository;
+import com.turnos.enfermeria.model.entity.*;
+import com.turnos.enfermeria.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -26,6 +21,8 @@ public class UsuarioContratoService {
 
     private final UsuarioContratoRepository usuarioContratoRepository;
     private final ModelMapper modelMapper;
+    private final PersonaRepository personaRepository;
+    private final TitulosFormacionAcademicaRepository titulosFormacionAcademicaRepository;
     private final UsuarioRepository usuarioRepository;
     private final ContratoRepository contratoRepository;
     private final RolesRepository rolesRepository;
@@ -141,5 +138,165 @@ public class UsuarioContratoService {
                 contratos.isEmpty() ? "Sin contrato" : contratos,
                 roles.isEmpty() ? "Sin rol" : roles
         );
+    }
+
+    @Transactional
+    public UsuarioContratoTotalDTO saveUsuarioContratoCompleto(UsuarioContratoTotalDTO usuarioContratoTotalDTO) {
+        try {
+            // 1. Buscar o crear la persona
+            Persona persona = personaRepository.findByDocumento(usuarioContratoTotalDTO.getDocumento())
+                    .orElseGet(() -> {
+                        Persona nuevaPersona = new Persona();
+                        nuevaPersona.setDocumento(usuarioContratoTotalDTO.getDocumento());
+                        nuevaPersona.setNombreCompleto(usuarioContratoTotalDTO.getNombre());
+                        nuevaPersona.setTelefono(usuarioContratoTotalDTO.getTelefono());
+                        nuevaPersona.setEmail(usuarioContratoTotalDTO.getEmail());
+                        nuevaPersona.setEstado(true);
+                        return personaRepository.save(nuevaPersona);
+                    });
+
+            // 2. Buscar o crear el usuario
+            Usuario usuario = usuarioRepository.findByPersona_IdPersona(persona.getIdPersona());
+//                    .orElseGet(() -> {
+//                        Usuario nuevoUsuario = new Usuario();
+//                        nuevoUsuario.setPersona(persona);
+//                        nuevoUsuario.setEstado(true);
+//                        // Aquí puedes agregar otros campos del usuario si es necesario
+//                        return usuarioRepository.save(nuevoUsuario);
+//                    });
+
+            // 3. Procesar y guardar títulos de formación académica
+            if (usuarioContratoTotalDTO.getProfesion() != null &&
+                    !usuarioContratoTotalDTO.getProfesion().equals("Sin profesión")) {
+
+                String[] profesiones = usuarioContratoTotalDTO.getProfesion().split(", ");
+                for (String profesion : profesiones) {
+                    if (!profesion.trim().isEmpty()) {
+                        // Verificar si ya existe la relación
+//                        boolean existeRelacion = titulosFormacionAcademicaRepository
+//                                .existsByUsuario_IdPersonaAndTitulo(persona.getIdPersona(), profesion.trim());
+
+                        TitulosFormacionAcademica titulo = new TitulosFormacionAcademica();
+                        titulo.setTitulo(profesion.trim());
+                        titulo.setEstado(true);
+                        titulosFormacionAcademicaRepository.save(titulo);
+//                        if (!existeRelacion) {
+//                            TitulosFormacionAcademica titulo = new TitulosFormacionAcademica();
+////                            titulo.setUsuario(usuario);
+//                            titulo.setTitulo(profesion.trim());
+//                            titulo.setEstado(true);
+//                            titulosFormacionAcademicaRepository.save(titulo);
+//                        }
+                    }
+                }
+            }
+
+            // 4. Procesar y guardar contratos
+            if (usuarioContratoTotalDTO.getContrato() != null &&
+                    !usuarioContratoTotalDTO.getContrato().equals("Sin contrato")) {
+
+                String[] contratos = usuarioContratoTotalDTO.getContrato().split(", ");
+                String[] rolesArray = usuarioContratoTotalDTO.getRol() != null &&
+                        !usuarioContratoTotalDTO.getRol().equals("Sin rol") ?
+                        usuarioContratoTotalDTO.getRol().split(", ") : new String[]{};
+
+                for (int i = 0; i < contratos.length; i++) {
+                    String numeroContrato = contratos[i].trim();
+                    if (!numeroContrato.isEmpty()) {
+                        // Buscar o crear el contrato
+                        Contrato contrato = contratoRepository.findByNumContrato(numeroContrato)
+                                .orElseGet(() -> {
+                                    Contrato nuevoContrato = new Contrato();
+                                    nuevoContrato.setNumContrato(numeroContrato);
+                                    nuevoContrato.setEstado(true);
+                                    // Aquí puedes agregar otros campos del contrato si es necesario
+                                    return contratoRepository.save(nuevoContrato);
+                                });
+
+                        // Determinar el rol para este contrato
+                        Roles rol = null;
+                        if (i < rolesArray.length && !rolesArray[i].trim().isEmpty()) {
+                            int finalI = i;
+                            rol = rolesRepository.findByRol(rolesArray[i].trim())
+                                    .orElseGet(() -> {
+                                        Roles nuevoRol = new Roles();
+                                        nuevoRol.setRol(rolesArray[finalI].trim());
+                                        nuevoRol.setEstado(true);
+                                        return rolesRepository.save(nuevoRol);
+                                    });
+                        }
+
+                        // Verificar si ya existe la relación usuario-contrato
+                        boolean existeUsuarioContrato = usuarioContratoRepository
+                                .existsByUsuario_IdPersonaAndContrato_IdContrato(
+                                        persona.getIdPersona(),
+                                        contrato.getIdContrato()
+                                );
+
+                        if (!existeUsuarioContrato) {
+                            UsuarioContrato usuarioContrato = new UsuarioContrato();
+                            usuarioContrato.setUsuario(usuario);
+                            usuarioContrato.setContrato(contrato);
+                            usuarioContrato.setRoles(rol);
+                            usuarioContrato.setEstado(true);
+                            usuarioContratoRepository.save(usuarioContrato);
+                        }
+                    }
+                }
+            }
+
+            // 5. Retornar la información completa actualizada
+            return obtenerInformacionUsuarioCompleta(usuarioContratoTotalDTO.getDocumento());
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al guardar el usuario contrato completo: " + e.getMessage(), e);
+        }
+    }
+
+    // Método auxiliar para actualizar información existente
+    @Transactional
+    public UsuarioContratoTotalDTO ***REMOVED***UsuarioContratoCompleto(String documento,
+                                                                 UsuarioContratoTotalDTO usuarioContratoTotalDTO) {
+        try {
+            // Buscar la persona existente
+            Persona persona = personaRepository.findByDocumento(documento)
+                    .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada con documento: " + documento));
+
+            // Actualizar datos de la persona
+            persona.setNombreCompleto(usuarioContratoTotalDTO.getNombre());
+            persona.setTelefono(usuarioContratoTotalDTO.getTelefono());
+            persona.setEmail(usuarioContratoTotalDTO.getEmail());
+            personaRepository.save(persona);
+
+            // Buscar el usuario
+            Usuario usuario = usuarioRepository.findById(persona.getIdPersona())
+                    .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+            // Actualizar títulos de formación académica
+            if (usuarioContratoTotalDTO.getProfesion() != null &&
+                    !usuarioContratoTotalDTO.getProfesion().equals("Sin profesión")) {
+
+                // Eliminar títulos existentes
+                //titulosFormacionAcademicaRepository.deleteByUsuario_IdPersona(usuario.getIdPersona());
+
+                // Agregar nuevos títulos
+                String[] profesiones = usuarioContratoTotalDTO.getProfesion().split(", ");
+                for (String profesion : profesiones) {
+                    if (!profesion.trim().isEmpty()) {
+                        TitulosFormacionAcademica titulo = new TitulosFormacionAcademica();
+                        //titulo.setUsuario(usuario);
+                        titulo.setTitulo(profesion.trim());
+                        titulo.setEstado(true);
+                        titulosFormacionAcademicaRepository.save(titulo);
+                    }
+                }
+            }
+
+            // Retornar la información actualizada
+            return obtenerInformacionUsuarioCompleta(documento);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al actualizar el usuario contrato completo: " + e.getMessage(), e);
+        }
     }
 }

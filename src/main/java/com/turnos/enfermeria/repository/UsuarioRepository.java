@@ -24,5 +24,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>, JpaSpec
     List<Usuario> findUsuariosByEquipos_IdEquipo(Long idEquipo);
     List<Usuario> findUsuariosByRoles_IdRol(Long idRol);
     Optional<Usuario> findByPersona_Documento(String documento);
+    Usuario findByPersona_IdPersona(Long idPersona);
     //List<Usuario> findUsuariosByContratos_IdContrato(Long idContrato);
 }
