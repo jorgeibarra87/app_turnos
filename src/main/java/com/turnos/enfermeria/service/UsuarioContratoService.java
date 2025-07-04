@@ -104,54 +104,6 @@ public class UsuarioContratoService {
         usuarioContratoRepository.deleteById(idUsuarioContrato);
     }
 
-//    public UsuarioContratoTotalDTO obtenerInformacionUsuario(String documento) {
-//        UsuarioContratoTotalDTO info = usuarioContratoRepository.findUsuarioInfoByDocumento(documento);
-//
-//        if (info == null) {
-//            throw new EntityNotFoundException("Usuario no encontrado con documento: " + documento);
-//        }
-//
-//        return info;
-//    }
-//
-//    public UsuarioContratoTotalDTO obtenerInformacionUsuarioCompleta(String documento) {
-//        List<UsuarioContratoTotalDTO> resultados = usuarioContratoRepository.findAllUsuarioInfoByDocumento(documento);
-//
-//        if (resultados.isEmpty()) {
-//            throw new EntityNotFoundException("Usuario no encontrado con documento: " + documento);
-//        }
-//
-//        // Tomar el primer resultado y concatenar múltiples valores
-//        UsuarioContratoTotalDTO primer = resultados.get(0);
-//
-//        String profesiones = resultados.stream()
-//                .map(UsuarioContratoTotalDTO::getProfesion)
-//                .filter(Objects::nonNull)
-//                .distinct()
-//                .collect(Collectors.joining(", "));
-//
-//        String contratos = resultados.stream()
-//                .map(UsuarioContratoTotalDTO::getContrato)
-//                .filter(Objects::nonNull)
-//                .distinct()
-//                .collect(Collectors.joining(", "));
-//
-//        String roles = resultados.stream()
-//                .map(UsuarioContratoTotalDTO::getRol)
-//                .filter(Objects::nonNull)
-//                .distinct()
-//                .collect(Collectors.joining(", "));
-//
-//        return new UsuarioContratoTotalDTO(
-//                primer.getDocumento(),
-//                primer.getNombre(),
-//                primer.getTelefono(),
-//                primer.getEmail(),
-//                profesiones.isEmpty() ? "Sin profesión" : profesiones,
-//                contratos.isEmpty() ? "Sin contrato" : contratos,
-//                roles.isEmpty() ? "Sin rol" : roles
-//        );
-//    }
 
     public UsuarioContratoTotalDTO obtenerInformacionUsuarioCompleta(String documento) {
         List<UsuarioContratoTotalDTO> resultados = usuarioContratoRepository.findAllUsuarioInfoByDocumento(documento);
@@ -190,5 +142,4 @@ public class UsuarioContratoService {
                 roles.isEmpty() ? "Sin rol" : roles
         );
     }
-
 }

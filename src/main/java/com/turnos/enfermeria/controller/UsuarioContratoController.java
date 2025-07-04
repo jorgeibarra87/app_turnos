@@ -113,6 +113,8 @@ public class UsuarioContratoController {
                 ));
     }
 
+    @Operation(summary = "Consultar usuarios de contrato por documento",description = "Consultar los datos de un usuario de contrato existente, por documento",
+            tags={"Contratos"})
     @GetMapping("/info/{documento}")
     public ResponseEntity<UsuarioContratoTotalDTO> obtenerInformacionUsuario(@PathVariable String documento) {
         try {
@@ -122,24 +124,4 @@ public class UsuarioContratoController {
             return ResponseEntity.notFound().build();
         }
     }
-
-//    @DeleteMapping("/{idGestorContrato}")
-//    @Operation(
-//            summary = "Eliminar gestor de contrato",
-//            description = "Elimina de forma lógica o definitiva un gestor de contrato del sistema.",
-//            tags={"Contratos"}
-//    )
-//    public ResponseEntity<Object> delete(@PathVariable Long idGestorContrato){
-//        return gestorContratoService.findById(idGestorContrato)
-//                .map(gestorContratoDTO-> {
-//                    gestorContratoService.delete(idGestorContrato);
-//                    return ResponseEntity.noContent().build();
-//                })
-//                .orElseThrow(() -> new GenericNotFoundException(
-//                        CodigoError.GESTOR_CONTRATO_NO_ENCONTRADO,
-//                        idGestorContrato,
-//                        request.getMethod(),
-//                        request.getRequestURI()
-//                ));
-//    }
 }
