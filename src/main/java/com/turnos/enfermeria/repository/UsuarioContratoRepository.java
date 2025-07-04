@@ -18,69 +18,6 @@ public interface UsuarioContratoRepository extends JpaRepository<UsuarioContrato
     Optional<Contrato> findContratoByUsuarioId(@Param("usuarioId") Long usuarioId);
 
 
-//    @Query("""
-//        SELECT new com.turnos.enfermeria.model.dto.UsuarioContratoTotalDTO(
-//            p.documento,
-//            p.nombre,
-//            p.telefono,
-//            p.email,
-//            COALESCE(tf.titulo, 'Sin profesión'),
-//            COALESCE(c.numContrato, 'Sin contrato'),
-//            COALESCE(r.descripcion, 'Sin rol')
-//        )
-//        FROM Persona p
-//        LEFT JOIN UsuariosTitulos ut ON p.idPersona = ut.idPersona
-//        LEFT JOIN TitulosFormacionAcademica tf ON ut.idTitulo = tf.idTitulo
-//        LEFT JOIN UsuarioContrato uc ON p.idPersona = uc.idPersona
-//        LEFT JOIN Contrato c ON uc.idContrato = c.idContrato
-//        LEFT JOIN UsuariosRoles ur ON p.idPersona = ur.idPersona
-//        LEFT JOIN Roles r ON ur.idRol = r.idRol
-//        WHERE p.documento = :documento
-//        """)
-//    UsuarioContratoTotalDTO findUsuarioInfoByDocumento(@Param("documento") String documento);
-
-//    @Query("""
-//        SELECT new com.turnos.enfermeria.model.dto.UsuarioContratoTotalDTO(
-//    p.documento,
-//    p.nombre,
-//    p.telefono,
-//    p.email,
-//    tf.titulo,
-//    c.numContrato,
-//    r.descripcion
-//        )
-//    FROM Persona p
-//    LEFT JOIN UsuariosTitulos ut ON p.idPersona = ut.idPersona
-//    LEFT JOIN TitulosFormacionAcademica tf ON ut.idTitulo = tf.idTitulo
-//    LEFT JOIN UsuarioContrato uc ON p.idPersona = uc.idPersona
-//    LEFT JOIN Contrato c ON uc.idContrato = c.idContrato
-//    LEFT JOIN UsuariosRoles ur ON p.idPersona = ur.idPersona
-//    LEFT JOIN Roles r ON ur.idRol = r.idRol
-//    WHERE p.documento = :documento
-//        """)
-//    List<UsuarioContratoTotalDTO> findAllUsuarioInfoByDocumento(@Param("documento") String documento);
-
-//    @Query("""
-//        SELECT new com.turnos.enfermeria.model.dto.UsuarioContratoTotalDTO(
-//            p.documento,
-//            p.nombre,
-//            p.telefono,
-//            p.email,
-//            COALESCE(tf.titulo, 'Sin profesión'),
-//            COALESCE(c.numContrato, 'Sin contrato'),
-//            COALESCE(r.descripcion, 'Sin rol')
-//        )
-//        FROM Persona p
-//        LEFT JOIN UsuariosTitulos ut ON p.idPersona = ut.idPersona
-//        LEFT JOIN TitulosFormacionAcademica tf ON ut.idTitulo = tf.idTitulo
-//        LEFT JOIN UsuarioContrato uc ON p.idPersona = uc.idPersona
-//        LEFT JOIN Contrato c ON uc.idContrato = c.idContrato
-//        LEFT JOIN UsuariosRoles ur ON p.idPersona = ur.idPersona
-//        LEFT JOIN Roles r ON ur.idRol = r.idRol
-//        WHERE p.documento = :documento
-//    """)
-//    List<UsuarioContratoTotalDTO> findAllUsuarioInfoByDocumento(@Param("documento") String documento);
-
     @Query("""
     SELECT new com.turnos.enfermeria.model.dto.UsuarioContratoTotalDTO(
                     p.documento,
@@ -89,7 +26,7 @@ public interface UsuarioContratoRepository extends JpaRepository<UsuarioContrato
                     p.email,
                     COALESCE(t.titulo, 'Sin profesión'),
                     COALESCE(c.numContrato, 'Sin contrato'),
-                    COALESCE(r.descripcion, 'Sin rol')
+                    COALESCE(r.rol, 'Sin rol')
                 )
                 FROM Usuario u
                 JOIN u.persona p
