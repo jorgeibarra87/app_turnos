@@ -11,12 +11,6 @@ import java.util.List;
 @Repository
 public interface EquipoRepository extends JpaRepository<Equipo, Long> {
 
-    /**
-     * Busca equipos cuyo nombre comience con el prefijo especificado
-     * @param prefijo Prefijo del nombre del equipo
-     * @return Lista de equipos que coinciden
-     */
-    List<Equipo> findByNombreStartingWith(String prefijo);
 
     /**
      * Cuenta equipos cuyo nombre comience con el prefijo especificado
@@ -32,4 +26,12 @@ public interface EquipoRepository extends JpaRepository<Equipo, Long> {
      */
     @Query("SELECT e FROM Equipo e WHERE e.nombre LIKE CONCAT(:prefijo, '%') ORDER BY e.nombre")
     List<Equipo> findByNombreStartingWithOrderByNombre(@Param("prefijo") String prefijo);
+
+    @Query("SELECT e FROM Equipo e WHERE e.nombre LIKE :prefix%")
+    List<Equipo> findByNombreStartingWith(@Param("prefix") String prefix);
+
+    @Query("SELECT COUNT(e) FROM Equipo e WHERE e.nombre LIKE :pattern")
+    long countByNombrePattern(@Param("pattern") String pattern);
+
+    boolean existsByNombre(String nombre);
 }

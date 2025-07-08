@@ -1,13 +1,9 @@
 package com.turnos.enfermeria.service;
 
 import com.turnos.enfermeria.model.dto.EquipoDTO;
+import com.turnos.enfermeria.model.dto.EquipoSelectionDTO;
 import com.turnos.enfermeria.model.entity.Equipo;
-import com.turnos.enfermeria.model.entity.TipoFormacionAcademica;
-import com.turnos.enfermeria.model.entity.TitulosFormacionAcademica;
-import com.turnos.enfermeria.repository.CuadroTurnoRepository;
-import com.turnos.enfermeria.repository.EquipoRepository;
-import com.turnos.enfermeria.repository.TipoFormacionAcademicaRepository;
-import com.turnos.enfermeria.repository.TitulosFormacionAcademicaRepository;
+import com.turnos.enfermeria.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -16,8 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -26,10 +20,13 @@ public class EquipoService {
 
     private final EquipoRepository equipoRepository;
     private final ModelMapper modelMapper;
-    private final CuadroTurnoRepository cuadroTurnoRepository;
-    private final TitulosFormacionAcademicaRepository titulosRepository;
-    private final TipoFormacionAcademicaRepository tipoFormacionRepository;
-    private final UsuarioService usuarioService;
+    private final ServicioRepository servicioRepository;
+    private final MacroprocesosRepository macroprocesoRepository;
+    private final ProcesosRepository procesoRepository;
+    private final SeccionesServicioRepository seccionRepository;
+    private final SubseccionesServicioRepository subseccionRepository;
+
+
 
     public EquipoDTO create(EquipoDTO equipoDTO) {
 
@@ -98,143 +95,129 @@ public class EquipoService {
 
 
 
+
+
+
+
+
     /**
-     * Crea un equipo basado en un perfil específico (título de formación académica)
-     * @param idTitulo ID del título de formación académica
-     * @return EquipoDTO del equipo creado
+     * Genera un nombre único para el equipo basado en la categoría y subcategoría seleccionadas
      */
-    public EquipoDTO createEquipoByPerfil(Long idTitulo, List<Long> idsUsuarios) {
-        // Validar que existe el título
-        TitulosFormacionAcademica titulo = titulosRepository.findById(idTitulo)
-                .orElseThrow(() -> new RuntimeException("Título de formación académica no encontrado."));
+    public String generateEquipoName(EquipoSelectionDTO selection) {
+        // Obtener el nombre de la subcategoría según la categoría
+        String subcategoriaNombre = getSubcategoriaNombre(selection.getCategoria(), selection.getSubcategoria());
 
-        // Obtener el nombre del perfil y limpiar caracteres especiales
-        String nombrePerfil = limpiarNombrePerfil(titulo.getTitulo());
+        // Limpiar y normalizar los nombres
+        String categoriaNormalizada = normalizeNameForEquipo(selection.getCategoria());
+        String subcategoriaNormalizada = normalizeNameForEquipo(subcategoriaNombre);
 
-        // Generar el nombre del equipo con numeración secuencial
-        String nombreEquipo = generarNombreEquipo(nombrePerfil);
+        // Construir el prefijo base: Equipo_Categoria_Subcategoria
+        String basePrefix = "Equipo_" + categoriaNormalizada + "_" + subcategoriaNormalizada;
 
-        // Crear el equipo
-        Equipo nuevoEquipo = new Equipo();
-        nuevoEquipo.setNombre(nombreEquipo);
+        // Obtener el siguiente consecutivo
+        int nextConsecutive = getNextConsecutive(basePrefix);
 
-        // Guardar el equipo
-        Equipo equipoGuardado = equipoRepository.save(nuevoEquipo);
+        // Formatear el consecutivo con ceros a la izquierda
+        String consecutiveFormatted = String.format("%02d", nextConsecutive);
 
-        // Crear las asociaciones usuario-equipo con los IDs proporcionados
-        if (idsUsuarios != null && !idsUsuarios.isEmpty()) {
-            usuarioService.actualizarUsuariosDeEquipo(equipoGuardado.getIdEquipo(), idsUsuarios);
+        return basePrefix + "_" + consecutiveFormatted;
+    }
+
+    /**
+     * Obtiene el nombre de la subcategoría según la categoría seleccionada
+     */
+    private String getSubcategoriaNombre(String categoria, String subcategoriaId) {
+        switch (categoria.toUpperCase()) {
+            case "SERVICIO":
+                return servicioRepository.findById(Long.parseLong(subcategoriaId))
+                        .map(servicio -> servicio.getNombre())
+                        .orElse("UNKNOWN");
+
+            case "MACROPROCESO":
+                return macroprocesoRepository.findById(Long.parseLong(subcategoriaId))
+                        .map(macroproceso -> macroproceso.getNombre())
+                        .orElse("UNKNOWN");
+
+            case "PROCESO":
+                return procesoRepository.findById(Long.parseLong(subcategoriaId))
+                        .map(proceso -> proceso.getNombre())
+                        .orElse("UNKNOWN");
+
+            case "SECCION":
+                return seccionRepository.findById(Long.parseLong(subcategoriaId))
+                        .map(seccion -> seccion.getNombre())
+                        .orElse("UNKNOWN");
+
+            case "SUBSECCION":
+                return subseccionRepository.findById(Long.parseLong(subcategoriaId))
+                        .map(subseccion -> subseccion.getNombre())
+                        .orElse("UNKNOWN");
+
+            case "MULTIPROCESO":
+                return "MULTIPROCESO";
+
+            default:
+                return "UNKNOWN";
         }
-
-
-        return modelMapper.map(equipoGuardado, EquipoDTO.class);
     }
 
     /**
-     * Genera el nombre del equipo con formato: Perfil_{nombrePerfil}_Equipo_{numero}
-     * @param nombrePerfil Nombre del perfil limpio
-     * @return Nombre del equipo generado
+     * Obtiene el siguiente consecutivo para un prefijo dado
      */
-    private String generarNombreEquipo(String nombrePerfil) {
-        String prefijo = "Perfil_" + nombrePerfil + "_Equipo_";
+    private int getNextConsecutive(String basePrefix) {
+        // Buscar todos los equipos que empiecen con el prefijo base
+        List<Equipo> existingEquipos = equipoRepository.findByNombreStartingWith(basePrefix);
 
-        // Buscar equipos existentes con este prefijo
-        List<Equipo> equiposExistentes = equipoRepository.findByNombreStartingWith(prefijo);
+        int maxConsecutive = 0;
 
-        int numeroSiguiente = obtenerSiguienteNumero(equiposExistentes, prefijo);
-
-        return prefijo + String.format("%02d", numeroSiguiente);
-    }
-
-    /**
-     * Obtiene el siguiente número disponible para el equipo
-     * @param equiposExistentes Lista de equipos existentes con el prefijo
-     * @param prefijo Prefijo del nombre del equipo
-     * @return Siguiente número disponible
-     */
-    private int obtenerSiguienteNumero(List<Equipo> equiposExistentes, String prefijo) {
-        int maxNumero = 0;
-        // Patrón para extraer el número al final del nombre
-        Pattern patron = Pattern.compile(Pattern.quote(prefijo) + "(\\d+)$");
-
-        for (Equipo equipo : equiposExistentes) {
-            Matcher matcher = patron.matcher(equipo.getNombre());
-            if (matcher.find()) {
-                int numero = Integer.parseInt(matcher.group(1));
-                maxNumero = Math.max(maxNumero, numero);
+        // Extraer el número consecutivo más alto
+        for (Equipo equipo : existingEquipos) {
+            String nombre = equipo.getNombre();
+            if (nombre.startsWith(basePrefix + "_")) {
+                String consecutivePart = nombre.substring(basePrefix.length() + 1);
+                try {
+                    int consecutive = Integer.parseInt(consecutivePart);
+                    maxConsecutive = Math.max(maxConsecutive, consecutive);
+                } catch (NumberFormatException e) {
+                    // Ignorar nombres que no sigan el patrón esperado
+                }
             }
         }
-        return maxNumero + 1;
+
+        return maxConsecutive + 1;
     }
 
     /**
-     * Limpia el nombre del perfil removiendo caracteres especiales y espacios
-     * @param nombreOriginal Nombre original del perfil
-     * @return Nombre limpio para usar en el equipo
+     * Crea un nuevo equipo con nombre generado automáticamente
      */
-    private String limpiarNombrePerfil(String nombreOriginal) {
-        if (nombreOriginal == null || nombreOriginal.trim().isEmpty()) {
-            return "SinEspecificar";
+    public Equipo createEquipoWithGeneratedName(EquipoSelectionDTO selection) {
+        String generatedName = generateEquipoName(selection);
+
+        Equipo equipo = new Equipo();
+        equipo.setNombre(generatedName);
+        equipo.setEstado(true);
+
+        return equipoRepository.save(equipo);
+    }
+
+    /**
+     * Normaliza el nombre para usar en el equipo:
+     * - Convierte a mayúsculas
+     * - Reemplaza espacios por guiones bajos
+     * - Elimina caracteres especiales
+     * - Reemplaza múltiples guiones bajos consecutivos por uno solo
+     */
+    private String normalizeNameForEquipo(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return "UNKNOWN";
         }
-        return nombreOriginal
-                .trim()
-                .replaceAll("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]", "") // Remover caracteres especiales excepto letras y espacios
-                .replaceAll("\\s+", "_") // Reemplazar espacios por guiones bajos
-                .replaceAll("_+", "_") // Evitar múltiples guiones bajos consecutivos
-                .replaceAll("^_|_$", ""); // Remover guiones bajos al inicio y final
-    }
 
-    /**
-     * Obtiene todos los equipos de un perfil específico
-     * @param idTitulo ID del título de formación académica
-     * @return Lista de equipos del perfil
-     */
-    public List<EquipoDTO> findEquiposByPerfil(Long idTitulo) {
-        // Validar que existe el título
-        TitulosFormacionAcademica titulo = titulosRepository.findById(idTitulo)
-                .orElseThrow(() -> new RuntimeException("Título de formación académica no encontrado."));
-
-        String nombrePerfil = limpiarNombrePerfil(titulo.getTitulo());
-        String prefijo = "Perfil_" + nombrePerfil + "_Equipo_";
-
-        return equipoRepository.findByNombreStartingWith(prefijo)
-                .stream()
-                .map(equipo -> modelMapper.map(equipo, EquipoDTO.class))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Obtiene todos los equipos de un tipo de formación específico
-     * @param idTipoFormacion ID del tipo de formación académica
-     * @return Lista de equipos del tipo de formación
-     */
-    public List<EquipoDTO> findEquiposByTipoFormacion(Long idTipoFormacion) {
-        // Validar que existe el tipo de formación
-        TipoFormacionAcademica tipoFormacion = tipoFormacionRepository.findById(idTipoFormacion)
-                .orElseThrow(() -> new RuntimeException("Tipo de formación académica no encontrado."));
-
-        String nombrePerfil = limpiarNombrePerfil(tipoFormacion.getTipo());
-        String prefijo = "Perfil_" + nombrePerfil + "_Equipo_";
-
-        return equipoRepository.findByNombreStartingWith(prefijo)
-                .stream()
-                .map(equipo -> modelMapper.map(equipo, EquipoDTO.class))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Cuenta cuántos equipos existen para un perfil específico
-     * @param idTitulo ID del título de formación académica
-     * @return Número de equipos del perfil
-     */
-    public long contarEquiposByPerfil(Long idTitulo) {
-        TitulosFormacionAcademica titulo = titulosRepository.findById(idTitulo)
-                .orElseThrow(() -> new RuntimeException("Título de formación académica no encontrado."));
-
-        String nombrePerfil = limpiarNombrePerfil(titulo.getTitulo());
-        String prefijo = "Perfil_" + nombrePerfil + "_Equipo_";
-
-        return equipoRepository.countByNombreStartingWith(prefijo);
+        return name.trim()
+                .toUpperCase()
+                .replaceAll("\\s+", "_")                    // Espacios por guiones bajos
+                .replaceAll("[^A-Z0-9_]", "")               // Solo letras, números y guiones bajos
+                .replaceAll("_{2,}", "_")                   // Múltiples guiones bajos por uno solo
+                .replaceAll("^_+|_+$", "");                // Eliminar guiones bajos al inicio/final
     }
 
 }
