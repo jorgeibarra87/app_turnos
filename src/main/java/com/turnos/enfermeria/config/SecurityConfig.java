@@ -41,41 +41,49 @@ public class SecurityConfig {
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Permitir sin autenticación (rutas públicas)
-                        .requestMatchers("/auth/**", "/public/**").permitAll()
-
-                        // Restringir por rol (opcional)
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/usuario/**").hasRole("ADMIN")
-                        .requestMatchers("/roles/**").hasRole("ADMIN")
-                        .requestMatchers("/macroprocesos/**").hasRole("ADMIN")
-                        .requestMatchers("/procesos/**").hasRole("ADMIN")
-                        .requestMatchers("/servicio/**").hasRole("ADMIN")
-                        .requestMatchers("/procesosAtencion/**").hasRole("ADMIN")
-                        .requestMatchers("/tutulosFormacionAcademica/**").hasRole("ADMIN")
-                        .requestMatchers("/tipoFormacionAcademica/**").hasRole("ADMIN")
-                        .requestMatchers("/servicio/**").hasRole("ADMIN")
-                        .requestMatchers("/bloqueServicio/**").hasRole("ADMIN")
-                        .requestMatchers("/seccionesServicio/**").hasRole("ADMIN")
-                        .requestMatchers("/contrato/**").hasAnyRole("ADMIN", "GESTOR_TURNOS")
-                        .requestMatchers("/procesosContrato/**").hasAnyRole("ADMIN","GESTOR_TURNOS")
-                        .requestMatchers("/tipoatencion/**").hasAnyRole("ADMIN","GESTOR_TURNOS")
-                        .requestMatchers("/tipoturno/**").hasAnyRole("ADMIN","GESTOR_TURNOS")
-
-
-
-                        // Todas las demás rutas requieren autenticación
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll() // ✅ Permite todo sin autenticación
                 )
-                        .formLogin(withDefaults())
-                        .httpBasic(withDefaults())
-                        .logout(logout -> logout
-                                .logoutUrl("/api/logout")
-                                .logoutSuccessUrl("/swagger-ui.html")
-                                .invalidateHttpSession(true)
-                                .deleteCookies("JSESSIONID")
-                                .clearAuthentication(true)
-                        ); // También habilita login por curl/postman
+                .formLogin(AbstractHttpConfigurer::disable) // ⛔️ Desactiva login
+                .httpBasic(AbstractHttpConfigurer::disable) // ⛔️ Desactiva auth básica
+                .logout(AbstractHttpConfigurer::disable);   // ⛔️ Desactiva logout
+//        httpSecurity
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .authorizeHttpRequests(auth -> auth
+//                        // Permitir sin autenticación (rutas públicas)
+//                        .requestMatchers("/auth/**", "/public/**").permitAll()
+//
+//                        // Restringir por rol (opcional)
+//                        .requestMatchers("/admin/**").hasRole("ADMIN")
+//                        .requestMatchers("/usuario/**").hasRole("ADMIN")
+//                        .requestMatchers("/roles/**").hasRole("ADMIN")
+//                        .requestMatchers("/macroprocesos/**").hasRole("ADMIN")
+//                        .requestMatchers("/procesos/**").hasRole("ADMIN")
+//                        .requestMatchers("/servicio/**").hasRole("ADMIN")
+//                        .requestMatchers("/procesosAtencion/**").hasRole("ADMIN")
+//                        .requestMatchers("/tutulosFormacionAcademica/**").hasRole("ADMIN")
+//                        .requestMatchers("/tipoFormacionAcademica/**").hasRole("ADMIN")
+//                        .requestMatchers("/servicio/**").hasRole("ADMIN")
+//                        .requestMatchers("/bloqueServicio/**").hasRole("ADMIN")
+//                        .requestMatchers("/seccionesServicio/**").hasRole("ADMIN")
+//                        .requestMatchers("/contrato/**").hasAnyRole("ADMIN", "GESTOR_TURNOS")
+//                        .requestMatchers("/procesosContrato/**").hasAnyRole("ADMIN","GESTOR_TURNOS")
+//                        .requestMatchers("/tipoatencion/**").hasAnyRole("ADMIN","GESTOR_TURNOS")
+//                        .requestMatchers("/tipoturno/**").hasAnyRole("ADMIN","GESTOR_TURNOS")
+//
+//
+//
+//                        // Todas las demás rutas requieren autenticación
+//                        .anyRequest().authenticated()
+//                )
+//                        .formLogin(withDefaults())
+//                        .httpBasic(withDefaults())
+//                        .logout(logout -> logout
+//                                .logoutUrl("/api/logout")
+//                                .logoutSuccessUrl("/swagger-ui.html")
+//                                .invalidateHttpSession(true)
+//                                .deleteCookies("JSESSIONID")
+//                                .clearAuthentication(true)
+//                        ); // También habilita login por curl/postman
 
         return httpSecurity.build();
     }

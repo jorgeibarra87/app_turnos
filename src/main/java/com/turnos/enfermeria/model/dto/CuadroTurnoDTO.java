@@ -26,6 +26,7 @@ public class CuadroTurnoDTO {
     private Boolean turnoExcepcion = false;
     private String categoria;
     private Boolean estado = true;
+    private String nombreEquipo;
 
     // Métodos de conveniencia para manejar procesos de atención
     public void addIdProcesoAtencion(Long idProcesoAtencion) {

@@ -1,6 +1,7 @@
 package com.turnos.enfermeria.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import jakarta.persistence.*;
@@ -50,8 +51,9 @@ public class CuadroTurno {
 //    @OneToMany(mappedBy = "cuadroTurno", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 //    private List<ProcesosAtencion> procesosAtencion;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER) // asegúrate de que se cargue
     @JoinColumn(name = "id_equipo", referencedColumnName = "id_equipo")
+    @JsonIncludeProperties("nombre")
     private Equipo equipos;
 
     @Column(name = "nombre")
@@ -100,6 +102,9 @@ public class CuadroTurno {
 
     public Long getIdEquipo() {
         return equipos != null ? equipos.getIdEquipo() : null;
+    }
+    public String getNombreEquipo() {
+        return equipos != null ? equipos.getNombre() : null;
     }
 
 //    // Nuevos métodos para manejar múltiples procesos de atención

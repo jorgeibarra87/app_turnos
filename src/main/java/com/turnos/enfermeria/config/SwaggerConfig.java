@@ -28,25 +28,25 @@ import org.springframework.context.annotation.Configuration;
                         description = "DEV SERVER",
                         url = "http://localhost:8080"
                 )
-        },
-        security = {
-                @SecurityRequirement(name = "basicAuth"),
-                @SecurityRequirement(name = "bearerAuth")
         }
+//        security = {
+//                @SecurityRequirement(name = "basicAuth"),
+//                @SecurityRequirement(name = "bearerAuth")
+//        }
 )
-@SecurityScheme(
-        name = "basicAuth",
-        type = SecuritySchemeType.HTTP,
-        scheme = "basic",
-        description = "Autenticación básica con usuario y contraseña"
-)
-@SecurityScheme(
-        name = "bearerAuth",
-        type = SecuritySchemeType.HTTP,
-        scheme = "bearer",
-        bearerFormat = "JWT",
-        description = "Autenticación con JWT token"
-)
+//@SecurityScheme(
+//        name = "basicAuth",
+//        type = SecuritySchemeType.HTTP,
+//        scheme = "basic",
+//        description = "Autenticación básica con usuario y contraseña"
+//)
+//@SecurityScheme(
+//        name = "bearerAuth",
+//        type = SecuritySchemeType.HTTP,
+//        scheme = "bearer",
+//        bearerFormat = "JWT",
+//        description = "Autenticación con JWT token"
+//)
 public class SwaggerConfig {
 
 //    @Bean

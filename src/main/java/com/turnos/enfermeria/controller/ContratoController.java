@@ -370,6 +370,18 @@ public class ContratoController {
         }
     }
 
+    @GetMapping("contratoTotal/{idContrato}")
+    @Operation(
+            summary = "Buscar contrato por ID",
+            description = "Obtiene los detalles de un contrato específico utilizando su identificador único.",
+            tags={"Contratos"}
+    )public ResponseEntity<ContratoTotalDTO> obtenerContratoCompleto(@PathVariable Long idContrato){
+        ContratoTotalDTO contratoDTO = contratoService.obtenerContratoCompleto(idContrato);
+        return ResponseEntity.ok(contratoDTO);
+        //return contratoDTO.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(contratoDTO);
+    }
+
+
     /**
      * Endpoint para verificar si un número de contrato ya existe
      */

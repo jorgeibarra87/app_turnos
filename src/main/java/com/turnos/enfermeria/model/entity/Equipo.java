@@ -2,11 +2,14 @@ package com.turnos.enfermeria.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * $table.getTableComment()
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "equipo", schema = "public")
 public class Equipo {
@@ -21,6 +24,5 @@ public class Equipo {
 
     @Column(name = "estado")
     private Boolean estado;
-
 
 }
