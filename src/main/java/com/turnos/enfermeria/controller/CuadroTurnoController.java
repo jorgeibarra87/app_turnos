@@ -22,6 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/cuadro-turnos")
+@CrossOrigin("http://localhost:5173/")
 @Tag(name = "Cuadro de Turnos", description = "Endpoints para gestionar cuadros de turnos y su historial")
 public class CuadroTurnoController {
 

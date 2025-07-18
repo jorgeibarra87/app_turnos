@@ -180,6 +180,7 @@ public class ContratoService {
                 .orElseThrow(() -> new RuntimeException("Contrato not found with id: " + contratoId));
 
         ContratoTotalDTO dto = new ContratoTotalDTO();
+        dto.setIdContrato(contrato.getIdContrato());
         dto.setNumContrato(contrato.getNumContrato());
         dto.setSupervisor(contrato.getSupervisor());
         dto.setApoyoSupervision(contrato.getApoyoSupervision());
@@ -389,4 +390,5 @@ public class ContratoService {
         contrato.getTitulosFormacionAcademica().remove(titulosFormacionAcademica);
         contratoRepository.save(contrato);
     }
+
 }
