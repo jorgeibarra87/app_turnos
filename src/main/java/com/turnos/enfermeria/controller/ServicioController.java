@@ -20,6 +20,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/servicio")
 @Tag(name = "Servicios", description = "Operaciones relacionadas con los servicios del sistema")
 public class ServicioController {
