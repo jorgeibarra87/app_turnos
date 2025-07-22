@@ -20,6 +20,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/procesosAtencion")
 //@Tag(name = "Procesos de Atención", description = "Operaciones relacionadas con los procesos de atención")
 public class ProcesosAtencionController {

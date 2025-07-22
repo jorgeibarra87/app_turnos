@@ -20,6 +20,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/macroprocesos")
 //@Tag(name = "Macroprocesos", description = "CRUD de macroprocesos de gestión o administrativos")
 public class MacroprocesosController {

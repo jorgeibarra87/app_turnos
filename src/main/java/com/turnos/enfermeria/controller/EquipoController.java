@@ -25,6 +25,7 @@ import java.util.Map;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/equipo")
 //@Tag(name = "Equipo", description = "Gestión de equipos de trabajo en el sistema de turnos")
 public class EquipoController {
