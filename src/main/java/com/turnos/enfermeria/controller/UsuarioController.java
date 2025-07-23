@@ -20,6 +20,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/usuario")
 @Tag(name = "Usuarios", description = "API para gestionar Usuarios,Persona y Roles, sus equipos y sus títulos académicos.")
 public class UsuarioController {
@@ -104,23 +105,6 @@ public class UsuarioController {
                         request.getRequestURI()
                 ));
     }
-    
-//    @DeleteMapping("/{id}")
-//    @Operation(summary = "Eliminar un usuario", description = "Elimina un usuario del sistema por su ID.",
-//            tags={"Usuarios"})
-//    public ResponseEntity<Object> delete(@PathVariable Long idPersona){
-//        return usuarioService.findById(idPersona)
-//                .map(usuarioDTO-> {
-//                    usuarioService.delete(idPersona);
-//                    return ResponseEntity.noContent().build();
-//                })
-//                .orElseThrow(() -> new GenericNotFoundException(
-//                        CodigoError.USUARIO_NO_ENCONTRADO,
-//                        idPersona,
-//                        request.getMethod(),
-//                        request.getRequestURI()
-//                ));
-//    }
 
     // GET: Obtener equipos de un usuario
     @GetMapping("/{id}/equipo")
@@ -167,41 +151,45 @@ public class UsuarioController {
     @Operation(summary = "Obtener usuarios de un equipo", description = "Lista todos los usuarios asociados a un equipo.",
             tags={"Usuarios"})
     public ResponseEntity<List<PersonaEquipoDTO>> obtenerUsuariosPorEquipo(@PathVariable Long idEquipo) {
-        try {
-            List<PersonaEquipoDTO> usuarios = usuarioService.obtenerUsuariosPorEquipo(idEquipo);
-            return ResponseEntity.ok(usuarios);
-        }catch (EntityNotFoundException e) {
-            throw new GenericNotFoundException(
-                    CodigoError.USUARIO_NO_ENCONTRADO,
-                    idEquipo,
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
-        } catch (IllegalArgumentException e) {
-            throw new GenericBadRequestException(
-                    CodigoError.USUARIO_DATOS_INVALIDOS,
-                    e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
-
-        } catch (IllegalStateException e) {
-            throw new GenericConflictException(
-                    CodigoError.USUARIO_ESTADO_INVALIDO,
-                    "No se pudo crear usuario: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
-
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el usuario: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
-        }
+        List<PersonaEquipoDTO> usuarios = usuarioService.obtenerUsuariosPorEquipo(idEquipo);
+        return ResponseEntity.ok(usuarios);
     }
+//    public ResponseEntity<List<PersonaEquipoDTO>> obtenerUsuariosPorEquipo(@PathVariable Long idEquipo) {
+//        try {
+//            List<PersonaEquipoDTO> usuarios = usuarioService.obtenerUsuariosPorEquipo(idEquipo);
+//            return ResponseEntity.ok(usuarios);
+//        }catch (EntityNotFoundException e) {
+//            throw new GenericNotFoundException(
+//                    CodigoError.USUARIO_NO_ENCONTRADO,
+//                    idEquipo,
+//                    request.getMethod(),
+//                    request.getRequestURI()
+//            );
+//        } catch (IllegalArgumentException e) {
+//            throw new GenericBadRequestException(
+//                    CodigoError.USUARIO_DATOS_INVALIDOS,
+//                    e.getMessage(),
+//                    request.getMethod(),
+//                    request.getRequestURI()
+//            );
+//
+//        } catch (IllegalStateException e) {
+//            throw new GenericConflictException(
+//                    CodigoError.USUARIO_ESTADO_INVALIDO,
+//                    "No se pudo crear usuario: " + e.getMessage(),
+//                    request.getMethod(),
+//                    request.getRequestURI()
+//            );
+//
+//        } catch (Exception e) {
+//            throw new GenericBadRequestException(
+//                    CodigoError.ERROR_PROCESAMIENTO,
+//                    "Error al crear el usuario: " + e.getMessage(),
+//                    request.getMethod(),
+//                    request.getRequestURI()
+//            );
+//        }
+//    }
 
     // POST: Agregar un equipo a un usuario
     @PostMapping("/{id}/equipo/{idEquipo}")
@@ -369,46 +357,7 @@ public class UsuarioController {
         }
     }
 
-//    // DELETE: Eliminar un equipo de un usuario
-//    @DeleteMapping("/{id}/equipo/{idEquipo}")
-//    @Operation(summary = "Eliminar equipo de usuario", description = "Elimina la relación entre un usuario y un equipo.",
-//            tags={"Usuarios"})
-//    public ResponseEntity<String> eliminarEquipoDeUsuario(@PathVariable Long id, @PathVariable Long idEquipo) {
-//        try {
-//            usuarioService.eliminarEquipoDeUsuario(id, idEquipo);
-//            return ResponseEntity.ok("Equipo eliminado del usuario correctamente.");
-//        }catch (EntityNotFoundException e) {
-//            throw new GenericNotFoundException(
-//                    CodigoError.EQUIPO_NO_ENCONTRADO,
-//                    idEquipo,
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//        } catch (IllegalArgumentException e) {
-//            throw new GenericBadRequestException(
-//                    CodigoError.EQUIPO_DATOS_INVALIDOS,
-//                    e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//
-//        } catch (IllegalStateException e) {
-//            throw new GenericConflictException(
-//                    CodigoError.EQUIPO_ESTADO_INVALIDO,
-//                    "No se pudo acceder equipo: " + e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//
-//        } catch (Exception e) {
-//            throw new GenericBadRequestException(
-//                    CodigoError.ERROR_PROCESAMIENTO,
-//                    "Error en equipo: " + e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//        }
-//    }
+
 
 
 
@@ -659,48 +608,6 @@ public class UsuarioController {
         }
     }
 
-//    // DELETE: Eliminar un titulo de un usuario
-//    @DeleteMapping("/{id}/titulo/{idTitulo}")
-//    @Operation(summary = "Eliminar título de usuario", description = "Elimina la relación entre un usuario y un título académico.",
-//            tags={"Usuarios"})
-//    public ResponseEntity<String> eliminarTituloDeUsuario(@PathVariable Long id, @PathVariable Long idTitulo) {
-//        try{
-//        usuarioService.eliminarTituloDeUsuario(id, idTitulo);
-//        return ResponseEntity.ok("titulo eliminado del usuario correctamente.");
-//        }catch (EntityNotFoundException e) {
-//            throw new GenericNotFoundException(
-//                    CodigoError.TITULO_USUARIO_NO_ENCONTRADO,
-//                    idTitulo,
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//        } catch (IllegalArgumentException e) {
-//            throw new GenericBadRequestException(
-//                    CodigoError.TITULO_USUARIO_DATOS_INVALIDOS,
-//                    e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//
-//        } catch (IllegalStateException e) {
-//            throw new GenericConflictException(
-//                    CodigoError.TITULO_USUARIO_ESTADO_INVALIDO,
-//                    "No se pudo acceder a titulo: " + e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//
-//        } catch (Exception e) {
-//            throw new GenericBadRequestException(
-//                    CodigoError.ERROR_PROCESAMIENTO,
-//                    "Error en titulo: " + e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//        }
-//    }
-
-
     // GET: Obtener roles de un usuario
     @GetMapping("/{id}/roles")
     @Operation(summary = "Obtener roles de un usuario", description = "Lista todos los roles asociados a un usuario.",
@@ -905,46 +812,4 @@ public class UsuarioController {
         );
     }
     }
-
-//    // DELETE: Eliminar un rol de un usuario
-//    @DeleteMapping("/{id}/rol/{idRol}")
-//    @Operation(summary = "Eliminar rol de usuario", description = "Elimina la relación entre un usuario y un rol.",
-//            tags={"Usuarios"})
-//    public ResponseEntity<String> eliminarRolDeUsuario(@PathVariable Long id, @PathVariable Long idRol) {
-//        try {
-//            usuarioService.eliminarRolDeUsuario(id, idRol);
-//            return ResponseEntity.ok("Rol eliminado del usuario correctamente.");
-//        }catch (EntityNotFoundException e) {
-//            throw new GenericNotFoundException(
-//                    CodigoError.ROL_USUARIO_NO_ENCONTRADO,
-//                    idRol,
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//        } catch (IllegalArgumentException e) {
-//            throw new GenericBadRequestException(
-//                    CodigoError.ROL_USUARIO_DATOS_INVALIDOS,
-//                    e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//
-//        } catch (IllegalStateException e) {
-//            throw new GenericConflictException(
-//                    CodigoError.ROL_USUARIO_ESTADO_INVALIDO,
-//                    "No se pudo acceder a rol: " + e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//
-//        } catch (Exception e) {
-//            throw new GenericBadRequestException(
-//                    CodigoError.ERROR_PROCESAMIENTO,
-//                    "Error en rol: " + e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//        }
-//    }
-
 }

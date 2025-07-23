@@ -6,5 +6,13 @@ import lombok.Data;
 public class EquipoDTO {
     private Long idEquipo;
     private String nombre;
-    private Boolean estado = true;
+    private Boolean estado;
+
+    public EquipoDTO(Long idEquipo, String nombre, Boolean estado) {
+        this.idEquipo = idEquipo;
+        this.nombre = nombre;
+        this.estado = estado;
+    }
+
+    public EquipoDTO() {}
 }

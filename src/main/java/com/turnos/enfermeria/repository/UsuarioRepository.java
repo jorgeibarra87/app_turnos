@@ -1,8 +1,11 @@
 package com.turnos.enfermeria.repository;
 
+import com.turnos.enfermeria.model.dto.PersonaEquipoDTO;
 import com.turnos.enfermeria.model.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,9 +24,23 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>, JpaSpec
 //            "WHERE u.idPersona = :idPersona")
 //    Optional<Usuario> findUsuarioCompleto(@Param("idPersona") Long idPersona);
 
+    @Query("""
+    SELECT new com.turnos.enfermeria.model.dto.PersonaEquipoDTO(
+        u.idPersona,
+        CONCAT(p.nombres, ' ', p.apellidos),
+        p.documento,
+        e
+    )
+    FROM Usuario u
+    JOIN u.persona p
+    JOIN u.equipos e
+    WHERE e.idEquipo = :idEquipo
+""")
+    List<PersonaEquipoDTO> findUsuariosPorEquipoDTO(@Param("idEquipo") Long idEquipo);
+    List<Usuario> findDistinctByEquipos_IdEquipo(Long idEquipo);
+
     List<Usuario> findUsuariosByEquipos_IdEquipo(Long idEquipo);
     List<Usuario> findUsuariosByRoles_IdRol(Long idRol);
     Optional<Usuario> findByPersona_Documento(String documento);
     Usuario findByPersona_IdPersona(Long idPersona);
-    //List<Usuario> findUsuariosByContratos_IdContrato(Long idContrato);
 }

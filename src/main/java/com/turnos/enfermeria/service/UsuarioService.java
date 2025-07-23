@@ -11,8 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -153,11 +152,63 @@ public class UsuarioService {
         return equipoMapper.toDTOList(usuario.getEquipos());
     }
 
+//    public List<PersonaEquipoDTO> obtenerUsuariosPorEquipo(Long idEquipo) {
+//        List<Usuario> usuarios = usuarioRepo.findUsuariosByEquipos_IdEquipo(idEquipo);
+//        return usuarios.stream()
+//                .map(usuariosEquipoMapper::toDTO)
+//                .collect(Collectors.toList());
+//    }
+
+//    public List<PersonaEquipoDTO> obtenerUsuariosPorEquipo(Long idEquipo) {
+//        List<Usuario> usuarios = usuarioRepo.findDistinctByEquipos_IdEquipo(idEquipo);
+//        return usuarios.stream().map(usuario -> {
+//            Persona persona = usuario.getPersona();
+//            PersonaEquipoDTO dto = new PersonaEquipoDTO();
+//            dto.setIdPersona(persona.getIdPersona());
+//            dto.setNombreCompleto(persona.getNombreCompleto());
+//            dto.setDocumento(persona.getDocumento());
+//
+//            // Solo incluir el equipo solicitado
+//            List<EquipoDTO> equiposFiltrados = usuario.getEquipos().stream()
+//                    .filter(equipo -> equipo.getIdEquipo().equals(idEquipo))
+//                    .map(equipo -> {
+//                        EquipoDTO equipoDTO = new EquipoDTO();
+//                        equipoDTO.setIdEquipo(equipo.getIdEquipo());
+//                        equipoDTO.setNombre(equipo.getNombre());
+//                        equipoDTO.setEstado(equipo.getEstado());
+//                        return equipoDTO;
+//                    }).toList();
+//
+//            dto.setEquipos(equiposFiltrados);
+//            return dto;
+//        }).toList();
+//    }
+
     public List<PersonaEquipoDTO> obtenerUsuariosPorEquipo(Long idEquipo) {
-        List<Usuario> usuarios = usuarioRepo.findUsuariosByEquipos_IdEquipo(idEquipo);
-        return usuarios.stream()
-                .map(usuariosEquipoMapper::toDTO)
-                .collect(Collectors.toList());
+        List<Usuario> usuarios = usuarioRepo.findDistinctByEquipos_IdEquipo(idEquipo);
+
+        List<PersonaEquipoDTO> resultado = new ArrayList<>();
+
+        for (Usuario usuario : usuarios) {
+            Persona persona = usuario.getPersona();
+
+            PersonaEquipoDTO dto = new PersonaEquipoDTO();
+            dto.setIdPersona(persona.getIdPersona());
+            dto.setNombreCompleto(persona.getNombreCompleto());
+            dto.setDocumento(persona.getDocumento());
+
+            // Para evitar duplicados
+            List<EquipoDTO> equipos = usuario.getEquipos().stream()
+                    .map(equipo -> new EquipoDTO(equipo.getIdEquipo(), equipo.getNombre(), equipo.getEstado()))
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            dto.setEquipos(equipos);
+
+            resultado.add(dto);
+        }
+
+        return resultado;
     }
 
     public EquipoDTO actualizarUsuariosDeEquipo(Long idEquipo, List<Long> nuevosUsuariosIds) {
