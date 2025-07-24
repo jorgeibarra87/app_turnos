@@ -6,6 +6,7 @@ import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.EquipoDTO;
 import com.turnos.enfermeria.model.dto.EquipoSelectionDTO;
+import com.turnos.enfermeria.model.dto.MiembroPerfilDTO;
 import com.turnos.enfermeria.model.entity.Equipo;
 import com.turnos.enfermeria.repository.*;
 import com.turnos.enfermeria.service.EquipoService;
@@ -226,6 +227,11 @@ public class EquipoController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @GetMapping("/{id}/miembros-perfil")
+    public ResponseEntity<List<MiembroPerfilDTO>> obtenerMiembrosConPerfil(@PathVariable Long id) {
+        return ResponseEntity.ok(equipoService.obtenerMiembrosConPerfil(id));
     }
 
 //    /**

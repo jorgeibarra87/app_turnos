@@ -105,6 +105,7 @@ public interface CuadroTurnoRepository extends JpaRepository<CuadroTurno, Long> 
             @Param("idProceso") Long idProceso,
             @Param("idServicio") Long idServicio,
             @Param("idSeccionServicio") Long idSeccionServicio,
+            @Param("idSubseccionServicio") Long idSubseccionServicio,
             @Param("idEquipo") Long idEquipo,
             @Param("anio") String anio,
             @Param("mes") String mes

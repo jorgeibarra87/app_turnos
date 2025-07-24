@@ -25,6 +25,7 @@ public class CuadroTurnoService {
     private final ServicioRepository servicioRepository;
     private final EquipoRepository equipoRepository;
     private final SeccionesServicioRepository seccionesServicioRepository;
+    private final SubseccionesServicioRepository subseccionesServicioRepository;
     private final ProcesosAtencionRepository procesosAtencionRepository;
     private final CambiosCuadroTurnoRepository cambiosCuadroTurnoRepository;
     private final CambiosProcesosAtencionRepository cambiosProcesosAtencionRepository;
@@ -387,6 +388,14 @@ public class CuadroTurnoService {
                 }
                 break;
 
+            case "subseccion":
+                if (request.getIdSubseccionServicio() != null) {
+                    SubseccionesServicio subseccion = subseccionesServicioRepository.findById(request.getIdSeccionServicio())
+                            .orElseThrow(() -> new EntityNotFoundException("subseccion de servicio no encontrada"));
+                    cuadroTurno.setSubseccionesServicios(subseccion);
+                }
+                break;
+
             case "multiproceso":
                 // Esta categoría usa múltiples procesos base
                 if (request.getIdsProcesosAtencion() != null && !request.getIdsProcesosAtencion().isEmpty()) {
@@ -475,7 +484,9 @@ public class CuadroTurnoService {
 //        }
         if (cuadroTurno.getSeccionesServicios() != null) {
             return "Seccion";
-        } else if (cuadroTurno.getServicios() != null) {
+        }  else if (cuadroTurno.getIdSubeccionServicio() != null) {
+            return "Servicio";
+        }else if (cuadroTurno.getServicios() != null) {
             return "Servicio";
         } else if (cuadroTurno.getProcesos() != null) {
             return "Proceso";
@@ -505,6 +516,8 @@ public class CuadroTurnoService {
 //                return "PROCESO_ATENCION";
             case "Seccion":
                 return limpiarNombreParaId(cuadroTurno.getSeccionesServicios().getNombre());
+            case "Subseccion":
+                return limpiarNombreParaId(cuadroTurno.getSubseccionesServicios().getNombre());
             case "Servicio":
                 return limpiarNombreParaId(cuadroTurno.getServicios().getNombre());
             case "Proceso":
@@ -538,6 +551,7 @@ public class CuadroTurnoService {
                 request.getIdProceso(),
                 request.getIdServicio(),
                 request.getIdSeccionServicio(),
+                request.getIdSubseccionServicio(),
                 //request.getIdsProcesosAtencion(), // Ahora es una lista
                 request.getIdEquipo(),
                 request.getAnio(),

@@ -16,6 +16,7 @@ public class CuadroTurnoDTO {
     private Long idProceso;
     private Long idServicios;
     private Long idSeccionesServicios;
+    private Long idSubseccionServicios;
     private List<Long> idsProcesosAtencion; // Cambiado de Long a List<Long>
     private Long idEquipo;
     private String nombre;

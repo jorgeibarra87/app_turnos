@@ -2,16 +2,17 @@ package com.turnos.enfermeria.service;
 
 import com.turnos.enfermeria.model.dto.EquipoDTO;
 import com.turnos.enfermeria.model.dto.EquipoSelectionDTO;
+import com.turnos.enfermeria.model.dto.MiembroPerfilDTO;
 import com.turnos.enfermeria.model.entity.Equipo;
 import com.turnos.enfermeria.repository.*;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -25,6 +26,7 @@ public class EquipoService {
     private final ProcesosRepository procesoRepository;
     private final SeccionesServicioRepository seccionRepository;
     private final SubseccionesServicioRepository subseccionRepository;
+    private final EntityManager entityManager;
 
 
 
@@ -218,6 +220,33 @@ public class EquipoService {
                 .replaceAll("[^A-Z0-9_]", "")               // Solo letras, números y guiones bajos
                 .replaceAll("_{2,}", "_")                   // Múltiples guiones bajos por uno solo
                 .replaceAll("^_+|_+$", "");                // Eliminar guiones bajos al inicio/final
+    }
+
+    public List<MiembroPerfilDTO> obtenerMiembrosConPerfil(Long equipoId) {
+        String sql = "SELECT p.id_persona, p.nombre_completo, tfa.titulo " +
+                "FROM usuarios_equipo ue " +
+                "JOIN persona p ON ue.id_persona = p.id_persona " +
+                "LEFT JOIN usuarios_titulos ut ON ut.id_persona = p.id_persona " +
+                "LEFT JOIN titulos_formacion_academica tfa ON ut.id_titulo = tfa.id_titulo " +
+                "WHERE ue.id_equipo = :equipoId";
+
+        List<Object[]> resultados = entityManager.createNativeQuery(sql)
+                .setParameter("equipoId", equipoId)
+                .getResultList();
+
+        Map<Long, MiembroPerfilDTO> map = new LinkedHashMap<>();
+        for (Object[] fila : resultados) {
+            Long idPersona = ((Number) fila[0]).longValue();
+            String nombre = (String) fila[1];
+            String titulo = (String) fila[2];
+
+            map.computeIfAbsent(idPersona, id -> new MiembroPerfilDTO(id, nombre, new ArrayList<>()));
+            if (titulo != null) {
+                map.get(idPersona).getTitulos().add(titulo);
+            }
+        }
+
+        return new ArrayList<>(map.values());
     }
 
 }

@@ -18,6 +18,7 @@ public class CuadroTurnoRequest {
     private Long idProceso;
     private Long idServicio;
     private Long idSeccionServicio;
+    private Long idSubseccionServicio;
     private List<Long> idsProcesosAtencion; // CAMBIO: de Long a List<Long>
     private Long idEquipo;
     private String anio;
