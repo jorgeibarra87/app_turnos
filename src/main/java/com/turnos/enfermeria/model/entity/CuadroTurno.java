@@ -43,6 +43,10 @@ public class CuadroTurno {
     @JoinColumn(name = "id_seccion_servicio", referencedColumnName = "id_seccion_servicio")
     private SeccionesServicio seccionesServicios;
 
+    @ManyToOne
+    @JoinColumn(name = "id_subseccion_servicio", referencedColumnName = "id_subseccion_servicio")
+    private SubseccionesServicio subseccionesServicios;
+
 //    @JsonIgnoreProperties("cuadroTurno")
 //    @OneToMany(mappedBy = "cuadroTurno", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 //    private List<ProcesosAtencion> procesosAtencion;
@@ -98,6 +102,10 @@ public class CuadroTurno {
 
     public Long getIdSeccionServicio() {
         return seccionesServicios != null ? seccionesServicios.getIdSeccionServicio() : null;
+    }
+
+    public Long getIdSubeccionServicio() {
+        return subseccionesServicios != null ? subseccionesServicios.getIdSubseccionServicio() : null;
     }
 
     public Long getIdEquipo() {
