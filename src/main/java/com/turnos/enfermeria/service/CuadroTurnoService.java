@@ -47,8 +47,8 @@ public class CuadroTurnoService {
         }
 
         Servicio servicio = null;
-        if (cuadroTurnoDTO.getIdServicios() != null) {
-            servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicios())
+        if (cuadroTurnoDTO.getIdServicio() != null) {
+            servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicio())
                     .orElseThrow(() -> new RuntimeException("Servicio no encontrado."));
         }
 
@@ -139,8 +139,8 @@ public class CuadroTurnoService {
                     .orElseThrow(() -> new RuntimeException("Proceso no encontrado."));
         }
         Servicio servicio = null;
-        if (cuadroTurnoDTO.getIdServicios() != null) {
-            servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicios())
+        if (cuadroTurnoDTO.getIdServicio() != null) {
+            servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicio())
                     .orElseThrow(() -> new RuntimeException("Servicio no encontrado."));
         }
         SeccionesServicio seccionesServicio = null;
@@ -214,8 +214,8 @@ public class CuadroTurnoService {
                     .orElseThrow(() -> new RuntimeException("Proceso no encontrado."));
         }
         Servicio servicio = null;
-        if (cuadroTurnoDTO.getIdServicios() != null) {
-            servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicios())
+        if (cuadroTurnoDTO.getIdServicio() != null) {
+            servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicio())
                     .orElseThrow(() -> new RuntimeException("Servicio no encontrado."));
         }
         Equipo equipo = null;
@@ -412,9 +412,6 @@ public class CuadroTurnoService {
                         procesosAtencionRepository.save(nuevoProcesoAtencion);
                         procesosAtencion.add(nuevoProcesoAtencion);
                     }
-
-
-                    //cuadroTurno.setProcesosAtencion(procesosAtencion);
                 }
                 break;
 
@@ -443,6 +440,157 @@ public class CuadroTurnoService {
         return cuadroTurnoRepository.save(cuadroTurno);
     }
 
+    /**
+     * Edita un cuadro de turno existente manteniendo su estructura básica
+     */
+    public CuadroTurno editarCuadroTurnoTotal(Long idCuadro, CuadroTurnoRequest request) {
+        // Obtener el cuadro existente
+        CuadroTurno cuadroExistente = cuadroTurnoRepository.findById(idCuadro)
+                .orElseThrow(() -> new EntityNotFoundException("Cuadro de turno no encontrado"));
+
+        // Validar que el cuadro esté en estado editable
+        if (!"abierto".equalsIgnoreCase(cuadroExistente.getEstadoCuadro())) {
+            throw new IllegalStateException("El cuadro de turno no está en estado editable");
+        }
+
+        // Actualizar relaciones según categoría
+        switch (request.getCategoria().toLowerCase()) {
+            case "macroproceso":
+                cuadroExistente.setProcesos(null);
+                cuadroExistente.setServicios(null);
+                cuadroExistente.setSeccionesServicios(null);
+                cuadroExistente.setSubseccionesServicios(null);
+                procesosAtencionRepository.deleteByCuadroTurnoId(idCuadro);
+
+                if (request.getIdMacroproceso() != null) {
+                    Macroprocesos macro = macroprocesosRepository.findById(request.getIdMacroproceso())
+                            .orElseThrow(() -> new EntityNotFoundException("Macroproceso no encontrado"));
+                    cuadroExistente.setMacroProcesos(macro);
+                } else {
+                    cuadroExistente.setMacroProcesos(null);
+                }
+                break;
+
+            case "proceso":
+                cuadroExistente.setMacroProcesos(null);
+                cuadroExistente.setServicios(null);
+                cuadroExistente.setSeccionesServicios(null);
+                cuadroExistente.setSubseccionesServicios(null);
+                procesosAtencionRepository.deleteByCuadroTurnoId(idCuadro);
+
+                if (request.getIdProceso() != null) {
+                    Procesos proceso = procesosRepository.findById(request.getIdProceso())
+                            .orElseThrow(() -> new EntityNotFoundException("Proceso no encontrado"));
+                    cuadroExistente.setProcesos(proceso);
+                } else {
+                    cuadroExistente.setProcesos(null);
+                }
+                break;
+
+            case "servicio":
+                cuadroExistente.setMacroProcesos(null);
+                cuadroExistente.setProcesos(null);
+                cuadroExistente.setSeccionesServicios(null);
+                cuadroExistente.setSubseccionesServicios(null);
+                procesosAtencionRepository.deleteByCuadroTurnoId(idCuadro);
+
+                if (request.getIdServicio() != null) {
+                    Servicio servicio = servicioRepository.findById(request.getIdServicio())
+                            .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
+                    cuadroExistente.setServicios(servicio);
+                } else {
+                    cuadroExistente.setServicios(null);
+                }
+                break;
+
+            case "seccion":
+                cuadroExistente.setMacroProcesos(null);
+                cuadroExistente.setProcesos(null);
+                cuadroExistente.setServicios(null);
+                cuadroExistente.setSubseccionesServicios(null);
+                procesosAtencionRepository.deleteByCuadroTurnoId(idCuadro);
+
+                if (request.getIdSeccionServicio() != null) {
+                    SeccionesServicio seccion = seccionesServicioRepository.findById(request.getIdSeccionServicio())
+                            .orElseThrow(() -> new EntityNotFoundException("Sección de servicio no encontrada"));
+                    cuadroExistente.setSeccionesServicios(seccion);
+                } else {
+                    cuadroExistente.setSeccionesServicios(null);
+                }
+                break;
+
+            case "subseccion":
+                cuadroExistente.setMacroProcesos(null);
+                cuadroExistente.setProcesos(null);
+                cuadroExistente.setServicios(null);
+                cuadroExistente.setSeccionesServicios(null);
+                procesosAtencionRepository.deleteByCuadroTurnoId(idCuadro);
+
+                if (request.getIdSubseccionServicio() != null) {
+                    SubseccionesServicio subseccion = subseccionesServicioRepository.findById(request.getIdSubseccionServicio())
+                            .orElseThrow(() -> new EntityNotFoundException("Subsección de servicio no encontrada"));
+                    cuadroExistente.setSubseccionesServicios(subseccion);
+                } else {
+                    cuadroExistente.setSubseccionesServicios(null);
+                }
+                break;
+
+            case "multiproceso":
+                // Limpiar relaciones simples
+                cuadroExistente.setMacroProcesos(null);
+                cuadroExistente.setProcesos(null);
+                cuadroExistente.setServicios(null);
+                cuadroExistente.setSeccionesServicios(null);
+                cuadroExistente.setSubseccionesServicios(null);
+
+                // Eliminar procesos de atención existentes
+                procesosAtencionRepository.deleteByCuadroTurnoId(idCuadro);
+
+                // Crear nuevos procesos de atención
+                if (request.getIdsProcesosAtencion() != null && !request.getIdsProcesosAtencion().isEmpty()) {
+                    for (Long idProcesoBase : request.getIdsProcesosAtencion()) {
+                        Procesos procesoBase = procesosRepository.findById(idProcesoBase)
+                                .orElseThrow(() -> new EntityNotFoundException("Proceso base no encontrado con ID: " + idProcesoBase));
+
+                        ProcesosAtencion nuevoProcesoAtencion = new ProcesosAtencion();
+                        nuevoProcesoAtencion.setProcesos(procesoBase);
+                        nuevoProcesoAtencion.setDetalle(procesoBase.getNombre());
+                        nuevoProcesoAtencion.setCuadroTurno(cuadroExistente);
+                        procesosAtencionRepository.save(nuevoProcesoAtencion);
+                    }
+                }
+                break;
+
+            default:
+                throw new IllegalArgumentException("Categoría no válida: " + request.getCategoria());
+        }
+
+        // Resto del método (equipo, año, mes, versión, etc.)
+        if (request.getIdEquipo() != null) {
+            Equipo equipo = equipoRepository.findById(request.getIdEquipo())
+                    .orElseThrow(() -> new EntityNotFoundException("Equipo no encontrado"));
+            cuadroExistente.setEquipos(equipo);
+        } else {
+            cuadroExistente.setEquipos(null);
+        }
+
+        boolean cambioPeriodo = !cuadroExistente.getAnio().equals(request.getAnio()) ||
+                !cuadroExistente.getMes().equals(request.getMes());
+
+        cuadroExistente.setAnio(request.getAnio());
+        cuadroExistente.setMes(request.getMes());
+
+        if (cambioPeriodo) {
+            cuadroExistente.setVersion(generarNuevaVersion(cuadroExistente.getVersion(),
+                    request.getAnio(),
+                    request.getMes()));
+        }
+
+        cuadroExistente.setNombre(generarNombreCuadroTurno(cuadroExistente));
+        cuadroExistente.setCategoria(request.getCategoria());
+
+        return cuadroTurnoRepository.save(cuadroExistente);
+    }
 
     /**
      * Genera el nombre del cuadro de turno basado en la selección del usuario
@@ -485,7 +633,7 @@ public class CuadroTurnoService {
         if (cuadroTurno.getSeccionesServicios() != null) {
             return "Seccion";
         }  else if (cuadroTurno.getIdSubeccionServicio() != null) {
-            return "Servicio";
+            return "Subseccion";
         }else if (cuadroTurno.getServicios() != null) {
             return "Servicio";
         } else if (cuadroTurno.getProcesos() != null) {

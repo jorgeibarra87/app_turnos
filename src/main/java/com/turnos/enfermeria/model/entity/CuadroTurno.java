@@ -96,7 +96,7 @@ public class CuadroTurno {
         return procesos != null ? procesos.getIdProceso() : null;
     }
 
-    public Long getIdServicios() {
+    public Long getIdServicio() {
         return servicios != null ? servicios.getIdServicio() : null;
     }
 

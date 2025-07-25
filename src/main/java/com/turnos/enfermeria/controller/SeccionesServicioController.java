@@ -19,6 +19,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/seccionesServicio")
 //@Tag(name = "Secciones de Servicio", description = "Gestión de secciones dentro de un servicio")
 public class SeccionesServicioController {

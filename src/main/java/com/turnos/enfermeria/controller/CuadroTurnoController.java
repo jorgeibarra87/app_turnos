@@ -12,11 +12,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -279,4 +282,33 @@ public class CuadroTurnoController {
     }
 
 
+    /**
+     * Edita un cuadro de turno existente
+     * @param id ID del cuadro a editar
+     * @param request Datos de actualización
+     * @return Cuadro de turno actualizado
+     */
+    @PutMapping("/{id}/editar-total")
+    public ResponseEntity<?> editarCuadroTurnoTotal(
+            @PathVariable Long id,
+            @Valid @RequestBody CuadroTurnoRequest request,
+            BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errores = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(error ->
+                    errores.put(error.getField(), error.getDefaultMessage()));
+            return ResponseEntity.badRequest().body(errores);
+        }
+
+        try {
+            CuadroTurno cuadroActualizado = cuadroTurnoService.editarCuadroTurnoTotal(id, request);
+            return ResponseEntity.ok(cuadroActualizado);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
+

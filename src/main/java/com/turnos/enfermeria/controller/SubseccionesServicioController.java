@@ -20,6 +20,7 @@ import java.util.Optional;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/subseccionesServicio")
 //@Tag(name = "Subsecciones de Servicio", description = "Operaciones relacionadas con las subsecciones de los servicios")
 public class SubseccionesServicioController {

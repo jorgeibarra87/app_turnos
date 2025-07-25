@@ -14,6 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CuadroTurnoRequest {
+
+    private String nombre;
     private Long idMacroproceso;
     private Long idProceso;
     private Long idServicio;
@@ -26,6 +28,8 @@ public class CuadroTurnoRequest {
     private Boolean turnoExcepcion = false;
     private String categoria;
     private Boolean estado = true;
+    private String estadoCuadro = "abierto";
+    private String version;
 
     // Métodos de conveniencia para manejar procesos de atención
     public void addIdProcesoAtencion(Long idProcesoAtencion) {
