@@ -310,5 +310,11 @@ public class CuadroTurnoController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/{id}/procesos")
+    public ResponseEntity<List<ProcesosDTO>> getProcesosFromCuadro(@PathVariable Long id) {
+        List<ProcesosDTO> procesos = cuadroTurnoService.obtenerProcesosDesdeCuadroMultiproceso(id);
+        return ResponseEntity.ok(procesos);
+    }
 }
 

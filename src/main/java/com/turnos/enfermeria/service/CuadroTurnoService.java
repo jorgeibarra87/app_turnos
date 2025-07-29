@@ -706,4 +706,30 @@ public class CuadroTurnoService {
                 request.getMes()
         );
     }
+
+    public List<ProcesosDTO> obtenerProcesosDesdeCuadroMultiproceso(Long idCuadroTurno) {
+        CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(idCuadroTurno)
+                .orElseThrow(() -> new EntityNotFoundException("Cuadro de turno no encontrado"));
+
+        // Validar que sea de tipo multiproceso
+        if (!"multiproceso".equalsIgnoreCase(cuadroTurno.getCategoria())) {
+            throw new IllegalArgumentException("El cuadro de turno no es de tipo multiproceso");
+        }
+
+        // Obtener los procesos asociados desde ProcesosAtencion
+        List<ProcesosAtencion> procesosAtencion = procesosAtencionRepository.findByCuadroTurnoId(idCuadroTurno);
+
+        return procesosAtencion.stream()
+                .map(pa -> {
+                    Procesos proceso = pa.getProcesos();
+                    return new ProcesosDTO(
+                            proceso.getIdProceso(),
+                            proceso.getNombre(),
+                            proceso.getIdMacroproceso() != null ? proceso.getIdMacroproceso() : null,
+                            proceso.getEstado()
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
 }
