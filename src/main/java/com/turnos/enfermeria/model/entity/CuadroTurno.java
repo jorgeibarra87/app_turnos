@@ -29,31 +29,28 @@ public class CuadroTurno {
 
     @ManyToOne
     @JoinColumn(name = "id_macroproceso", referencedColumnName = "id_macroproceso")
+    @JsonIncludeProperties("nombre")
     private Macroprocesos macroProcesos;
 
     @ManyToOne
     @JoinColumn(name = "id_proceso", referencedColumnName = "id_proceso")
+    @JsonIncludeProperties("nombre")
     private Procesos procesos;
 
     @ManyToOne
     @JoinColumn(name = "id_servicio", referencedColumnName = "id_servicio")
+    @JsonIncludeProperties("nombre")
     private Servicio servicios;
 
     @ManyToOne
     @JoinColumn(name = "id_seccion_servicio", referencedColumnName = "id_seccion_servicio")
+    @JsonIncludeProperties("nombre")
     private SeccionesServicio seccionesServicios;
 
     @ManyToOne
     @JoinColumn(name = "id_subseccion_servicio", referencedColumnName = "id_subseccion_servicio")
+    @JsonIncludeProperties("nombre")
     private SubseccionesServicio subseccionesServicios;
-
-//    @JsonIgnoreProperties("cuadroTurno")
-//    @OneToMany(mappedBy = "cuadroTurno", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private List<ProcesosAtencion> procesosAtencion;
-
-//    @JsonIgnoreProperties("cuadroTurno")
-//    @OneToMany(mappedBy = "cuadroTurno", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-//    private List<ProcesosAtencion> procesosAtencion;
 
     @ManyToOne(fetch = FetchType.EAGER) // asegúrate de que se cargue
     @JoinColumn(name = "id_equipo", referencedColumnName = "id_equipo")
@@ -114,48 +111,21 @@ public class CuadroTurno {
     public String getNombreEquipo() {
         return equipos != null ? equipos.getNombre() : null;
     }
+    public String getNombreProceso() {
+        return procesos != null ? procesos.getNombre() : null;
+    }
+    public String getNombreServicio() {
+        return servicios != null ? servicios.getNombre() : null;
+    }
+    public String getNombreSeccionServicio() {
+        return seccionesServicios != null ? seccionesServicios.getNombre() : null;
+    }
+    public String getNombreSubseccionServicio() {
+        return subseccionesServicios != null ? subseccionesServicios.getNombre() : null;
+    }
 
-//    // Nuevos métodos para manejar múltiples procesos de atención
-//    public List<Long> getIdsProcesosAtencion() {
-//        if (procesosAtencion == null || procesosAtencion.isEmpty()) {
-//            return new ArrayList<>();
-//        }
-//        return procesosAtencion.stream()
-//                .map(ProcesosAtencion::getIdProcesoAtencion)
-//                .collect(Collectors.toList());
-//    }
-//
-//    public void addProcesoAtencion(ProcesosAtencion procesoAtencion) {
-//        if (this.procesosAtencion == null) {
-//            this.procesosAtencion = new ArrayList<>();
-//        }
-//        if (!this.procesosAtencion.contains(procesoAtencion)) {
-//            this.procesosAtencion.add(procesoAtencion);
-//        }
-//    }
-//
-//    public void removeProcesoAtencion(ProcesosAtencion procesoAtencion) {
-//        if (this.procesosAtencion != null) {
-//            this.procesosAtencion.remove(procesoAtencion);
-//        }
-//    }
-//
-//    public boolean hasProcesoAtencion(Long idProcesoAtencion) {
-//        return procesosAtencion != null &&
-//                procesosAtencion.stream()
-//                        .anyMatch(pa -> pa.getIdProcesoAtencion().equals(idProcesoAtencion));
-//    }
-//
-//    public int getCantidadProcesosAtencion() {
-//        return procesosAtencion != null ? procesosAtencion.size() : 0;
-//    }
-//
-//    public String getNombresProcesosAtencion() {
-//        if (procesosAtencion == null || procesosAtencion.isEmpty()) {
-//            return "";
-//        }
-//        return procesosAtencion.stream()
-//                .map(ProcesosAtencion::getDetalle)
-//                .collect(Collectors.joining(", "));
-//    }
+    public String getNombreMacroproceso() {
+        return macroProcesos != null ? macroProcesos.getNombre() : null;
+    }
+
 }

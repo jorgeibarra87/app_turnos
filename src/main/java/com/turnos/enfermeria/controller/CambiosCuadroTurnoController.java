@@ -19,6 +19,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/CambiosCuadroTurno")
 //@Tag(name = "Cambios de Cuadro de Turno", description = "Endpoints para registrar y consultar los cambios realizados sobre los cuadros de turnos")
 public class CambiosCuadroTurnoController {

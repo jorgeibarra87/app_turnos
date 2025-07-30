@@ -22,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/cambiosTurno")
 //@Tag(name = "Cambios de Turno", description = "Operaciones relacionadas con el historial de cambios en los turnos")
 public class CambiosTurnoController {

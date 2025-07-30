@@ -23,6 +23,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/turnos")
 @AllArgsConstructor
 @Tag(name = "Turnos", description = "API para la gestión de turnos y su historial de cambios")

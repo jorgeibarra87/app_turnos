@@ -641,7 +641,7 @@ public class CuadroTurnoService {
         } else if (cuadroTurno.getMacroProcesos() != null) {
             return "Macroproceso";
         } else {
-            return "General";
+            return "Multiproceso";
         }
     }
 
@@ -673,7 +673,7 @@ public class CuadroTurnoService {
             case "Macroproceso":
                 return limpiarNombreParaId(cuadroTurno.getMacroProcesos().getNombre());
             default:
-                return "GENERAL";
+                return "Procesos";
         }
     }
 

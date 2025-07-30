@@ -38,7 +38,6 @@ public class EquipoService {
         Equipo equipo = modelMapper.map(equipoDTO, Equipo.class);
         equipo.setIdEquipo(equipoDTO.getIdEquipo());
         equipo.setNombre(equipoDTO.getNombre());
-//        equipo.setCuadroTurno(cuadroTurno);
 
         Equipo equipoGuardado = equipoRepository.save(equipo);
 
@@ -106,23 +105,23 @@ public class EquipoService {
      * Genera un nombre único para el equipo basado en la categoría y subcategoría seleccionadas
      */
     public String generateEquipoName(EquipoSelectionDTO selection) {
-        // Obtener el nombre de la subcategoría según la categoría
-        String subcategoriaNombre = getSubcategoriaNombre(selection.getCategoria(), selection.getSubcategoria());
+        if (selection.getCategoria() == null || selection.getSubcategoria() == null) {
+            throw new IllegalArgumentException("Categoría y subcategoría no pueden ser nulos");
+        }
 
-        // Limpiar y normalizar los nombres
-        String categoriaNormalizada = normalizeNameForEquipo(selection.getCategoria());
-        String subcategoriaNormalizada = normalizeNameForEquipo(subcategoriaNombre);
+        String categoria = selection.getCategoria().toLowerCase();
+        String subcategoria = selection.getSubcategoria();
 
-        // Construir el prefijo base: Equipo_Categoria_Subcategoria
-        String basePrefix = "Equipo_" + categoriaNormalizada + "_" + subcategoriaNormalizada;
+        // Base del nombre (sin el consecutivo)
+        String baseNombre = "EQUIPO_" + categoria + "_" + subcategoria;
 
-        // Obtener el siguiente consecutivo
-        int nextConsecutive = getNextConsecutive(basePrefix);
+        // Buscar cuántos equipos existen ya con esa base de nombre
+        Long conteo = equipoRepository.countByNombreStartingWith(baseNombre);
 
-        // Formatear el consecutivo con ceros a la izquierda
-        String consecutiveFormatted = String.format("%02d", nextConsecutive);
+        // Generar el número con ceros a la izquierda (01, 02, ...)
+        String consecutivo = String.format("_%02d", conteo + 1);
 
-        return basePrefix + "_" + consecutiveFormatted;
+        return baseNombre + consecutivo;
     }
 
     /**
@@ -201,6 +200,19 @@ public class EquipoService {
 
         return equipoRepository.save(equipo);
     }
+
+    public EquipoDTO updateWithGeneratedName(Long idEquipo, EquipoSelectionDTO selection) {
+        Equipo equipoExistente = equipoRepository.findById(idEquipo)
+                .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+
+        // Generar nuevo nombre
+        String nuevoNombre = generateEquipoName(selection);
+        equipoExistente.setNombre(nuevoNombre);
+
+        Equipo actualizado = equipoRepository.save(equipoExistente);
+        return modelMapper.map(actualizado, EquipoDTO.class);
+    }
+
 
     /**
      * Normaliza el nombre para usar en el equipo:

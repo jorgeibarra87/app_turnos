@@ -82,14 +82,11 @@ public class ProcesosAtencionService {
                 .collect(Collectors.toList());
     }
 
-    public void delete(@PathVariable Long idProcesoAtencion) {
-        // Buscar el bloque en la base de datos
-        ProcesosAtencion procesosAtencionEliminar = procesosAtencionRepo.findById(idProcesoAtencion)
-                .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada"));
-
-        // Convertir la entidad a DTO
-        ProcesosAtencionDTO procesosAtencionDTO = modelMapper.map(procesosAtencionEliminar, ProcesosAtencionDTO.class);
-
-        procesosAtencionRepo.deleteById(idProcesoAtencion);
+    public List<ProcesosAtencionDTO> findByCuadro(Long idCuadro) {
+        return procesosAtencionRepo.findByCuadroTurnoId(idCuadro)
+                .stream()
+                .map(procesosAtencion -> modelMapper.map(procesosAtencion, ProcesosAtencionDTO.class))
+                .collect(Collectors.toList());
     }
+
 }

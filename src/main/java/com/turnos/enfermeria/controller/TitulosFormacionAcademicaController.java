@@ -21,6 +21,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/titulosFormacionAcademica")
 @Tag(name = "Títulos de Formación Académica", description = "Operaciones CRUD para la gestión de títulos académicos del personal")
 public class TitulosFormacionAcademicaController {

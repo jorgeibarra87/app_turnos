@@ -28,6 +28,11 @@ public class CuadroTurnoDTO {
     private String categoria;
     private Boolean estado = true;
     private String nombreEquipo;
+    private String nombreProceso;
+    private String nombreServicio;
+    private String nombreSeccionServicio;
+    private String nombreSubseccionServicio;
+    private String nombreMacroproceso;
 
     // Métodos de conveniencia para manejar procesos de atención
     public void addIdProcesoAtencion(Long idProcesoAtencion) {

@@ -118,23 +118,14 @@ public class ProcesosAtencionController {
                 ));
     }
 
-//    @DeleteMapping("/{idProcesoAtencion}")
-//    @Operation(
-//            summary = "Eliminar un proceso de atención",
-//            description = "Elimina un proceso de atención registrado en el sistema utilizando su ID.",
-//            tags={"Cuadro de Turnos"}
-//    )
-//    public ResponseEntity<Object> delete(@PathVariable Long idProcesoAtencion){
-//        return procesosAtencionService.findById(idProcesoAtencion)
-//                .map(procesosAtencionDTO-> {
-//                    procesosAtencionService.delete(idProcesoAtencion);
-//                    return ResponseEntity.noContent().build();
-//                })
-//                .orElseThrow(() -> new GenericNotFoundException(
-//                        CodigoError.PROCESO_ATENCION_NO_ENCONTRADO,
-//                        idProcesoAtencion,
-//                        request.getMethod(),
-//                        request.getRequestURI()
-//                ));
-//    }
+    @GetMapping("cuadro/{IdCuadro}")
+    @Operation(
+            summary = "Listar todos los procesos de atención por id de cuadro",
+            description = "Devuelve una lista con todos los procesos de atención por el id de cuadro de turno.",
+            tags={"Cuadro de Turnos"}
+    )
+    public ResponseEntity<List<ProcesosAtencionDTO>> findByCuadro(@PathVariable Long IdCuadro) {
+        List<ProcesosAtencionDTO> procesosAtencionDTO = procesosAtencionService.findByCuadro(IdCuadro);
+        return procesosAtencionDTO.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(procesosAtencionDTO);
+    }
 }
