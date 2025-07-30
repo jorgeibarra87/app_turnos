@@ -19,6 +19,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/tipoturno")
 //@Tag(name = "Tipo de Turno", description = "Operaciones CRUD sobre los tipos de turno configurables en el sistema de turnos")
 public class TipoTurnoController {

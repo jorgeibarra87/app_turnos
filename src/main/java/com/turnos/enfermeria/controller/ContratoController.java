@@ -22,6 +22,7 @@ import java.util.Map;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/contrato")
 @Tag(name = "Contratos", description = "Operaciones relacionadas con contratos de personal y títulos asociados")
 public class ContratoController {

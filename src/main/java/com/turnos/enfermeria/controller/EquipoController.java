@@ -219,7 +219,7 @@ public class EquipoController {
     /**
      * Crea un nuevo equipo con nombre generado
      */
-    @PostMapping("/create-with-generated-name")
+    @PostMapping("/equipoNombre")
     public ResponseEntity<Equipo> createEquipoWithGeneratedName(@RequestBody EquipoSelectionDTO selection) {
         try {
             Equipo equipo = equipoService.createEquipoWithGeneratedName(selection);
@@ -228,6 +228,30 @@ public class EquipoController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @PutMapping("/{idEquipo}/actualizar-nombre")
+    @Operation(
+            summary = "Actualizar nombre del equipo con generación automática",
+            description = "Genera y asigna un nuevo nombre al equipo usando su categoría y subcategoría.",
+            tags = {"Cuadro de Turnos"}
+    )
+    public ResponseEntity<EquipoDTO> ***REMOVED***NombreGenerado(
+            @PathVariable Long idEquipo,
+            @RequestBody EquipoSelectionDTO selection
+    ) {
+        try {
+            EquipoDTO actualizado = equipoService.***REMOVED***WithGeneratedName(idEquipo, selection);
+            return ResponseEntity.ok(actualizado);
+        } catch (RuntimeException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.EQUIPO_NO_ENCONTRADO,
+                    idEquipo,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
+    }
+
 
     @GetMapping("/{id}/miembros-perfil")
     public ResponseEntity<List<MiembroPerfilDTO>> obtenerMiembrosConPerfil(@PathVariable Long id) {

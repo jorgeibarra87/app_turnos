@@ -19,6 +19,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/bloqueServicio")
 //@Tag(name = "Bloque de Servicio", description = "API para gestionar los bloques de servicio en el sistema de turnos")
 public class BloqueServicioController {

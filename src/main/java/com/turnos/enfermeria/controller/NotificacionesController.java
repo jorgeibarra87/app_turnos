@@ -20,6 +20,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/notificaciones")
 @Tag(name = "Notificaciones", description = "Operaciones relacionadas con el manejo de notificaciones automáticas o manuales del sistema")
 public class NotificacionesController {

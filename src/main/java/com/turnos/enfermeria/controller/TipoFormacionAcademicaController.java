@@ -19,6 +19,7 @@ import java.util.List;
 
 @Validated
 @RestController
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/tipoFormacionAcademica")
 public class TipoFormacionAcademicaController {
 
