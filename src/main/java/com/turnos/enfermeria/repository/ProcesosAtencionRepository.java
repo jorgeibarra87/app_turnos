@@ -13,12 +13,12 @@ import java.util.List;
 @Repository
 public interface ProcesosAtencionRepository extends JpaRepository<ProcesosAtencion, Long> {
 
-    // Método para eliminar procesos por ID de cuadro de turno (versión corregida)
+    // Método para eliminar procesos por ID de cuadro de turno
     @Modifying
     @Query("DELETE FROM ProcesosAtencion pa WHERE pa.cuadroTurno.id = :cuadroTurnoId")
     void deleteByCuadroTurnoId(@Param("cuadroTurnoId") Long cuadroTurnoId);
 
-    // Método para buscar procesos por ID de cuadro de turno (versión corregida)
+    // Método para buscar procesos por ID de cuadro de turno
     @Query("SELECT pa FROM ProcesosAtencion pa WHERE pa.cuadroTurno.id = :cuadroTurnoId")
     List<ProcesosAtencion> findByCuadroTurnoId(@Param("cuadroTurnoId") Long cuadroTurnoId);
 }
