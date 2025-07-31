@@ -4,7 +4,6 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-import com.turnos.enfermeria.model.dto.ProcesosAtencionDTO;
 import com.turnos.enfermeria.model.dto.ProcesosContratoDTO;
 import com.turnos.enfermeria.service.ProcesosContratoService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -17,7 +17,10 @@ public class ProcesosContrato {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idProcesoContrato;
 
-    @Column(name = "detalle", nullable = false)
+    @Column(name = "nombre_proceso")
+    private String nombreProceso;
+
+    @Column(name = "detalle")
     private String detalle;
 
     @Column(name = "estado")
@@ -34,6 +37,10 @@ public class ProcesosContrato {
 
     public Long getIdProceso() {
         return procesos != null ? procesos.getIdProceso() : null;
+    }
+
+    public String getNombreProceso() {
+        return procesos != null ? procesos.getNombre() : null;
     }
 
     public Long getIdContrato() {

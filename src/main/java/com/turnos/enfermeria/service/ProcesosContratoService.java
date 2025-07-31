@@ -35,6 +35,7 @@ public class ProcesosContratoService {
                 .orElseThrow(() -> new RuntimeException("Contrato no encontrado."));
 
         ProcesosContrato procesosContrato = modelMapper.map(procesosContratoDTO, ProcesosContrato.class);
+        procesosContrato.setNombreProceso(procesosContratoDTO.getNombreProceso());
         procesosContrato.setDetalle(procesosContratoDTO.getDetalle());
         procesosContrato.setProcesos(proceso);
         procesosContrato.setContrato(contrato);
@@ -59,6 +60,9 @@ public class ProcesosContratoService {
 
         ProcesosContratoDTO procesosContratoDTO = modelMapper.map(procesosContratoExistente, ProcesosContratoDTO.class);
 
+        if (detalleProcesosContratoDTO.getNombreProceso() != null) {
+            procesosContratoExistente.setNombreProceso(detalleProcesosContratoDTO.getNombreProceso());
+        }
         if (detalleProcesosContratoDTO.getDetalle() != null) {
             procesosContratoExistente.setDetalle(detalleProcesosContratoDTO.getDetalle());
         }

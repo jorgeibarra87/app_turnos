@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class ProcesosContratoDTO {
     private Long idProcesoContrato;
+    private String nombreProceso;
     private String detalle;
     private Long idProceso;
     private Long idContrato;
