@@ -59,6 +59,13 @@ public class Contrato {
     )
     private List<TitulosFormacionAcademica> titulosFormacionAcademica;
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @JoinTable(
+            name = "procesos_contrato", joinColumns = @JoinColumn(name = "idContrato", referencedColumnName = "id_contrato"),
+            inverseJoinColumns = @JoinColumn(name = "idProceso", referencedColumnName = "id_proceso")
+    )
+    private List<Procesos> procesos;
+
     @Column(name = "observaciones", nullable = false)
     private String observaciones;
 }
