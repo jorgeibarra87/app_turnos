@@ -293,7 +293,7 @@ public class UsuarioService {
     }
 
     public List<PersonaTituloDTO> obtenerUsuariosPorTitulo(Long idTitulo) {
-        List<Usuario> usuarios = usuarioRepo.findUsuariosByEquipos_IdEquipo(idTitulo);
+        List<Usuario> usuarios = usuarioRepo.findUsuariosByTitulosFormacionAcademica_IdTitulo(idTitulo);
         return usuarios.stream()
                 .map(usuariosTituloMapper::toDTO)
                 .collect(Collectors.toList());

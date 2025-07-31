@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.service;
 
+import com.turnos.enfermeria.model.dto.ProcesosAtencionDTO;
 import com.turnos.enfermeria.model.dto.ProcesosContratoDTO;
 import com.turnos.enfermeria.model.entity.Contrato;
 import com.turnos.enfermeria.model.entity.Procesos;
@@ -97,5 +98,12 @@ public class ProcesosContratoService {
         ProcesosContratoDTO procesosContratoDTO = modelMapper.map(procesosContratoEliminar, ProcesosContratoDTO.class);
 
         procesosContratoRepository.deleteById(idProcesoContrato);
+    }
+
+    public List<ProcesosContratoDTO> findByContrato(Long idContrato) {
+        return procesosContratoRepository.findByContratoIdContrato(idContrato)
+                .stream()
+                .map(procesosContrato -> modelMapper.map(procesosContrato, ProcesosContratoDTO.class))
+                .collect(Collectors.toList());
     }
 }

@@ -43,4 +43,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>, JpaSpec
     List<Usuario> findUsuariosByRoles_IdRol(Long idRol);
     Optional<Usuario> findByPersona_Documento(String documento);
     Usuario findByPersona_IdPersona(Long idPersona);
+    List<Usuario> findUsuariosByTitulosFormacionAcademica_IdTitulo(Long idTitulo);
 }

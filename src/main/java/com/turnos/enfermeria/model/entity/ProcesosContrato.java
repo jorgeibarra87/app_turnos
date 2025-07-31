@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -24,6 +25,7 @@ public class ProcesosContrato {
 
     @ManyToOne
     @JoinColumn(name = "id_proceso", referencedColumnName = "id_proceso")
+    @JsonIncludeProperties("nombre")
     private Procesos procesos;
 
     @ManyToOne

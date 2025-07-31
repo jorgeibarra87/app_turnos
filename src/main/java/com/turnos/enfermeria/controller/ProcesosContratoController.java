@@ -4,6 +4,7 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
+import com.turnos.enfermeria.model.dto.ProcesosAtencionDTO;
 import com.turnos.enfermeria.model.dto.ProcesosContratoDTO;
 import com.turnos.enfermeria.service.ProcesosContratoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -118,23 +119,14 @@ public class ProcesosContratoController {
                 ));
     }
 
-//    @DeleteMapping("/{idProcesoContrato}")
-//    @Operation(
-//            summary = "Eliminar un proceso de contrato",
-//            description = "Elimina del sistema un proceso de contrato específico utilizando su ID.",
-//            tags={"Contratos"}
-//    )
-//    public ResponseEntity<Object> delete(@PathVariable Long idProcesoContrato){
-//        return procesosContratoService.findById(idProcesoContrato)
-//                .map(procesosContratoDTO-> {
-//                    procesosContratoService.delete(idProcesoContrato);
-//                    return ResponseEntity.noContent().build();
-//                })
-//                .orElseThrow(() -> new GenericNotFoundException(
-//                        CodigoError.PROCESO_CONTRATO_NO_ENCONTRADO,
-//                        idProcesoContrato,
-//                        request.getMethod(),
-//                        request.getRequestURI()
-//                ));
-//    }
+    @GetMapping("contrato/{IdContrato}")
+    @Operation(
+            summary = "Listar todos los procesos del contrato",
+            description = "Devuelve una lista con todos los contratos por el id de contrato.",
+            tags={"Contratos"}
+    )
+    public ResponseEntity<List<ProcesosContratoDTO>> findByCuadro(@PathVariable Long IdContrato) {
+        List<ProcesosContratoDTO> procesosContratoDTO = procesosContratoService.findByContrato(IdContrato);
+        return procesosContratoDTO.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(procesosContratoDTO);
+    }
 }
