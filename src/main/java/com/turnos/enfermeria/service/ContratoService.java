@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.service;
 
+import com.turnos.enfermeria.mapper.ProcesosContratoMapper;
 import com.turnos.enfermeria.mapper.TitulosContratoMapper;
 import com.turnos.enfermeria.model.dto.*;
 import com.turnos.enfermeria.model.entity.*;
@@ -23,10 +24,12 @@ public class ContratoService {
     private final ModelMapper modelMapper;
     private final TitulosFormacionAcademicaRepository titulosFormacionAcademicaRepository;
     private final TitulosContratoMapper titulosContratoMapper;
+    private final ProcesosContratoMapper procesosContratoMapper;
     private final TipoAtencionRepository tipoAtencionRepository;
     private final TipoTurnoRepository tipoTurnoRepository;
-    private final ProcesosContratoRepository procesoContratoRepository;
+    //private final ProcesosContratoRepository procesoContratoRepository;
     private final TitulosFormacionAcademicaRepository titulosRepository;
+    private final ProcesosRepository procesosRepository;
 
     /**
      * Guarda un contrato completo con todas sus relaciones
@@ -51,13 +54,19 @@ public class ContratoService {
                 contrato.setTitulosFormacionAcademica(titulos);
             }
 
+            // 2. Establecer relación Many-to-Many con títulos
+            if (contratoDTO.getProcesosIds() != null && !contratoDTO.getProcesosIds().isEmpty()) {
+                List<Procesos> procesos = procesosRepository.findAllById(contratoDTO.getProcesosIds());
+                contrato.setProcesos(procesos);
+            }
+
             // 3. Guardar el contrato primero para obtener su ID
             Contrato contratoGuardado = contratoRepository.save(contrato);
 
             // 4. Establecer relaciones Many-to-One desde las entidades relacionadas
             establecerRelacionesTiposAtencion(contratoGuardado, contratoDTO.getTiposAtencionIds());
             establecerRelacionesTiposTurno(contratoGuardado, contratoDTO.getTiposTurnoIds());
-            establecerRelacionesProcesos(contratoGuardado, contratoDTO.getProcesosIds());
+            //establecerRelacionesProcesos(contratoGuardado, contratoDTO.getProcesosIds());
 
             return contratoGuardado;
 
@@ -95,15 +104,15 @@ public class ContratoService {
     /**
      * Establece las relaciones con procesos
      */
-    private void establecerRelacionesProcesos(Contrato contrato, List<Long> procesosIds) {
-        if (procesosIds != null && !procesosIds.isEmpty()) {
-            List<ProcesosContrato> procesos = procesoContratoRepository.findAllById(procesosIds);
-            for (ProcesosContrato proceso : procesos) {
-                proceso.setContrato(contrato);
-                procesoContratoRepository.save(proceso);
-            }
-        }
-    }
+//    private void establecerRelacionesProcesos(Contrato contrato, List<Long> procesosIds) {
+//        if (procesosIds != null && !procesosIds.isEmpty()) {
+//            List<ProcesosContrato> procesos = procesoContratoRepository.findAllById(procesosIds);
+//            for (ProcesosContrato proceso : procesos) {
+//                proceso.setContrato(contrato);
+//                procesoContratoRepository.save(proceso);
+//            }
+//        }
+//    }
 
     /**
      * Actualiza un contrato existente
@@ -130,6 +139,12 @@ public class ContratoService {
                 contratoExistente.setTitulosFormacionAcademica(titulos);
             }
 
+            // Actualizar procesos (Many-to-Many)
+            if (contratoDTO.getProcesosIds() != null) {
+                List<Procesos> procesos = procesosRepository.findAllById(contratoDTO.getProcesosIds());
+                contratoExistente.setProcesos(procesos);
+            }
+
             // Guardar cambios del contrato
             Contrato contratoActualizado = contratoRepository.save(contratoExistente);
 
@@ -137,7 +152,7 @@ public class ContratoService {
             limpiarRelacionesExistentes(contratoId);
             establecerRelacionesTiposAtencion(contratoActualizado, contratoDTO.getTiposAtencionIds());
             establecerRelacionesTiposTurno(contratoActualizado, contratoDTO.getTiposTurnoIds());
-            establecerRelacionesProcesos(contratoActualizado, contratoDTO.getProcesosIds());
+            //establecerRelacionesProcesos(contratoActualizado, contratoDTO.getProcesosIds());
 
             return contratoActualizado;
 
@@ -165,11 +180,11 @@ public class ContratoService {
         }
 
         // Limpiar procesos
-        List<ProcesosContrato> procesosExistentes = procesoContratoRepository.findByContratoIdContrato(contratoId);
-        for (ProcesosContrato proceso : procesosExistentes) {
-            proceso.setContrato(null);
-            procesoContratoRepository.save(proceso);
-        }
+//        List<ProcesosContrato> procesosExistentes = procesoContratoRepository.findByContratoIdContrato(contratoId);
+//        for (ProcesosContrato proceso : procesosExistentes) {
+//            proceso.setContrato(null);
+//            procesoContratoRepository.save(proceso);
+//        }
     }
 
     /**
@@ -198,6 +213,13 @@ public class ContratoService {
                     .collect(Collectors.toList()));
         }
 
+        // Obtener IDs de procesos (Many-to-Many)
+        if (contrato.getProcesos() != null) {
+            dto.setProcesosIds(contrato.getProcesos().stream()
+                    .map(Procesos::getIdProceso)
+                    .collect(Collectors.toList()));
+        }
+
         // Obtener IDs de relaciones Many-to-One
         List<TipoAtencion> tiposAtencion = tipoAtencionRepository.findByContratosIdContrato(contratoId);
         dto.setTiposAtencionIds(tiposAtencion.stream()
@@ -209,10 +231,10 @@ public class ContratoService {
                 .map(TipoTurno::getIdTipoTurno)
                 .collect(Collectors.toList()));
 
-        List<ProcesosContrato> procesos = procesoContratoRepository.findByContratoIdContrato(contratoId);
-        dto.setProcesosIds(procesos.stream()
-                .map(ProcesosContrato::getIdProcesoContrato)
-                .collect(Collectors.toList()));
+//        List<ProcesosContrato> procesos = procesoContratoRepository.findByContratoIdContrato(contratoId);
+//        dto.setProcesosIds(procesos.stream()
+//                .map(ProcesosContrato::getIdProcesoContrato)
+//                .collect(Collectors.toList()));
 
         return dto;
     }
@@ -351,10 +373,30 @@ public class ContratoService {
         return titulosContratoMapper.toDTOList(contratoActualizado.getTitulosFormacionAcademica());
     }
 
+    public List<ProcesosDTO> agregarProcesoAContrato(Long idContrato, Long idProceso) {
+        Contrato contrato = contratoRepository.findById(idContrato)
+                .orElseThrow(() -> new RuntimeException("Contrato no encontrado"));
+
+        Procesos procesos = procesosRepository.findById(idProceso)
+                .orElseThrow(() -> new RuntimeException("Proceso no encontrado"));
+
+        contrato.getProcesos().add(procesos);
+        Contrato contratoActualizado = contratoRepository.save(contrato);
+
+        return procesosContratoMapper.toDTOList(contratoActualizado.getProcesos());
+    }
+
     public List<TitulosFormacionAcademicaDTO> obtenerTitulosPorContrato(Long idContrato) {
         List<TitulosFormacionAcademica> titulosFormacionAcademica = contratoRepository.findTitulosByIdContrato(idContrato).orElse(new ArrayList<>());
         return titulosFormacionAcademica.stream()
                 .map(titulosContratoMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ProcesosDTO> obtenerProcesosPorContrato(Long idContrato) {
+        List<Procesos> procesos = contratoRepository.findProcesosByIdContrato(idContrato).orElse(new ArrayList<>());
+        return procesos.stream()
+                .map(procesosContratoMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -381,6 +423,29 @@ public class ContratoService {
         return titulosContratoMapper.toDTO(titulosFormacionAcademica);
     }
 
+    public ProcesosDTO actualizarProcesosDeContrato(Long idProceso, List<Long> nuevosProcesosIds) {
+        Procesos procesos = procesosRepository.findById(idProceso)
+                .orElseThrow(() -> new RuntimeException("Proceso no encontrado"));
+
+        // Contratos actuales
+        List<Contrato> todos = contratoRepository.findAll();
+        for (Contrato contrato : todos) {
+            contrato.getProcesos().remove(procesos);
+        }
+
+        contratoRepository.saveAll(todos); // guardar la limpieza primero
+
+        // Nuevos contratos a asociar
+        List<Contrato> nuevosContratos = contratoRepository.findAllById(nuevosProcesosIds);
+        for (Contrato contrato : nuevosContratos) {
+            contrato.getProcesos().add(procesos);
+        }
+
+        contratoRepository.saveAll(nuevosContratos); // guardar las nuevas asociaciones
+
+        return procesosContratoMapper.toDTO(procesos);
+    }
+
     public void eliminarTituloDeContrato(Long idContrato, Long idTitulo) {
         Contrato contrato = contratoRepository.findById(idContrato)
                 .orElseThrow(() -> new RuntimeException("Contratono encontrado"));
@@ -388,6 +453,16 @@ public class ContratoService {
                 .orElseThrow(() -> new RuntimeException("titulo no encontrado"));
 
         contrato.getTitulosFormacionAcademica().remove(titulosFormacionAcademica);
+        contratoRepository.save(contrato);
+    }
+
+    public void eliminarProcesoDeContrato(Long idContrato, Long idProceso) {
+        Contrato contrato = contratoRepository.findById(idContrato)
+                .orElseThrow(() -> new RuntimeException("Contratono encontrado"));
+        Procesos procesos = procesosRepository.findById(idProceso)
+                .orElseThrow(() -> new RuntimeException("proceso no encontrado"));
+
+        contrato.getProcesos().remove(procesos);
         contratoRepository.save(contrato);
     }
 

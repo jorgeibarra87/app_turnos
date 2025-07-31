@@ -120,25 +120,6 @@ public class ContratoController {
                 ));
     }
 
-//    @DeleteMapping("/{idContrato}")
-//    @Operation(
-//            summary = "Eliminar contrato",
-//            description = "Elimina un contrato del sistema usando su identificador.",
-//            tags={"Contratos"}
-//    )
-//    public ResponseEntity<Object> delete(@PathVariable Long idContrato){
-//        return contratoService.findById(idContrato)
-//                .map(bloqueServicioDTO-> {
-//                    contratoService.delete(idContrato);
-//                    return ResponseEntity.noContent().build();
-//                })
-//                .orElseThrow(() -> new GenericNotFoundException(
-//                        CodigoError.CONTRATO_NO_ENCONTRADO,
-//                        idContrato,
-//                        request.getMethod(),
-//                        request.getRequestURI()
-//                ));
-//    }
 
     @PostMapping("{idContrato}/titulo/{idTitulo}")
     @Operation(
@@ -179,6 +160,51 @@ public class ContratoController {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
                     "Error al crear el titulo de contrato: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
+    }
+
+    @PostMapping("{idContrato}/proceso/{idProceso}")
+    @Operation(
+            summary = "Agregar proceso a contrato",
+            description = "Asocia un proceso específico a un contrato existente.",
+            tags={"Contratos"}
+    )
+    public ResponseEntity<List<ProcesosDTO>> agregarProcesoAContrato(
+            @PathVariable Long idContrato,
+            @PathVariable Long idProceso) {
+        try {
+            List<ProcesosDTO> procesos = contratoService.agregarProcesoAContrato(idContrato, idProceso);
+            return ResponseEntity.ok(procesos);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.PROCESO_CONTRATO_NO_ENCONTRADO,
+                    idProceso,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.PROCESO_CONTRATO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.PROCESO_CONTRATO_DATOS_INVALIDOS,
+                    "No se pudo crear proceso: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el proceso de contrato: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
@@ -228,6 +254,50 @@ public class ContratoController {
         }
     }
 
+
+    @GetMapping("/{idContrato}/procesos")
+    @Operation(
+            summary = "Listar procesos de un contrato",
+            description = "Obtiene todos los procesos asociados a un contrato específico.",
+            tags={"Contratos"}
+    )
+    public ResponseEntity<List<ProcesosDTO>> obtenerProcesosPorContrato(@PathVariable Long idContrato) {
+        try {
+            List<ProcesosDTO> usuarios = contratoService.obtenerProcesosPorContrato(idContrato);
+            return ResponseEntity.ok(usuarios);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.PROCESO_CONTRATO_NO_ENCONTRADO,
+                    idContrato,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.PROCESO_CONTRATO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.PROCESO_CONTRATO_ESTADO_INVALIDO,
+                    "No se pudo obtener proceso: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al obtener el proceso de contrato: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
+    }
+
     @PutMapping("titulo/{idTitulo}")
     @Operation(
             summary = "Actualizar título asociado a un contrato",
@@ -267,6 +337,52 @@ public class ContratoController {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
                     "Error al obtener el titulo de contrato: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
+    }
+
+
+    @PutMapping("proceso/{idProceso}")
+    @Operation(
+            summary = "Actualizar proceso asociado a un contrato",
+            description = "Permite reemplazar el proceso actual de un contrato con uno nuevo (se agrega el id del proceso en la ruta ej: http://localhost:8080/contrato/proceso/1 y el id del contrato en el cuerpo de la peticion entre corchetes ej: [1]).",
+            tags={"Contratos"}
+    )
+    public ResponseEntity<ProcesosDTO> actualizarProcesosDeContrato(
+            @PathVariable Long idProceso,
+            @RequestBody List<Long> nuevosProcesosIds) {
+        try {
+            ProcesosDTO procesosDTO = contratoService.actualizarProcesosDeContrato(idProceso, nuevosProcesosIds);
+            return ResponseEntity.ok(procesosDTO);
+        }catch (EntityNotFoundException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.PROCESO_CONTRATO_NO_ENCONTRADO,
+                    idProceso,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.PROCESO_CONTRATO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (IllegalStateException e) {
+            throw new GenericConflictException(
+                    CodigoError.PROCESO_CONTRATO_DATOS_INVALIDOS,
+                    "No se pudo obtener proceso: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al obtener el proceso de contrato: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
