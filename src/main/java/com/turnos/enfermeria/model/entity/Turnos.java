@@ -21,11 +21,9 @@ public class Turnos {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idTurno;
 
-    @Getter
-    @Setter
-    @JsonIncludeProperties("nombre")
-    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "id_persona", referencedColumnName = "id_persona")
+    @JsonIncludeProperties("nombre")
     private Usuario usuario;
 
     @ManyToOne
@@ -65,7 +63,9 @@ public class Turnos {
     @Column(name = "estado")
     private Boolean estado;
 
-
+    public Long getIdPersona() {
+        return usuario != null ? usuario.getIdPersona() : null;
+    }
     public String getNombrePersona() {
         return usuario != null ? usuario.getPersona().getNombreCompleto() : null;
     }
