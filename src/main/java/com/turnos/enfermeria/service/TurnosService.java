@@ -123,41 +123,6 @@ public class TurnosService {
         return cambiosTurnoRepository.findCambiosTurnoDTOByTurno(idTurno);
     }
 
-//    public TurnoDTO guardarTurno(TurnoDTO turnoDTO) {
-//        if (turnoDTO.getIdPersona() == null) {
-//            throw new IllegalArgumentException("El usuario es obligatorio.");
-//        }
-//        if (turnoDTO.getFechaInicio() == null || turnoDTO.getFechaFin() == null) {
-//            throw new IllegalArgumentException("Las fechas de inicio y fin no pueden ser nulas.");
-//        }
-//        if (turnoDTO.getFechaInicio().isAfter(turnoDTO.getFechaFin())) {
-//            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de fin.");
-//        }
-//
-//        // Verificar si hay solapamiento de turnos
-//        List<Turnos> turnosSolapados = turnosRepository.findTurnosSolapados(
-//                turnoDTO.getIdPersona(), turnoDTO.getFechaInicio(), turnoDTO.getFechaFin());
-//        if (!turnosSolapados.isEmpty()) {
-//            throw new IllegalArgumentException("Ya existe un turno en este horario para el usuario.");
-//        }
-//
-//        // Convertir DTO a Entidad
-//        Turnos turno = modelMapper.map(turnoDTO, Turnos.class);
-//
-//        // Obtener el usuario desde el repositorio
-//        turno.setUsuario(usuarioRepository.findById(turnoDTO.getIdPersona())
-//                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado.")));
-//
-//        // Calcular total de horas y versión
-//        turno.setTotalHoras(calcularHorasTrabajadas(turno.getFechaInicio(), turno.getFechaFin()));
-//        turno.setVersion(generarVersion(turno.getFechaInicio()));
-//
-//        // Guardar turno
-//        Turnos turnoGuardado = turnosRepository.save(turno);
-//
-//        // Convertir entidad guardada a DTO
-//        return modelMapper.map(turnoGuardado, TurnoDTO.class);
-//    }
 
     private void guardarCambioTurno(Long idTurno, TurnoDTO turnoDTO) {
         // Buscar el turno original en la base de datos
@@ -371,6 +336,71 @@ public class TurnosService {
         }).collect(Collectors.toList());
 
         return turnosRestaurados;
+    }
+
+
+
+    /**
+     * Obtiene todos los turnos asociados a un cuadro de turno específico.
+     *
+     * @param idCuadroTurno ID del cuadro de turno
+     * @return Lista de turnos en formato DTO
+     * @throws RuntimeException si no se encuentra el cuadro de turno
+     */
+    public List<TurnoDTO> obtenerTurnosPorCuadro(Long idCuadroTurno) {
+        // Verificar que el cuadro de turno existe
+        CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(idCuadroTurno)
+                .orElseThrow(() -> new RuntimeException("Cuadro de turno no encontrado con ID: " + idCuadroTurno));
+
+        // Obtener todos los turnos asociados al cuadro
+        List<Turnos> turnos = turnosRepository.findByCuadroTurno_IdCuadroTurno(idCuadroTurno);
+
+        // Convertir las entidades a DTOs
+        return turnos.stream()
+                .map(turno -> modelMapper.map(turno, TurnoDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene turnos por cuadro con filtros adicionales opcionales.
+     *
+     * @param idCuadroTurno ID del cuadro de turno
+     * @param estado Estado del turno (opcional)
+     * @param fechaDesde Fecha desde (opcional)
+     * @param fechaHasta Fecha hasta (opcional)
+     * @return Lista de turnos filtrados en formato DTO
+     */
+    public List<TurnoDTO> obtenerTurnosPorCuadroConFiltros(Long idCuadroTurno,
+                                                           String estado,
+                                                           LocalDate fechaDesde,
+                                                           LocalDate fechaHasta) {
+        // Verificar que el cuadro de turno existe
+        cuadroTurnoRepository.findById(idCuadroTurno)
+                .orElseThrow(() -> new RuntimeException("Cuadro de turno no encontrado con ID: " + idCuadroTurno));
+
+        List<Turnos> turnos;
+
+        // Aplicar filtros según los parámetros proporcionados
+        if (estado != null && fechaDesde != null && fechaHasta != null) {
+            // Filtrar por cuadro, estado y rango de fechas
+            turnos = turnosRepository.findByCuadroTurnoAndEstadoAndFechaRange(
+                    idCuadroTurno, estado, fechaDesde.atStartOfDay(), fechaHasta.atTime(23, 59, 59));
+        } else if (estado != null) {
+            // Filtrar solo por cuadro y estado
+            turnos = turnosRepository.findByCuadroTurno_IdCuadroTurnoAndEstadoTurno(idCuadroTurno, estado);
+        } else if (fechaDesde != null && fechaHasta != null) {
+            // Filtrar por cuadro y rango de fechas
+            turnos = turnosRepository.findByCuadroTurnoAndFechaRange(
+                    idCuadroTurno, fechaDesde.atStartOfDay(), fechaHasta.atTime(23, 59, 59));
+        } else {
+            // Solo filtrar por cuadro de turno
+            turnos = turnosRepository.findByCuadroTurno_IdCuadroTurno(idCuadroTurno);
+        }
+
+        // Convertir las entidades a DTOs
+        return turnos.stream()
+                .map(turno -> modelMapper.map(turno, TurnoDTO.class))
+                .collect(Collectors.toList());
     }
 
 }

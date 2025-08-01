@@ -1,6 +1,7 @@
 package com.turnos.enfermeria.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ public class Turnos {
 
     @Getter
     @Setter
+    @JsonIncludeProperties("nombre")
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinColumn(name = "id_persona", referencedColumnName = "id_persona")
     private Usuario usuario;
@@ -62,6 +64,11 @@ public class Turnos {
 
     @Column(name = "estado")
     private Boolean estado;
+
+
+    public String getNombrePersona() {
+        return usuario != null ? usuario.getPersona().getNombreCompleto() : null;
+    }
 }
 
 //    @PrePersist

@@ -22,11 +22,6 @@ public interface TurnosRepository extends JpaRepository<Turnos, Long>, JpaSpecif
 
 
     /**
-     * Obtiene todos los turnos de un cuadro de turno específico.
-     */
-    List<Turnos> findByCuadroTurno_IdCuadroTurno(Long idCuadroTurno);
-
-    /**
      * Obtiene todos los turnos de un usuario específico.
      */
     List<Turnos> findByUsuario_IdPersona(Long idPersona);
@@ -50,5 +45,35 @@ public interface TurnosRepository extends JpaRepository<Turnos, Long>, JpaSpecif
     List<Turnos> obtenerTurnosPorFecha(@Param("usuarioId") Long usuarioId, @Param("fecha") LocalDate fecha);
 
     List<Turnos> findByCuadroTurnoIdCuadroTurnoIn(List<Long> idsCuadros);
+
+    /**
+     * Encuentra todos los turnos asociados a un cuadro de turno específico.
+     */
+    List<Turnos> findByCuadroTurno_IdCuadroTurno(Long idCuadroTurno);
+
+    /**
+     * Encuentra turnos por cuadro de turno y estado.
+     */
+    List<Turnos> findByCuadroTurno_IdCuadroTurnoAndEstadoTurno(Long idCuadroTurno, String estadoTurno);
+
+    /**
+     * Encuentra turnos por cuadro de turno en un rango de fechas.
+     */
+    @Query("SELECT t FROM Turnos t WHERE t.cuadroTurno.idCuadroTurno = :idCuadroTurno " +
+            "AND t.fechaInicio >= :fechaDesde AND t.fechaFin <= :fechaHasta")
+    List<Turnos> findByCuadroTurnoAndFechaRange(@Param("idCuadroTurno") Long idCuadroTurno,
+                                                @Param("fechaDesde") LocalDateTime fechaDesde,
+                                                @Param("fechaHasta") LocalDateTime fechaHasta);
+
+    /**
+     * Encuentra turnos por cuadro, estado y rango de fechas.
+     */
+    @Query("SELECT t FROM Turnos t WHERE t.cuadroTurno.idCuadroTurno = :idCuadroTurno " +
+            "AND t.estadoTurno = :estado " +
+            "AND t.fechaInicio >= :fechaDesde AND t.fechaFin <= :fechaHasta")
+    List<Turnos> findByCuadroTurnoAndEstadoAndFechaRange(@Param("idCuadroTurno") Long idCuadroTurno,
+                                                         @Param("estado") String estado,
+                                                         @Param("fechaDesde") LocalDateTime fechaDesde,
+                                                         @Param("fechaHasta") LocalDateTime fechaHasta);
 
 }

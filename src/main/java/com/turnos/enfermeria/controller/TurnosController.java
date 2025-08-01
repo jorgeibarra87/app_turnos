@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 
 
 import jakarta.validation.Valid;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Validated
@@ -250,6 +253,64 @@ public class TurnosController {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
                     "Error al cambiar el estado: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
+    }
+
+
+
+    @GetMapping("/cuadro/{idCuadroTurno}")
+    @Operation(summary = "Obtener turnos por cuadro de turno",
+            description = "Devuelve todos los turnos asociados a un cuadro de turno específico.",
+            tags={"Turnos"})
+    public ResponseEntity<List<TurnoDTO>> obtenerTurnosPorCuadro(@PathVariable Long idCuadroTurno) {
+        try {
+            List<TurnoDTO> turnos = turnosService.obtenerTurnosPorCuadro(idCuadroTurno);
+            return turnos.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(turnos);
+        } catch (RuntimeException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.CUADRO_TURNO_NO_ENCONTRADO,
+                    idCuadroTurno,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al obtener turnos del cuadro: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
+    }
+
+    @GetMapping("/cuadro/{idCuadroTurno}/filtros")
+    @Operation(summary = "Obtener turnos por cuadro con filtros",
+            description = "Devuelve turnos de un cuadro específico aplicando filtros opcionales de estado y fechas.",
+            tags={"Turnos"})
+    public ResponseEntity<List<TurnoDTO>> obtenerTurnosPorCuadroConFiltros(
+            @PathVariable Long idCuadroTurno,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta) {
+
+        try {
+            List<TurnoDTO> turnos = turnosService.obtenerTurnosPorCuadroConFiltros(
+                    idCuadroTurno, estado, fechaDesde, fechaHasta);
+            return turnos.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(turnos);
+        } catch (RuntimeException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.CUADRO_TURNO_NO_ENCONTRADO,
+                    idCuadroTurno,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+         } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al obtener turnos del cuadro con filtros: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
