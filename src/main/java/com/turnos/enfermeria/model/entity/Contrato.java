@@ -66,6 +66,6 @@ public class Contrato {
     )
     private List<Procesos> procesos;
 
-    @Column(name = "observaciones", nullable = false)
+    @Column(name = "observaciones", length = 3000)
     private String observaciones;
 }

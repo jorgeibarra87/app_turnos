@@ -17,4 +17,5 @@ public class TurnoDTO {
     private String version;
     private String comentarios;
     private Boolean estado = true;
+    private String nombrePersona;
 }
