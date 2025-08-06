@@ -10,4 +10,5 @@ public class ServicioDTO {
     private Long idBloqueServicio;
     private Long idProceso;
     private Boolean estado = true;
+    private String nombreBloqueServicio;
 }
