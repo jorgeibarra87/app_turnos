@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import lombok.Data;
 import jakarta.persistence.*;
 
@@ -26,10 +27,14 @@ public class Procesos {
 
     @ManyToOne
     @JoinColumn(name = "id_macroproceso", referencedColumnName = "id_macroproceso")
+    @JsonIncludeProperties("nombre")
     private Macroprocesos macroprocesos;
 
     public Long getIdMacroproceso() {
         return macroprocesos != null ? macroprocesos.getIdMacroproceso() : null;
+    }
+    public String getNombreMacroproceso() {
+        return macroprocesos != null ? macroprocesos.getNombre() : null;
     }
 
 }

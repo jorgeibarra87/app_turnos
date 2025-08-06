@@ -12,6 +12,7 @@ public class ProcesosDTO {
     private String nombre;
     private Long idMacroproceso;
     private Boolean estado = true;
+    private String nombreMacroproceso;
 
     public ProcesosDTO(Long idProceso, String nombre, Long idMacroproceso, Boolean estado) {
         this.idProceso = idProceso;
