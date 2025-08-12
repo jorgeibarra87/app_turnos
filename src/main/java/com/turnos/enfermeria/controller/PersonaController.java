@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @Validated
 @RestController
-@CrossOrigin("http://localhost:3000/")
+@CrossOrigin("http://localhost:5173/")
 @RequestMapping("/persona")
 //@Tag(name = "Personas", description = "Operaciones relacionadas con la gestión de personas en el sistema")
 public class PersonaController {

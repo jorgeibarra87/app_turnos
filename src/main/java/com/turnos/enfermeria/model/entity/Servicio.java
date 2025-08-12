@@ -35,6 +35,7 @@ public class Servicio {
 
     @ManyToOne
     @JoinColumn(name = "id_proceso", referencedColumnName = "id_proceso")
+    @JsonIncludeProperties("nombre")
     private Procesos procesos;
 
     public Long getIdBloqueServicio() {
@@ -47,5 +48,9 @@ public class Servicio {
 
     public String getNombreBloqueServicio() {
         return bloqueServicios != null ? bloqueServicios.getNombre() : null;
+    }
+
+    public String getNombreProceso() {
+        return procesos != null ? procesos.getNombre() : null;
     }
 }
