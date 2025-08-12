@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
 public class ProcesosDTO {
 
@@ -13,6 +14,7 @@ public class ProcesosDTO {
     private Long idMacroproceso;
     private Boolean estado = true;
     private String nombreMacroproceso;
+    private String nombreProceso;
 
     public ProcesosDTO(Long idProceso, String nombre, Long idMacroproceso, Boolean estado) {
         this.idProceso = idProceso;
