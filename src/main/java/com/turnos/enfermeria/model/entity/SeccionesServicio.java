@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import lombok.Data;
 import jakarta.persistence.*;
 
@@ -26,9 +27,14 @@ public class SeccionesServicio {
 
     @ManyToOne
     @JoinColumn(name = "id_servicio", referencedColumnName = "id_servicio")
+    @JsonIncludeProperties("nombre")
     private Servicio servicio;
 
     public Long getIdServicio() {
         return servicio != null ? servicio.getIdServicio() : null;
+    }
+
+    public String getNombreServicio() {
+        return servicio != null ? servicio.getNombre() : null;
     }
 }

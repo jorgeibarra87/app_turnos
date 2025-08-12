@@ -9,4 +9,5 @@ public class SeccionesServicioDTO {
     private String nombre;
     private Long idServicio;
     private Boolean estado = true;
+    private String nombreServic;
 }
