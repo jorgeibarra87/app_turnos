@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import lombok.Data;
 import jakarta.persistence.*;
 
@@ -26,9 +27,14 @@ public class TitulosFormacionAcademica {
 
     @ManyToOne
     @JoinColumn(name = "id_tipo_formacion_academica", referencedColumnName = "id_tipo_formacion_academica")
+    @JsonIncludeProperties("tipo")
     private TipoFormacionAcademica tipoFormacionAcademica;
 
     public Long getIdTipoFormacionAcademica() {
         return tipoFormacionAcademica != null ? tipoFormacionAcademica.getIdTipoFormacionAcademica() : null;
+    }
+
+    public String getNombreTipo() {
+        return tipoFormacionAcademica != null ? tipoFormacionAcademica.getTipo() : null;
     }
 }

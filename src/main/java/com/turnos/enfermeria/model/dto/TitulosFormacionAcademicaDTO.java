@@ -8,4 +8,5 @@ public class TitulosFormacionAcademicaDTO {
     private String titulo;
     private Long idTipoFormacionAcademica;
     private Boolean estado = true;
+    private String nombreTipo;
 }
