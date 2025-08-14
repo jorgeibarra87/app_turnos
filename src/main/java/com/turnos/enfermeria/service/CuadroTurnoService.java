@@ -712,9 +712,9 @@ public class CuadroTurnoService {
                 .orElseThrow(() -> new EntityNotFoundException("Cuadro de turno no encontrado"));
 
         // Validar que sea de tipo multiproceso
-        if (!"multiproceso".equalsIgnoreCase(cuadroTurno.getCategoria())) {
-            throw new IllegalArgumentException("El cuadro de turno no es de tipo multiproceso");
-        }
+//        if (!"multiproceso".equalsIgnoreCase(cuadroTurno.getCategoria())) {
+//            throw new IllegalArgumentException("El cuadro de turno no es de tipo multiproceso");
+//        }
 
         // Obtener los procesos asociados desde ProcesosAtencion
         List<ProcesosAtencion> procesosAtencion = procesosAtencionRepository.findByCuadroTurnoId(idCuadroTurno);
