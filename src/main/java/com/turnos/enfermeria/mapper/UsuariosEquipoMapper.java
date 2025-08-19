@@ -2,10 +2,12 @@ package com.turnos.enfermeria.mapper;
 
 import com.turnos.enfermeria.model.dto.PersonaEquipoDTO;
 import com.turnos.enfermeria.model.dto.UsuariosEquipoDTO;
+import com.turnos.enfermeria.model.dto.UsuariosRolDTO;
 import com.turnos.enfermeria.model.entity.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -32,5 +34,8 @@ public class UsuariosEquipoMapper {
             dto.setEquipos(null);
         }
         return dto;
+    }
+    public List<PersonaEquipoDTO> toDTOList(List<Usuario> usuarios) {
+        return usuarios.stream().map(this::toDTO).collect(Collectors.toList());
     }
 }

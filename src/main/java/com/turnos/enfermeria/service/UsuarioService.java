@@ -441,4 +441,15 @@ public class UsuarioService {
         usuarioRepo.save(usuario);
     }
 
+    public List<Usuario> findAllUsuarios() {
+        return usuarioRepo.findAll();
+    }
+
+    public List<Usuario> findAllRoles() {
+        return usuarioRepo.findAll();
+    }
+
+    public List<Usuario> findAllEquipos(){
+        return usuarioRepo.findAll();
+    }
 }

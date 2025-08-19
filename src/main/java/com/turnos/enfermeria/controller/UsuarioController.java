@@ -4,7 +4,11 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
+import com.turnos.enfermeria.mapper.UsuariosEquipoMapper;
+import com.turnos.enfermeria.mapper.UsuariosRolMapper;
+import com.turnos.enfermeria.mapper.UsuariosTituloMapper;
 import com.turnos.enfermeria.model.dto.*;
+import com.turnos.enfermeria.model.entity.Usuario;
 import com.turnos.enfermeria.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +33,12 @@ public class UsuarioController {
     private UsuarioService usuarioService;
     @Autowired
     private HttpServletRequest request;
+    @Autowired
+    private UsuariosTituloMapper usuariosTituloMapper;
+    @Autowired
+    private UsuariosRolMapper usuariosRolMapper;
+    @Autowired
+    private UsuariosEquipoMapper usuariosEquipoMapper;
 
     @PostMapping
     @Operation(summary = "Crear un nuevo usuario", description = "Crea un nuevo usuario y lo guarda en la base de datos.",
@@ -811,5 +821,23 @@ public class UsuarioController {
                 request.getRequestURI()
         );
     }
+    }
+
+    @GetMapping("/titulos")
+    public List<PersonaTituloDTO> getUsuariosConTitulos() {
+        List<Usuario> usuarios = usuarioService.findAllUsuarios();
+        return usuariosTituloMapper.toDTOList(usuarios);
+    }
+
+    @GetMapping("/roles")
+    public List<UsuariosRolDTO> getUsuariosConRoles() {
+        List<Usuario> usuarios = usuarioService.findAllRoles();
+        return usuariosRolMapper.toDTOList(usuarios);
+    }
+
+    @GetMapping("/equipos")
+    public List<PersonaEquipoDTO> getUsuariosConEquipos() {
+        List<Usuario> usuarios = usuarioService.findAllEquipos();
+        return usuariosEquipoMapper.toDTOList(usuarios);
     }
 }
