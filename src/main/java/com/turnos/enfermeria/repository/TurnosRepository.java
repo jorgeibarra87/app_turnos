@@ -26,11 +26,6 @@ public interface TurnosRepository extends JpaRepository<Turnos, Long>, JpaSpecif
      */
     List<Turnos> findByUsuario_IdPersona(Long idPersona);
 
-//    @Query("SELECT c FROM Contrato c " +
-//            "JOIN c.gestorContrato g " +
-//            "WHERE g.usuario.idPersona = :usuarioId")
-//    Optional<Contrato> findByGestorUsuarioId(@Param("usuarioId") Long usuarioId);
-
     List<Turnos> findByEstadoTurno(String estadoTurno);
 
     @Query("SELECT COALESCE(SUM(t.totalHoras), 0) FROM Turnos t " +
@@ -76,4 +71,14 @@ public interface TurnosRepository extends JpaRepository<Turnos, Long>, JpaSpecif
                                                          @Param("fechaDesde") LocalDateTime fechaDesde,
                                                          @Param("fechaHasta") LocalDateTime fechaHasta);
 
+
+
+    @Query("SELECT t FROM Turnos t " +
+            "JOIN t.cuadroTurno c " +
+            "WHERE c.anio = :anio " +
+            "AND c.mes = :mes " +
+            "AND c.idCuadroTurno = :cuadroId")
+    List<Turnos> findByAnioMesAndCuadro(@Param("anio") String anio,
+                                        @Param("mes") String mes,
+                                        @Param("cuadroId") Long cuadroId);
 }
