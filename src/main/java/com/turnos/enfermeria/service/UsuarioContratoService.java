@@ -48,7 +48,7 @@ public class UsuarioContratoService {
         return modelMapper.map(usuarioContratoGuardado, UsuarioContratoDTO.class);
     }
 
-    public UsuarioContratoDTO ***REMOVED***(UsuarioContratoDTO detalleUsuarioContratoDTO, Long id) {
+    public UsuarioContratoDTO update(UsuarioContratoDTO detalleUsuarioContratoDTO, Long id) {
         UsuarioContrato usuarioContratoExistente = usuarioContratoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("usuario no encontrado"));
 
@@ -255,7 +255,7 @@ public class UsuarioContratoService {
 
     // Método auxiliar para actualizar información existente
     @Transactional
-    public UsuarioContratoTotalDTO ***REMOVED***UsuarioContratoCompleto(String documento,
+    public UsuarioContratoTotalDTO updateUsuarioContratoCompleto(String documento,
                                                                  UsuarioContratoTotalDTO usuarioContratoTotalDTO) {
         try {
             // Buscar la persona existente

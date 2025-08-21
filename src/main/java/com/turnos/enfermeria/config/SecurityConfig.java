@@ -53,7 +53,7 @@ public class SecurityConfig {
 //                        .requestMatchers("/auth/**", "/public/**").permitAll()
 //
 //                        // Restringir por rol (opcional)
-//                        .requestMatchers("/***REMOVED***/**").hasRole("ADMIN")
+//                        .requestMatchers("/admin/**").hasRole("ADMIN")
 //                        .requestMatchers("/usuario/**").hasRole("ADMIN")
 //                        .requestMatchers("/roles/**").hasRole("ADMIN")
 //                        .requestMatchers("/macroprocesos/**").hasRole("ADMIN")
@@ -117,7 +117,7 @@ public class SecurityConfig {
 //    @Bean
 //    public UserDetailsService userDetailsService(){
 //        UserDetails userDetails = User.withUsername("JorgeIbarra")
-//                .password("***REMOVED***5")
+//                .password("12345")
 //                .roles("ADMIN")
 //                .authorities("READ","CREATE")
 //                .build();

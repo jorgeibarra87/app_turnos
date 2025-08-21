@@ -48,7 +48,7 @@ public class ServicioService {
         return modelMapper.map(servicioGuardado, ServicioDTO.class);
     }
 
-    public ServicioDTO ***REMOVED***(ServicioDTO detalleServicioDTO, Long id) {
+    public ServicioDTO update(ServicioDTO detalleServicioDTO, Long id) {
 
         BloqueServicio bloqueServicio = bloqueServicioRepository.findById(detalleServicioDTO.getIdBloqueServicio())
                 .orElseThrow(() -> new RuntimeException("Proceso no encontrado."));

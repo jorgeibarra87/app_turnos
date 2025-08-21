@@ -42,7 +42,7 @@ public class TitulosFormacionAcademicaService {
     }
 
 
-    public TitulosFormacionAcademicaDTO ***REMOVED***(TitulosFormacionAcademicaDTO detalleTitulosFormacionAcademicaDTO, Long id) {
+    public TitulosFormacionAcademicaDTO update(TitulosFormacionAcademicaDTO detalleTitulosFormacionAcademicaDTO, Long id) {
         TipoFormacionAcademica tipoFormacionAcademica = tipoFormacionAcademicaRepository.findById(detalleTitulosFormacionAcademicaDTO.getIdTipoFormacionAcademica())
                 .orElseThrow(() -> new RuntimeException("Tipo Formacion no encontrada."));
         TitulosFormacionAcademica titulosFormacionAcademicaExistente = titulosFormacionAcademicaRepo.findById(id)

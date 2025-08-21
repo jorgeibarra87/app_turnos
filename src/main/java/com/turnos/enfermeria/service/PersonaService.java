@@ -39,7 +39,7 @@ public class PersonaService {
 
     }
 
-    public PersonaDTO ***REMOVED***(PersonaDTO detallePersonaDTO, Long id) {
+    public PersonaDTO update(PersonaDTO detallePersonaDTO, Long id) {
         Persona personaExistente = personaRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Persona no encontrada"));
 

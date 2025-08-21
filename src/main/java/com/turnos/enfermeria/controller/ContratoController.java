@@ -109,9 +109,9 @@ public class ContratoController {
             description = "Modifica los datos de un contrato previamente registrado, identificado por su ID.",
             tags={"Contratos"}
     )
-    public ResponseEntity<ContratoDTO> ***REMOVED***(@RequestBody ContratoDTO contratoDTO, @PathVariable Long idContrato){
+    public ResponseEntity<ContratoDTO> update(@RequestBody ContratoDTO contratoDTO, @PathVariable Long idContrato){
         return contratoService.findById(idContrato)
-                .map(contratoExistente -> ResponseEntity.ok(contratoService.***REMOVED***(contratoDTO, idContrato)))
+                .map(contratoExistente -> ResponseEntity.ok(contratoService.update(contratoDTO, idContrato)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.CONTRATO_NO_ENCONTRADO,
                         idContrato,
@@ -301,7 +301,7 @@ public class ContratoController {
     @PutMapping("titulo/{idTitulo}")
     @Operation(
             summary = "Actualizar título asociado a un contrato",
-            description = "Permite reemplazar el título actual de un contrato con uno nuevo (se agrega el id del titulo en la ruta ej: http://localhost:***REMOVED***/contrato/titulo/1 y el id del contrato en el cuerpo de la peticion entre corchetes ej: [1]).",
+            description = "Permite reemplazar el título actual de un contrato con uno nuevo (se agrega el id del titulo en la ruta ej: http://localhost:8080/contrato/titulo/1 y el id del contrato en el cuerpo de la peticion entre corchetes ej: [1]).",
             tags={"Contratos"}
     )
     public ResponseEntity<TitulosFormacionAcademicaDTO> actualizarTitulosDeContrato(
@@ -347,7 +347,7 @@ public class ContratoController {
     @PutMapping("proceso/{idProceso}")
     @Operation(
             summary = "Actualizar proceso asociado a un contrato",
-            description = "Permite reemplazar el proceso actual de un contrato con uno nuevo (se agrega el id del proceso en la ruta ej: http://localhost:***REMOVED***/contrato/proceso/1 y el id del contrato en el cuerpo de la peticion entre corchetes ej: [1]).",
+            description = "Permite reemplazar el proceso actual de un contrato con uno nuevo (se agrega el id del proceso en la ruta ej: http://localhost:8080/contrato/proceso/1 y el id del contrato en el cuerpo de la peticion entre corchetes ej: [1]).",
             tags={"Contratos"}
     )
     public ResponseEntity<ProcesosDTO> actualizarProcesosDeContrato(

@@ -57,7 +57,7 @@ public class CambiosTurnoService {
         return modelMapper.map(cambiosTurnoGuardado, CambiosTurnoDTO.class);
     }
 
-    public CambiosTurnoDTO ***REMOVED***(CambiosTurnoDTO detalleCambiosTurnoDTO, Long id) {
+    public CambiosTurnoDTO update(CambiosTurnoDTO detalleCambiosTurnoDTO, Long id) {
 
         CambiosTurno cambiosTurnoExistente = cambiosTurnoRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("CambiosTurno no encontrado"));

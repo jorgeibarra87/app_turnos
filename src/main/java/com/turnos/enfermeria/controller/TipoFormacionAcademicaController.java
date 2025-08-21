@@ -93,9 +93,9 @@ public class TipoFormacionAcademicaController {
     @PutMapping("/{idTipoFormacionAcademica}")
     @Operation(summary = "Actualizar tipo de formación académica", description = "Actualiza los datos de un tipo de formación existente",
             tags={"Títulos de Formación Académica"})
-    public ResponseEntity<TipoFormacionAcademicaDTO> ***REMOVED***(@RequestBody TipoFormacionAcademicaDTO tipoFormacionAcademicaDTO, @PathVariable Long idTipoFormacionAcademica){
+    public ResponseEntity<TipoFormacionAcademicaDTO> update(@RequestBody TipoFormacionAcademicaDTO tipoFormacionAcademicaDTO, @PathVariable Long idTipoFormacionAcademica){
         return tipoFormacionAcademicaService.findById(idTipoFormacionAcademica)
-                .map(tipoFormacionAcademicaExistente -> ResponseEntity.ok(tipoFormacionAcademicaService.***REMOVED***(tipoFormacionAcademicaDTO, idTipoFormacionAcademica)))
+                .map(tipoFormacionAcademicaExistente -> ResponseEntity.ok(tipoFormacionAcademicaService.update(tipoFormacionAcademicaDTO, idTipoFormacionAcademica)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.TIPO_FORMACION_NO_ENCONTRADA,
                         idTipoFormacionAcademica,

@@ -287,7 +287,7 @@ public class ContratoService {
 
     }
 
-    public ContratoDTO ***REMOVED***(ContratoDTO detalleContratoDTO, Long id) {
+    public ContratoDTO update(ContratoDTO detalleContratoDTO, Long id) {
         Contrato contratoExistente = contratoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contrato no encontrado"));
 

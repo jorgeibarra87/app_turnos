@@ -94,9 +94,9 @@ public class TipoTurnoController {
     @PutMapping("/{idTipoTurno}")
     @Operation(summary = "Actualizar tipo de turno", description = "Actualiza los datos de un tipo de turno existente",
             tags={"Contratos"})
-    public ResponseEntity<TipoTurnoDTO> ***REMOVED***(@RequestBody TipoTurnoDTO tipoTurnoDTO, @PathVariable Long idTipoTurno){
+    public ResponseEntity<TipoTurnoDTO> update(@RequestBody TipoTurnoDTO tipoTurnoDTO, @PathVariable Long idTipoTurno){
         return tipoTurnoService.findById(idTipoTurno)
-                .map(tipoTurnoExistente -> ResponseEntity.ok(tipoTurnoService.***REMOVED***(tipoTurnoDTO, idTipoTurno)))
+                .map(tipoTurnoExistente -> ResponseEntity.ok(tipoTurnoService.update(tipoTurnoDTO, idTipoTurno)))
                 .orElse(ResponseEntity.notFound().build());
     }
 //    @DeleteMapping("/{idTipoTurno}")

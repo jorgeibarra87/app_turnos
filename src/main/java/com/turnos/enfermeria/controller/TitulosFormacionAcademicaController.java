@@ -105,9 +105,9 @@ public class TitulosFormacionAcademicaController {
     @PutMapping("/{idTitulo}")
     @Operation(summary = "Actualizar título académico",description = "Actualiza la información de un título existente mediante su ID",
             tags={"Títulos de Formación Académica"})
-    public ResponseEntity<TitulosFormacionAcademicaDTO> ***REMOVED***(@RequestBody TitulosFormacionAcademicaDTO titulosFormacionAcademicaDTO, @PathVariable Long idTitulo){
+    public ResponseEntity<TitulosFormacionAcademicaDTO> update(@RequestBody TitulosFormacionAcademicaDTO titulosFormacionAcademicaDTO, @PathVariable Long idTitulo){
         return titulosFormacionAcademicaService.findById(idTitulo)
-                .map(TitulosFormacionAcademicaExistente -> ResponseEntity.ok(titulosFormacionAcademicaService.***REMOVED***(titulosFormacionAcademicaDTO, idTitulo)))
+                .map(TitulosFormacionAcademicaExistente -> ResponseEntity.ok(titulosFormacionAcademicaService.update(titulosFormacionAcademicaDTO, idTitulo)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.TITULOS_FORMACION_NO_ENCONTRADO,
                         idTitulo,

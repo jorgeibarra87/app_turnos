@@ -105,9 +105,9 @@ public class ProcesosController {
             description = "Modifica los datos de un proceso existente identificado por su ID.",
             tags={"Cuadro de Turnos"}
     )
-    public ResponseEntity<ProcesosDTO> ***REMOVED***(@RequestBody ProcesosDTO procesosDTO, @PathVariable Long idProceso){
+    public ResponseEntity<ProcesosDTO> update(@RequestBody ProcesosDTO procesosDTO, @PathVariable Long idProceso){
         return procesosService.findById(idProceso)
-                .map(procesoExistente -> ResponseEntity.ok(procesosService.***REMOVED***(procesosDTO, idProceso)))
+                .map(procesoExistente -> ResponseEntity.ok(procesosService.update(procesosDTO, idProceso)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.PROCESO_NO_ENCONTRADO,
                         idProceso,

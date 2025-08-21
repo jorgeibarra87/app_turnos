@@ -35,7 +35,7 @@ dependencies {
 
     // Runtime dependencies
     runtimeOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'org.***REMOVED***ql:***REMOVED***ql'
+    runtimeOnly 'org.postgresql:postgresql'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.30'

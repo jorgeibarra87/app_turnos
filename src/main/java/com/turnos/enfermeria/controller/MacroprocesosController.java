@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @CrossOrigin("http://localhost:5173/")
 @RequestMapping("/macroprocesos")
-//@Tag(name = "Macroprocesos", description = "CRUD de macroprocesos de gestión o ***REMOVED***istrativos")
+//@Tag(name = "Macroprocesos", description = "CRUD de macroprocesos de gestión o administrativos")
 public class MacroprocesosController {
 
     @Autowired
@@ -108,9 +108,9 @@ public class MacroprocesosController {
             description = "Actualiza los datos del macroproceso identificado por su ID.",
             tags={"Cuadro de Turnos"}
     )
-    public ResponseEntity<MacroprocesosDTO> ***REMOVED***(@RequestBody MacroprocesosDTO macroprocesosDTO, @PathVariable Long idMacroproceso){
+    public ResponseEntity<MacroprocesosDTO> update(@RequestBody MacroprocesosDTO macroprocesosDTO, @PathVariable Long idMacroproceso){
         return macroprocesosService.findById(idMacroproceso)
-                .map(macroprocesoExistente -> ResponseEntity.ok(macroprocesosService.***REMOVED***(macroprocesosDTO, idMacroproceso)))
+                .map(macroprocesoExistente -> ResponseEntity.ok(macroprocesosService.update(macroprocesosDTO, idMacroproceso)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.MACROPROCESO_NO_ENCONTRADO,
                         idMacroproceso,

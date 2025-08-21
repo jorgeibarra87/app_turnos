@@ -45,7 +45,7 @@ public class EquipoService {
 
     }
 
-    public EquipoDTO ***REMOVED***(EquipoDTO detalleEquipoDTO, Long id) {
+    public EquipoDTO update(EquipoDTO detalleEquipoDTO, Long id) {
         Equipo equipoExistente = equipoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
 
@@ -201,7 +201,7 @@ public class EquipoService {
         return equipoRepository.save(equipo);
     }
 
-    public EquipoDTO ***REMOVED***WithGeneratedName(Long idEquipo, EquipoSelectionDTO selection) {
+    public EquipoDTO updateWithGeneratedName(Long idEquipo, EquipoSelectionDTO selection) {
         Equipo equipoExistente = equipoRepository.findById(idEquipo)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
 

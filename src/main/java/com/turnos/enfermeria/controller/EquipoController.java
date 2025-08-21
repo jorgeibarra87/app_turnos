@@ -127,9 +127,9 @@ public class EquipoController {
             description = "Modifica los datos de un equipo existente, identificado por su ID.",
             tags={"Cuadro de Turnos"}
     )
-    public ResponseEntity<EquipoDTO> ***REMOVED***(@RequestBody EquipoDTO equipoDTO, @PathVariable Long idEquipo){
+    public ResponseEntity<EquipoDTO> update(@RequestBody EquipoDTO equipoDTO, @PathVariable Long idEquipo){
         return equipoService.findById(idEquipo)
-                .map(equipoExistente -> ResponseEntity.ok(equipoService.***REMOVED***(equipoDTO, idEquipo)))
+                .map(equipoExistente -> ResponseEntity.ok(equipoService.update(equipoDTO, idEquipo)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.EQUIPO_NO_ENCONTRADO,
                         idEquipo,
@@ -235,12 +235,12 @@ public class EquipoController {
             description = "Genera y asigna un nuevo nombre al equipo usando su categoría y subcategoría.",
             tags = {"Cuadro de Turnos"}
     )
-    public ResponseEntity<EquipoDTO> ***REMOVED***NombreGenerado(
+    public ResponseEntity<EquipoDTO> updateNombreGenerado(
             @PathVariable Long idEquipo,
             @RequestBody EquipoSelectionDTO selection
     ) {
         try {
-            EquipoDTO actualizado = equipoService.***REMOVED***WithGeneratedName(idEquipo, selection);
+            EquipoDTO actualizado = equipoService.updateWithGeneratedName(idEquipo, selection);
             return ResponseEntity.ok(actualizado);
         } catch (RuntimeException e) {
             throw new GenericNotFoundException(

@@ -33,7 +33,7 @@ public class TipoFormacionAcademicaService {
     }
 
 
-    public TipoFormacionAcademicaDTO ***REMOVED***(TipoFormacionAcademicaDTO detalleTipoFormacionAcademicaDTO, Long id) {
+    public TipoFormacionAcademicaDTO update(TipoFormacionAcademicaDTO detalleTipoFormacionAcademicaDTO, Long id) {
         TipoFormacionAcademica tipoFormacionAcademicaExistente = tipoFormacionAcademicaRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("BloqueServicio no encontrado"));
 

@@ -59,7 +59,7 @@ public class UsuarioService {
     }
 
 
-    public UsuarioDTO ***REMOVED***(UsuarioDTO detalleUsuarioDTO, Long id) {
+    public UsuarioDTO update(UsuarioDTO detalleUsuarioDTO, Long id) {
 
         Persona persona = personaRepository.findById(detalleUsuarioDTO.getIdPersona())
                 .orElseThrow(() -> new RuntimeException("No existe persona con ID: " + detalleUsuarioDTO.getIdPersona()));

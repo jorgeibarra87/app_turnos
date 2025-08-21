@@ -106,9 +106,9 @@ public class CambiosCuadroTurnoController {
             description = "Permite modificar la información de un cambio previamente registrado, como su descripción o tipo de acción.",
             tags={"Cuadro de Turnos"}
     )
-    public ResponseEntity<CambiosCuadroTurnoDTO> ***REMOVED***(@RequestBody CambiosCuadroTurnoDTO cambiosCuadroTurnoDTO, @PathVariable Long idCambioCuadro){
+    public ResponseEntity<CambiosCuadroTurnoDTO> update(@RequestBody CambiosCuadroTurnoDTO cambiosCuadroTurnoDTO, @PathVariable Long idCambioCuadro){
         return cambiosCuadroTurnoService.findById(idCambioCuadro)
-                .map(cambiosCuadroTurnoExistente -> ResponseEntity.ok(cambiosCuadroTurnoService.***REMOVED***(cambiosCuadroTurnoDTO, idCambioCuadro)))
+                .map(cambiosCuadroTurnoExistente -> ResponseEntity.ok(cambiosCuadroTurnoService.update(cambiosCuadroTurnoDTO, idCambioCuadro)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.CAMBIOS_CUADRO_NO_ENCONTRADO,
                         idCambioCuadro,

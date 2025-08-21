@@ -103,9 +103,9 @@ public class UsuarioContratoController {
     @PutMapping("/{idUsuarioContrato}")
     @Operation(summary = "Actualizar usuario de contrato",description = "Actualiza los datos de un usuario de contrato existente.",
             tags={"Contratos"})
-    public ResponseEntity<UsuarioContratoDTO> ***REMOVED***(@RequestBody UsuarioContratoDTO usuarioContratoDTO, @PathVariable Long idUsuarioContrato){
+    public ResponseEntity<UsuarioContratoDTO> update(@RequestBody UsuarioContratoDTO usuarioContratoDTO, @PathVariable Long idUsuarioContrato){
         return usuarioContratoService.findById(idUsuarioContrato)
-                .map(usuarioContratoExistente -> ResponseEntity.ok(usuarioContratoService.***REMOVED***(usuarioContratoDTO, idUsuarioContrato)))
+                .map(usuarioContratoExistente -> ResponseEntity.ok(usuarioContratoService.update(usuarioContratoDTO, idUsuarioContrato)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.USUARIO_CONTRATO_NO_ENCONTRADO,
                         idUsuarioContrato,

@@ -71,7 +71,7 @@ public class CambiosCuadroTurnoService {
 
     }
 
-    public CambiosCuadroTurnoDTO ***REMOVED***(CambiosCuadroTurnoDTO cambiosCuadroTurnoDetallesDTO, Long id) {
+    public CambiosCuadroTurnoDTO update(CambiosCuadroTurnoDTO cambiosCuadroTurnoDetallesDTO, Long id) {
         CambiosCuadroTurno cambiosCuadroTurnoExistente = cambiosCuadroTurnoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("cambio no encontrado"));
 

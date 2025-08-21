@@ -38,7 +38,7 @@ public class TipoTurnoService {
     }
 
 
-    public TipoTurnoDTO ***REMOVED***(TipoTurnoDTO detalleTipoTurnoDTO, Long id) {
+    public TipoTurnoDTO update(TipoTurnoDTO detalleTipoTurnoDTO, Long id) {
         Contrato contrato = contratoRepository.findById(detalleTipoTurnoDTO.getIdContrato())
                 .orElseThrow(() -> new RuntimeException("Contrato no encontrado."));
 

@@ -38,7 +38,7 @@ public class ProcesosService {
 
     }
 
-    public ProcesosDTO ***REMOVED***(ProcesosDTO detalleProcesosDTO, Long id) {
+    public ProcesosDTO update(ProcesosDTO detalleProcesosDTO, Long id) {
         Macroprocesos macroprocesos = macroprocesosRepository.findById(detalleProcesosDTO.getIdMacroproceso())
                 .orElseThrow(() -> new RuntimeException("macroproceso no encontrado."));
         Procesos procesoExistente = procesosRepo.findById(id)

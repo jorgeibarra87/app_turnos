@@ -36,7 +36,7 @@ public class SubseccionesServicioService {
     }
 
 
-    public SubseccionesServicioDTO ***REMOVED***(SubseccionesServicioDTO detalleSubseccionesServicioDTO, Long id) {
+    public SubseccionesServicioDTO update(SubseccionesServicioDTO detalleSubseccionesServicioDTO, Long id) {
 
         SeccionesServicio seccionesServicio = seccionesServicioRepository.findById(detalleSubseccionesServicioDTO.getIdSeccionServicio())
                 .orElseThrow(() -> new RuntimeException("Seccion Servicio no encontrada."));

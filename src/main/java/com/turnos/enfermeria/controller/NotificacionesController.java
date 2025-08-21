@@ -104,9 +104,9 @@ public class NotificacionesController {
             summary = "Actualizar una notificación existente",
             description = "Modifica el contenido, destinatarios u otros datos de una notificación previamente registrada."
     )
-    public ResponseEntity<NotificacionDTO> ***REMOVED***(@RequestBody NotificacionDTO notificacionDTO, @PathVariable("idNotificacion") Long idNotificacion){
+    public ResponseEntity<NotificacionDTO> update(@RequestBody NotificacionDTO notificacionDTO, @PathVariable("idNotificacion") Long idNotificacion){
         return notificacionesService.findById(idNotificacion)
-                .map(notificacionExistente -> ResponseEntity.ok(notificacionesService.***REMOVED***(notificacionDTO, idNotificacion)))
+                .map(notificacionExistente -> ResponseEntity.ok(notificacionesService.update(notificacionDTO, idNotificacion)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.NOTIFICACION_NO_ENCONTRADA,
                         idNotificacion,

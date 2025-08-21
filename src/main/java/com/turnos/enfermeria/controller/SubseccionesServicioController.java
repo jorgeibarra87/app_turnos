@@ -95,9 +95,9 @@ public class SubseccionesServicioController {
     @PutMapping("/{idSubseccionServicio}")
     @Operation(summary = "Actualizar subsección", description = "Actualiza los datos de una subsección existente",
             tags={"Servicios"})
-    public ResponseEntity<SubseccionesServicioDTO> ***REMOVED***(@RequestBody SubseccionesServicioDTO subseccionesServicioDTO, @PathVariable("idSubseccionServicio") Long idSubseccionServicio){
+    public ResponseEntity<SubseccionesServicioDTO> update(@RequestBody SubseccionesServicioDTO subseccionesServicioDTO, @PathVariable("idSubseccionServicio") Long idSubseccionServicio){
         return subseccionesServicioService.findById(idSubseccionServicio)
-                .map(subseccionesServicioExistente -> ResponseEntity.ok(subseccionesServicioService.***REMOVED***(subseccionesServicioDTO, idSubseccionServicio)))
+                .map(subseccionesServicioExistente -> ResponseEntity.ok(subseccionesServicioService.update(subseccionesServicioDTO, idSubseccionServicio)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.SUBSECCION_SERVICIO_NO_ENCONTRADO,
                         idSubseccionServicio,

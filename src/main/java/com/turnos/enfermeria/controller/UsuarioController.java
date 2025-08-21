@@ -105,9 +105,9 @@ public class UsuarioController {
     @PutMapping("/{idPersona}")
     @Operation(summary = "Actualizar un usuario", description = "Actualiza los datos de un usuario específico por su ID.",
             tags={"Usuarios"})
-    public ResponseEntity<UsuarioDTO> ***REMOVED***(@RequestBody UsuarioDTO usuarioDTO, @PathVariable Long idPersona){
+    public ResponseEntity<UsuarioDTO> update(@RequestBody UsuarioDTO usuarioDTO, @PathVariable Long idPersona){
         return usuarioService.findById(idPersona)
-                .map(usuarioExistente -> ResponseEntity.ok(usuarioService.***REMOVED***(usuarioDTO, idPersona)))
+                .map(usuarioExistente -> ResponseEntity.ok(usuarioService.update(usuarioDTO, idPersona)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.USUARIO_NO_ENCONTRADO,
                         idPersona,

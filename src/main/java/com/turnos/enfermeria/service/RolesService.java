@@ -34,7 +34,7 @@ public class RolesService {
 
     }
 
-    public RolesDTO ***REMOVED***(RolesDTO detalleRolesDTO, Long id) {
+    public RolesDTO update(RolesDTO detalleRolesDTO, Long id) {
         Roles rolExistente = rolesRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
 

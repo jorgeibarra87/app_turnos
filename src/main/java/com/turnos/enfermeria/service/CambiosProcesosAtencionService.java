@@ -34,7 +34,7 @@ public class CambiosProcesosAtencionService {
     }
 
 
-    public CambiosProcesosAtencionDTO ***REMOVED***(CambiosProcesosAtencionDTO detalleCambiosProcesosAtencionDTO, Long id) {
+    public CambiosProcesosAtencionDTO update(CambiosProcesosAtencionDTO detalleCambiosProcesosAtencionDTO, Long id) {
         CambiosProcesosAtencion cambiosProcesosAtencionExistente = cambiosProcesosAtencionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("CambiosProcesosAtencion no encontrado"));
 

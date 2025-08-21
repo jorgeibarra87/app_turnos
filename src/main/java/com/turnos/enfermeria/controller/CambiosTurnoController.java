@@ -96,9 +96,9 @@ public class CambiosTurnoController {
     @PutMapping("/{idCambio}")
     @Operation(summary = "Actualizar un cambio de turno", description = "Modifica la información de un cambio existente.",
             tags={"Turnos"})
-    public ResponseEntity<CambiosTurnoDTO> ***REMOVED***(@RequestBody CambiosTurnoDTO cambiosTurnoDTO, @PathVariable Long idCambio){
+    public ResponseEntity<CambiosTurnoDTO> update(@RequestBody CambiosTurnoDTO cambiosTurnoDTO, @PathVariable Long idCambio){
         return cambiosTurnoService.findById(idCambio)
-                .map(cambiosTurnoExistente -> ResponseEntity.ok(cambiosTurnoService.***REMOVED***(cambiosTurnoDTO, idCambio)))
+                .map(cambiosTurnoExistente -> ResponseEntity.ok(cambiosTurnoService.update(cambiosTurnoDTO, idCambio)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.CAMBIOS_TURNO_NO_ENCONTRADO,
                         idCambio,

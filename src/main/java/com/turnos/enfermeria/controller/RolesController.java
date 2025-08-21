@@ -94,9 +94,9 @@ public class RolesController {
     @PutMapping
     @Operation(summary = "Actualizar rol", description = "Actualiza la información de un rol existente por ID",
             tags={"Usuarios"})
-    public ResponseEntity<RolesDTO> ***REMOVED***(@RequestBody RolesDTO rolesDTO, @PathVariable Long id){
+    public ResponseEntity<RolesDTO> update(@RequestBody RolesDTO rolesDTO, @PathVariable Long id){
         return rolesService.findById(id)
-                .map(roloExistente -> ResponseEntity.ok(rolesService.***REMOVED***(rolesDTO, id)))
+                .map(roloExistente -> ResponseEntity.ok(rolesService.update(rolesDTO, id)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.ROL_NO_ENCONTRADO,
                         id,

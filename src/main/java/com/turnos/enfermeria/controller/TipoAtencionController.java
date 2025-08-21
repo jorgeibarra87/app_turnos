@@ -94,9 +94,9 @@ public class TipoAtencionController {
     @PutMapping("/{idTipoAtencion}")
     @Operation(summary = "Actualizar tipo de atención", description = "Actualiza la información de un tipo de atención existente",
             tags={"Contratos"})
-    public ResponseEntity<TipoAtencionDTO> ***REMOVED***(@RequestBody TipoAtencionDTO tipoAtencionDTO, @PathVariable("idTipoAtencion") Long idTipoAtencion){
+    public ResponseEntity<TipoAtencionDTO> update(@RequestBody TipoAtencionDTO tipoAtencionDTO, @PathVariable("idTipoAtencion") Long idTipoAtencion){
         return tipoAtencionService.findById(idTipoAtencion)
-                .map(tipoAtencionoExistente -> ResponseEntity.ok(tipoAtencionService.***REMOVED***(tipoAtencionDTO, idTipoAtencion)))
+                .map(tipoAtencionoExistente -> ResponseEntity.ok(tipoAtencionService.update(tipoAtencionDTO, idTipoAtencion)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.TIPO_ATENCION_NO_ENCONTRADA,
                         idTipoAtencion,

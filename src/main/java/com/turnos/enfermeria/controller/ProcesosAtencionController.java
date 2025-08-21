@@ -107,9 +107,9 @@ public class ProcesosAtencionController {
             description = "Modifica los datos de un proceso de atención existente identificado por su ID.",
             tags={"Cuadro de Turnos"}
     )
-    public ResponseEntity<ProcesosAtencionDTO> ***REMOVED***(@RequestBody ProcesosAtencionDTO procesosAtencionDTO, @PathVariable Long idProcesoAtencion){
+    public ResponseEntity<ProcesosAtencionDTO> update(@RequestBody ProcesosAtencionDTO procesosAtencionDTO, @PathVariable Long idProcesoAtencion){
         return procesosAtencionService.findById(idProcesoAtencion)
-                .map(procesosAtencionExistente -> ResponseEntity.ok(procesosAtencionService.***REMOVED***(procesosAtencionDTO, idProcesoAtencion)))
+                .map(procesosAtencionExistente -> ResponseEntity.ok(procesosAtencionService.update(procesosAtencionDTO, idProcesoAtencion)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.PROCESO_ATENCION_NO_ENCONTRADO,
                         idProcesoAtencion,

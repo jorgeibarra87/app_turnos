@@ -34,7 +34,7 @@ public class NotificacionesService {
     }
 
 
-    public NotificacionDTO ***REMOVED***(NotificacionDTO detalleNotificacionDTO, Long id) {
+    public NotificacionDTO update(NotificacionDTO detalleNotificacionDTO, Long id) {
         Notificaciones notificacionExistente = notificacionesRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("notificacion no encontrada"));
 

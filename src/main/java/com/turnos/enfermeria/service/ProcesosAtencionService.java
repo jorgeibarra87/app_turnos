@@ -42,7 +42,7 @@ public class ProcesosAtencionService {
 
     }
 
-    public ProcesosAtencionDTO ***REMOVED***(ProcesosAtencionDTO detalleProcesosAtencionDTO, Long id) {
+    public ProcesosAtencionDTO update(ProcesosAtencionDTO detalleProcesosAtencionDTO, Long id) {
 
         Procesos procesos = procesosRepository.findById(detalleProcesosAtencionDTO.getIdProceso())
                 .orElseThrow(() -> new RuntimeException("Proceso no encontrado."));

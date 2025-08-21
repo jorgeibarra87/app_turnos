@@ -31,7 +31,7 @@ public class BloqueServicioService {
     }
 
 
-    public BloqueServicioDTO ***REMOVED***(BloqueServicioDTO detalleBloqueServicioDTO, Long id) {
+    public BloqueServicioDTO update(BloqueServicioDTO detalleBloqueServicioDTO, Long id) {
         BloqueServicio bloqueServicioExistente = bloqueServicioRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("BloqueServicio no encontrado"));
 

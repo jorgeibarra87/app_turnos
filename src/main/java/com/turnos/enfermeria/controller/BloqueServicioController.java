@@ -80,13 +80,13 @@ public class BloqueServicioController {
     @Operation(summary = "Actualizar un bloque de servicio",
             description = "Actualiza los datos de un bloque de servicio existente según su ID.",
             tags={"Servicios"})
-    public ResponseEntity<BloqueServicioDTO> ***REMOVED***(
+    public ResponseEntity<BloqueServicioDTO> update(
             @Valid @RequestBody BloqueServicioDTO bloqueServicioDTO,
             @PathVariable("idBloqueServicio") Long idBloqueServicio) {
 
         try {
             return bloqueServicioService.findById(idBloqueServicio)
-                    .map(existente -> ResponseEntity.ok(bloqueServicioService.***REMOVED***(bloqueServicioDTO, idBloqueServicio)))
+                    .map(existente -> ResponseEntity.ok(bloqueServicioService.update(bloqueServicioDTO, idBloqueServicio)))
                     .orElseThrow(() -> new GenericNotFoundException(
                             CodigoError.BLOQUE_SERVICIO_NO_ENCONTRADO,
                             idBloqueServicio,

@@ -1,0 +1,43 @@
+# Configuración de la aplicación
+spring.application.name=asignacion-turnos-enfermeria
+
+# Configuración de la base de datos PostgreSQL
+spring.datasource.url=jdbc:
+spring.datasource.username=
+spring.datasource.password=
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Configuración de JPA/Hibernate
+spring.jpa.database-platform=
+spring.jpa.hibernate.ddl-auto=
+spring.jpa.show-sql=
+spring.jpa.properties.hibernate.format_sql=
+spring.jpa.open-in-view=
+
+# Configuración de HikariCP (Pool de conexiones)
+spring.datasource.hikari.minimum-idle=
+spring.datasource.hikari.maximum-pool-size=
+spring.datasource.hikari.idle-timeout=
+spring.datasource.hikari.pool-name=
+spring.datasource.hikari.connection-timeout=
+spring.datasource.hikari.leak-detection-threshold=
+
+# Configuración de Spring Security
+spring.security.user.name=
+spring.security.user.password=
+
+# Configuración de SpringDoc/Swagger
+springdoc.swagger-ui.tagsSorter=alpha
+springdoc.swagger-ui.operationsSorter=alpha
+springdoc.swagger-ui.doc-expansion=none
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.api-docs.path=/v3/api-docs
+
+# Configuración del servidor
+server.port=8080
+
+# Configuración de logging (opcional)
+logging.level.com.turnos=
+logging.level.org.springframework.security=
+logging.level.org.hibernate.SQL=
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=

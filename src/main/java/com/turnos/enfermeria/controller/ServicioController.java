@@ -97,9 +97,9 @@ public class ServicioController {
     @PutMapping("/{idServicio}")
     @Operation(summary = "Actualizar servicio", description = "Actualiza los datos de un servicio existente",
             tags={"Servicios", "Cuadro de Turnos"})
-    public ResponseEntity<ServicioDTO> ***REMOVED***(@RequestBody ServicioDTO servicioDTO, @PathVariable("idServicio") Long idServicio){
+    public ResponseEntity<ServicioDTO> update(@RequestBody ServicioDTO servicioDTO, @PathVariable("idServicio") Long idServicio){
         return servicioService.findById(idServicio)
-                .map(servicioExistente -> ResponseEntity.ok(servicioService.***REMOVED***(servicioDTO, idServicio)))
+                .map(servicioExistente -> ResponseEntity.ok(servicioService.update(servicioDTO, idServicio)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.SERVICIO_NO_ENCONTRADO,
                         idServicio,

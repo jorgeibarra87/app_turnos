@@ -108,9 +108,9 @@ public class PersonaController {
             description = "Actualiza los datos personales de una persona existente según su ID.",
             tags={"Usuarios"}
     )
-    public ResponseEntity<PersonaDTO> ***REMOVED***(@RequestBody PersonaDTO personaDTO, @PathVariable Long idPersona){
+    public ResponseEntity<PersonaDTO> update(@RequestBody PersonaDTO personaDTO, @PathVariable Long idPersona){
         return personaService.findById(idPersona)
-                .map(personaExistente -> ResponseEntity.ok(personaService.***REMOVED***(personaDTO, idPersona)))
+                .map(personaExistente -> ResponseEntity.ok(personaService.update(personaDTO, idPersona)))
                 .orElseThrow(() -> new GenericNotFoundException(
                         CodigoError.PERSONA_NO_ENCONTRADA,
                         idPersona,
