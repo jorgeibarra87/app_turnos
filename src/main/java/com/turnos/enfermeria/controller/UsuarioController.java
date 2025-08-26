@@ -8,7 +8,10 @@ import com.turnos.enfermeria.mapper.UsuariosEquipoMapper;
 import com.turnos.enfermeria.mapper.UsuariosRolMapper;
 import com.turnos.enfermeria.mapper.UsuariosTituloMapper;
 import com.turnos.enfermeria.model.dto.*;
+import com.turnos.enfermeria.model.entity.TitulosFormacionAcademica;
 import com.turnos.enfermeria.model.entity.Usuario;
+import com.turnos.enfermeria.repository.TitulosFormacionAcademicaRepository;
+import com.turnos.enfermeria.repository.UsuarioRepository;
 import com.turnos.enfermeria.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Validated
@@ -31,6 +35,10 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    @Autowired
+    private TitulosFormacionAcademicaRepository tituloRepository;
     @Autowired
     private HttpServletRequest request;
     @Autowired
@@ -453,45 +461,69 @@ public class UsuarioController {
     }
 
     // POST: Agregar un titulo a un usuario
-    @PostMapping("/{id}/titulo/{idTitulo}")
-    @Operation(summary = "Asignar título a usuario", description = "Asocia un título académico existente a un usuario.",
-            tags={"Usuarios"})
-    public ResponseEntity<PersonaTituloDTO> agregarTituloAUsuario(@PathVariable Long id, @PathVariable Long idTitulo) {
-        try{
-        PersonaTituloDTO usuarioDTO = usuarioService.agregarTituloAUsuario(id, idTitulo);
-        return ResponseEntity.ok(usuarioDTO);
-        }catch (EntityNotFoundException e) {
-            throw new GenericNotFoundException(
-                    CodigoError.TITULO_USUARIO_NO_ENCONTRADO,
-                    idTitulo,
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
-        } catch (IllegalArgumentException e) {
-            throw new GenericBadRequestException(
-                    CodigoError.TITULO_USUARIO_DATOS_INVALIDOS,
-                    e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
+    @PostMapping("/{idUsuario}/titulo/{idTitulo}")
+    public ResponseEntity<?> asignarTitulo(
+            @PathVariable Long idUsuario,
+            @PathVariable Long idTitulo) {
 
-        } catch (IllegalStateException e) {
-            throw new GenericConflictException(
-                    CodigoError.TITULO_USUARIO_ESTADO_INVALIDO,
-                    "No se pudo acceder a titulo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con id: " + idUsuario));
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en titulo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
+        TitulosFormacionAcademica titulo = tituloRepository.findById(idTitulo)
+                .orElseThrow(() -> new EntityNotFoundException("Título no encontrado con id: " + idTitulo));
+
+        // Inicializamos la lista si está en null
+        if (usuario.getTitulosFormacionAcademica() == null) {
+            usuario.setTitulosFormacionAcademica(new ArrayList<>());
         }
+
+        // Evitar duplicados
+        if (!usuario.getTitulosFormacionAcademica().contains(titulo)) {
+            usuario.getTitulosFormacionAcademica().add(titulo);
+            usuarioRepository.save(usuario);
+        }
+
+        return ResponseEntity.ok("Título asignado correctamente al usuario");
     }
+//    @PostMapping("/{id}/titulo/{idTitulo}")
+//    @Operation(summary = "Asignar título a usuario", description = "Asocia un título académico existente a un usuario.",
+//            tags={"Usuarios"})
+//    public ResponseEntity<PersonaTituloDTO> agregarTituloAUsuario(@PathVariable Long id, @PathVariable Long idTitulo) {
+//        try{
+//        PersonaTituloDTO usuarioDTO = usuarioService.agregarTituloAUsuario(id, idTitulo);
+//        return ResponseEntity.ok(usuarioDTO);
+//        }catch (EntityNotFoundException e) {
+//            throw new GenericNotFoundException(
+//                    CodigoError.TITULO_USUARIO_NO_ENCONTRADO,
+//                    idTitulo,
+//                    request.getMethod(),
+//                    request.getRequestURI()
+//            );
+//        } catch (IllegalArgumentException e) {
+//            throw new GenericBadRequestException(
+//                    CodigoError.TITULO_USUARIO_DATOS_INVALIDOS,
+//                    e.getMessage(),
+//                    request.getMethod(),
+//                    request.getRequestURI()
+//            );
+//
+//        } catch (IllegalStateException e) {
+//            throw new GenericConflictException(
+//                    CodigoError.TITULO_USUARIO_ESTADO_INVALIDO,
+//                    "No se pudo acceder a titulo: " + e.getMessage(),
+//                    request.getMethod(),
+//                    request.getRequestURI()
+//            );
+//
+//        } catch (Exception e) {
+//            throw new GenericBadRequestException(
+//                    CodigoError.ERROR_PROCESAMIENTO,
+//                    "Error en titulo: " + e.getMessage(),
+//                    request.getMethod(),
+//                    request.getRequestURI()
+//            );
+//        }
+//    }
 
     // POST: Agregar un usuario a un titulo
     @PostMapping("/titulo/{idTitulo}/usuario/{idPersona}")

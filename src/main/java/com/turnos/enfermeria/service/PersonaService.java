@@ -4,7 +4,9 @@ import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.PersonaDTO;
 import com.turnos.enfermeria.model.entity.BloqueServicio;
 import com.turnos.enfermeria.model.entity.Persona;
+import com.turnos.enfermeria.model.entity.Usuario;
 import com.turnos.enfermeria.repository.PersonaRepository;
+import com.turnos.enfermeria.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -21,29 +23,26 @@ import java.util.stream.Collectors;
 public class PersonaService {
 
     private final PersonaRepository personaRepo;
+    private final UsuarioRepository usuarioRepo; // 👈 Agregado
     private final ModelMapper modelMapper;
 
     public PersonaDTO create(PersonaDTO personaDTO) {
         Persona persona = modelMapper.map(personaDTO, Persona.class);
-        persona.setIdPersona(personaDTO.getIdPersona());
-        persona.setFechaNacimiento(personaDTO.getFechaNacimiento());
-        persona.setApellidos(personaDTO.getApellidos());
-        persona.setDocumento(personaDTO.getDocumento());
-        persona.setEmail(personaDTO.getEmail());
-        persona.setNombreCompleto(personaDTO.getNombreCompleto());
-        persona.setNombres(personaDTO.getNombres());
 
-        Persona personaGuardado = personaRepo.save(persona);
+        // Guardar persona
+        Persona personaGuardada = personaRepo.save(persona);
 
-        return modelMapper.map(personaGuardado, PersonaDTO.class);
+        // 👇 Crear y guardar también el Usuario
+        Usuario usuario = new Usuario();
+        usuario.setPersona(personaGuardada); // Relación uno a uno
+        usuarioRepo.save(usuario);
 
+        return modelMapper.map(personaGuardada, PersonaDTO.class);
     }
 
     public PersonaDTO update(PersonaDTO detallePersonaDTO, Long id) {
         Persona personaExistente = personaRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Persona no encontrada"));
-
-        PersonaDTO personaDTO = modelMapper.map(personaExistente, PersonaDTO.class);
 
         // Actualizar los campos si no son nulos
         if (detallePersonaDTO.getIdPersona()!= null) {
@@ -68,16 +67,25 @@ public class PersonaService {
             personaExistente.setNombres(detallePersonaDTO.getNombres());
         }
 
-        // Guardar en la base de datos
+        // Guardar persona
         Persona personaActualizada = personaRepo.save(personaExistente);
 
-        // Convertir a DTO antes de retornar
+        // 👇 Verificar si existe un usuario relacionado, sino crearlo
+        Usuario usuario = usuarioRepo.findById(id)
+                .orElseGet(() -> {
+                    Usuario nuevoUsuario = new Usuario();
+                    nuevoUsuario.setPersona(personaActualizada);
+                    return nuevoUsuario;
+                });
+        usuario.setPersona(personaActualizada);
+        usuarioRepo.save(usuario);
+
         return modelMapper.map(personaActualizada, PersonaDTO.class);
     }
 
     public Optional<PersonaDTO> findById(Long idPersona) {
         return personaRepo.findById(idPersona)
-                .map(persona -> modelMapper.map(persona, PersonaDTO.class)); // Convertir a DTO
+                .map(persona -> modelMapper.map(persona, PersonaDTO.class));
     }
 
     public List<PersonaDTO> findAll() {
@@ -88,12 +96,12 @@ public class PersonaService {
     }
 
     public void delete(@PathVariable Long idPersona) {
-        // Buscar el bloque en la base de datos
-        Persona prsonaEliminar = personaRepo.findById(idPersona)
+        Persona personaEliminar = personaRepo.findById(idPersona)
                 .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada"));
 
-        // Convertir la entidad a DTO
-        PersonaDTO bloqueServicioDTO = modelMapper.map(prsonaEliminar, PersonaDTO.class);
+        // 👇 Eliminar también el usuario asociado
+        usuarioRepo.findById(idPersona)
+                .ifPresent(usuarioRepo::delete);
 
         personaRepo.deleteById(idPersona);
     }

@@ -259,18 +259,39 @@ public class UsuarioService {
         usuarioRepo.save(usuario);
     }
 
-    public PersonaTituloDTO agregarTituloAUsuario(Long idPersona, Long idTitulo) {
-        Usuario usuario = usuarioRepo.findById(idPersona)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    public Usuario asignarTituloAUsuario(Long idUsuario, Long idTitulo) {
+        Usuario usuario = usuarioRepo.findById(idUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró USUARIO con ID: " + idUsuario));
 
-        TitulosFormacionAcademica titulosFormacionAcademica = titulosFormacionAcademicaRepository.findById(idTitulo)
-                .orElseThrow(() -> new RuntimeException("Titulo no encontrado"));
+        TitulosFormacionAcademica titulo = titulosFormacionAcademicaRepository.findById(idTitulo)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró TITULO con ID: " + idTitulo));
 
-        usuario.getTitulosFormacionAcademica().add(titulosFormacionAcademica);
-        Usuario usuarioActualizado = usuarioRepo.save(usuario);
+        // Inicializar lista si está null
+        if (usuario.getTitulosFormacionAcademica() == null) {
+            usuario.setTitulosFormacionAcademica(new ArrayList<>());
+        }
 
-        return usuariosTituloMapper.toDTO(usuarioActualizado);
+        // Agregar el título si no existe ya
+        if (!usuario.getTitulosFormacionAcademica().contains(titulo)) {
+            usuario.getTitulosFormacionAcademica().add(titulo);
+        }
+
+        return usuarioRepo.save(usuario);
     }
+
+
+//    public PersonaTituloDTO agregarTituloAUsuario(Long idPersona, Long idTitulo) {
+//        Usuario usuario = usuarioRepo.findById(idPersona)
+//                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+//
+//        TitulosFormacionAcademica titulosFormacionAcademica = titulosFormacionAcademicaRepository.findById(idTitulo)
+//                .orElseThrow(() -> new RuntimeException("Titulo no encontrado"));
+//
+//        usuario.getTitulosFormacionAcademica().add(titulosFormacionAcademica);
+//        Usuario usuarioActualizado = usuarioRepo.save(usuario);
+//
+//        return usuariosTituloMapper.toDTO(usuarioActualizado);
+//    }
 
     public TitulosFormacionAcademicaDTO agregarUsuarioATitulo(Long idTitulo, Long idPersona) {
         TitulosFormacionAcademica titulosFormacionAcademica = titulosFormacionAcademicaRepository.findById(idTitulo)
