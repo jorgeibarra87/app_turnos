@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.repository;
 
+import com.turnos.enfermeria.model.entity.BloqueServicio;
 import com.turnos.enfermeria.model.entity.CuadroTurno;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,9 @@ import java.util.List;
 import java.util.Optional;
 @Repository
 public interface CuadroTurnoRepository extends JpaRepository<CuadroTurno, Long> {
+
+    // Agregar método con ordenamiento por nombre ascendente
+    List<CuadroTurno> findAllByOrderByIdCuadroTurnoAsc();
 
     /**
      * Encuentra la última versión de un cuadro de turno según el año y mes.

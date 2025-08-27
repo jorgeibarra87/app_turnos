@@ -75,7 +75,7 @@ public class EquipoService {
     }
 
     public List<EquipoDTO> findAll() {
-        return equipoRepository.findAll()
+        return equipoRepository.findAllByOrderByIdEquipoAsc()
                 .stream()
                 .map(equipo -> modelMapper.map(equipo, EquipoDTO.class))
                 .collect(Collectors.toList());

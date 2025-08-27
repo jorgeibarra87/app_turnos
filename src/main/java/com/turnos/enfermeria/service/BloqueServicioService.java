@@ -58,7 +58,7 @@ public class BloqueServicioService {
     }
 
     public List<BloqueServicioDTO> findAll() {
-        return bloqueServicioRepo.findAll()
+        return bloqueServicioRepo.findAllByOrderByIdBloqueServicioAsc()
                 .stream()
                 .map(bloqueServicio -> modelMapper.map(bloqueServicio, BloqueServicioDTO.class))
                 .collect(Collectors.toList());

@@ -115,23 +115,23 @@ public class TitulosFormacionAcademicaController {
                         request.getRequestURI()
                 ));
     }
-//    @DeleteMapping("/{idTitulo}")
-//    @Operation(
-//            summary = "Eliminar título académico",
-//            description = "Elimina un título de formación académica por su ID",
-//            tags={"Títulos de Formación Académica"}
-//    )
-//    public ResponseEntity<Object> delete(@PathVariable Long idTitulo){
-//        return titulosFormacionAcademicaService.findById(idTitulo)
-//                .map(titulosFormacionAcademicaDTO-> {
-//                    titulosFormacionAcademicaService.delete(idTitulo);
-//                    return ResponseEntity.noContent().build();
-//                })
-//                .orElseThrow(() -> new GenericNotFoundException(
-//                        CodigoError.TITULOS_FORMACION_NO_ENCONTRADO,
-//                        idTitulo,
-//                        request.getMethod(),
-//                        request.getRequestURI()
-//                ));
-//    }
+    @DeleteMapping("/{idTitulo}")
+    @Operation(
+            summary = "Eliminar título académico",
+            description = "Elimina un título de formación académica por su ID",
+            tags={"Títulos de Formación Académica"}
+    )
+    public ResponseEntity<Object> delete(@PathVariable Long idTitulo){
+        return titulosFormacionAcademicaService.findById(idTitulo)
+                .map(titulosFormacionAcademicaDTO-> {
+                    titulosFormacionAcademicaService.delete(idTitulo);
+                    return ResponseEntity.noContent().build();
+                })
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TITULOS_FORMACION_NO_ENCONTRADO,
+                        idTitulo,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
+    }
 }

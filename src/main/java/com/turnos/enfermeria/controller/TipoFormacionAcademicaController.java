@@ -103,20 +103,20 @@ public class TipoFormacionAcademicaController {
                         request.getRequestURI()
                 ));
     }
-//    @DeleteMapping("/{idTipoFormacionAcademica}")
-//    @Operation(summary = "Eliminar tipo de formación académica", description = "Elimina un tipo de formación existente por su ID",
-//            tags={"Títulos de Formación Académica"})
-//    public ResponseEntity<Object> delete(@PathVariable Long idTipoFormacionAcademica){
-//        return tipoFormacionAcademicaService.findById(idTipoFormacionAcademica)
-//                .map(tipoFormacionAcademicaDTO-> {
-//                    tipoFormacionAcademicaService.delete(idTipoFormacionAcademica);
-//                    return ResponseEntity.noContent().build();
-//                })
-//                .orElseThrow(() -> new GenericNotFoundException(
-//                        CodigoError.TIPO_FORMACION_NO_ENCONTRADA,
-//                        idTipoFormacionAcademica,
-//                        request.getMethod(),
-//                        request.getRequestURI()
-//                ));
-//    }
+    @DeleteMapping("/{idTipoFormacionAcademica}")
+    @Operation(summary = "Eliminar tipo de formación académica", description = "Elimina un tipo de formación existente por su ID",
+            tags={"Títulos de Formación Académica"})
+    public ResponseEntity<Object> delete(@PathVariable Long idTipoFormacionAcademica){
+        return tipoFormacionAcademicaService.findById(idTipoFormacionAcademica)
+                .map(tipoFormacionAcademicaDTO-> {
+                    tipoFormacionAcademicaService.delete(idTipoFormacionAcademica);
+                    return ResponseEntity.noContent().build();
+                })
+                .orElseThrow(() -> new GenericNotFoundException(
+                        CodigoError.TIPO_FORMACION_NO_ENCONTRADA,
+                        idTipoFormacionAcademica,
+                        request.getMethod(),
+                        request.getRequestURI()
+                ));
+    }
 }

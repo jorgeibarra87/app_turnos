@@ -100,7 +100,7 @@ public class CuadroTurnoService {
     }
 
     public List<CuadroTurnoDTO> obtenerCuadrosTurno() {
-        List<CuadroTurno> cuadros = cuadroTurnoRepository.findAll();
+        List<CuadroTurno> cuadros = cuadroTurnoRepository.findAllByOrderByIdCuadroTurnoAsc();
 
         // Convertir la lista de entidades a DTOs usando ModelMapper
         return cuadros.stream()
