@@ -22,7 +22,7 @@ public class CambiosProcesosAtencionService {
     public CambiosProcesosAtencionDTO create(CambiosProcesosAtencionDTO cambiosProcesosAtencionDTO) {
         CambiosProcesosAtencion cambiosProcesosAtencion = modelMapper.map(cambiosProcesosAtencionDTO, CambiosProcesosAtencion.class);
 
-        cambiosProcesosAtencion.setCambioCuadroTurno(cambiosProcesosAtencionDTO.getCambiosCuadroTurno());
+        //cambiosProcesosAtencion.setCambioCuadroTurno(cambiosProcesosAtencionDTO.getCambiosCuadroTurno());
         cambiosProcesosAtencion.setProcesos(cambiosProcesosAtencionDTO.getProcesos());
         cambiosProcesosAtencion.setCuadroTurno(cambiosProcesosAtencionDTO.getCuadroTurno());
 
@@ -42,9 +42,9 @@ public class CambiosProcesosAtencionService {
 
         // Actualizar los campos si no son nulos
 
-        if (detalleCambiosProcesosAtencionDTO.getCambiosCuadroTurno() != null) {
-            cambiosProcesosAtencionExistente.setCambioCuadroTurno(detalleCambiosProcesosAtencionDTO.getCambiosCuadroTurno());
-        }
+//        if (detalleCambiosProcesosAtencionDTO.getCambiosCuadroTurno() != null) {
+//            cambiosProcesosAtencionExistente.setCambioCuadroTurno(detalleCambiosProcesosAtencionDTO.getCambiosCuadroTurno());
+//        }
         if (detalleCambiosProcesosAtencionDTO.getDetalle() != null) {
             cambiosProcesosAtencionExistente.setDetalle(detalleCambiosProcesosAtencionDTO.getDetalle());
         }

@@ -89,6 +89,7 @@ public class CuadroTurnoService {
                         .orElseThrow(() -> new RuntimeException("Proceso de atención no encontrado: " + idProcesoAtencion));
                 procesoAtencion.setCuadroTurno(nuevoCuadro);
                 procesosAtencionRepository.save(procesoAtencion);
+                cambiosCuadroTurnoService.registrarCambioProcesosAtencion(procesoAtencion, "CREACION");
             }
         }
 
@@ -154,9 +155,20 @@ public class CuadroTurnoService {
             equipo = equipoRepository.findById(cuadroTurnoDTO.getIdEquipo())
                     .orElseThrow(() -> new RuntimeException("Equipo no encontrado."));
         }
+
         Optional<CuadroTurno> optionalCuadro = cuadroTurnoRepository.findById(id);
         if (optionalCuadro.isPresent()) {
             CuadroTurno cuadroExistente = optionalCuadro.get();
+            // Manejar procesos de atención si existen en el DTO
+            if (cuadroTurnoDTO.getIdsProcesosAtencion() != null && !cuadroTurnoDTO.getIdsProcesosAtencion().isEmpty()) {
+                for (Long idProcesoAtencion : cuadroTurnoDTO.getIdsProcesosAtencion()) {
+                    ProcesosAtencion procesoAtencion = procesosAtencionRepository.findById(idProcesoAtencion)
+                            .orElseThrow(() -> new RuntimeException("Proceso de atención no encontrado: " + idProcesoAtencion));
+                    procesoAtencion.setCuadroTurno(cuadroExistente);
+                    procesosAtencionRepository.save(procesoAtencion);
+                    cambiosCuadroTurnoService.registrarCambioProcesosAtencion(procesoAtencion, "ACTUALIZACION");
+                }
+            }
             // Guardamos solo los datos relevantes en un objeto de historial
             cambiosCuadroTurnoService.registrarCambioCuadroTurno(cuadroExistente, "ACTUALIZACION");
             // Mapear los datos desde el DTO al objeto existente
@@ -182,6 +194,8 @@ public class CuadroTurnoService {
         }
         throw new RuntimeException("CuadroTurno no encontrado");
     }
+
+
     @Transactional
     public void eliminarCuadroTurno(Long id) {
         Optional<CuadroTurno> optionalCuadro = cuadroTurnoRepository.findById(id);
@@ -249,11 +263,6 @@ public class CuadroTurnoService {
         cambio.setSeccionesServicios(seccionesServicio);
         cambio.setCategoria(cuadroTurnoDTO.getCategoria());
 
-//        // Agregar procesosAtencion si la categoría es multiproceso
-//        if ("multiproceso".equalsIgnoreCase(cuadroTurno.getCategoria())) {
-//            List<ProcesosAtencion> procesosAtencionList = new ArrayList<>(cuadroTurno.getProcesosAtencion());
-//            cambio.setProcesosAtencion(procesosAtencionList);
-//        }
         // Agregar procesosAtencion si la categoría es multiproceso
         if ("multiproceso".equalsIgnoreCase(cuadroTurno.getCategoria())) {
             // 🔁 CONSULTA los procesos desde el repositorio (sin usar relación directa en CuadroTurno)
@@ -411,6 +420,7 @@ public class CuadroTurnoService {
                         nuevoProcesoAtencion.setCuadroTurno(cuadroTurno); // se asigna el cuadroTurno antes de guardar
                         procesosAtencionRepository.save(nuevoProcesoAtencion);
                         procesosAtencion.add(nuevoProcesoAtencion);
+                        cambiosCuadroTurnoService.registrarCambioProcesosAtencion(nuevoProcesoAtencion, "CREACION");
                     }
                 }
                 break;
@@ -556,6 +566,7 @@ public class CuadroTurnoService {
                         nuevoProcesoAtencion.setProcesos(procesoBase);
                         nuevoProcesoAtencion.setDetalle(procesoBase.getNombre());
                         nuevoProcesoAtencion.setCuadroTurno(cuadroExistente);
+
                         procesosAtencionRepository.save(nuevoProcesoAtencion);
                     }
                 }

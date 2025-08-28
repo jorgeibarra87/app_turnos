@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class CambiosCuadroTurnoService {
 
     private final CambiosCuadroTurnoRepository cambiosCuadroTurnoRepository;
+    private final CambiosProcesosAtencionRepository cambiosProcesosAtencionRepository;
     private final ModelMapper modelMapper;
     private final CuadroTurnoRepository cuadroTurnoRepository;
     private final MacroprocesosRepository macroprocesosRepository;
@@ -194,5 +195,24 @@ public class CambiosCuadroTurnoService {
 
         // Guardar el cambio en la BD
         cambiosCuadroTurnoRepository.save(cambio);
+    }
+
+    /**
+     * Registra un cambio en la tabla cambios_procesos_atencion
+     * @param procesosAtencion proceso del Cuadro de turno original
+     * @param tipoCambio Tipo de cambio: CREACION, MODIFICACION, ELIMINACION
+     */
+    @Transactional
+    public void registrarCambioProcesosAtencion(ProcesosAtencion procesosAtencion, String tipoCambio) {
+        CambiosProcesosAtencion cambio = new CambiosProcesosAtencion();
+
+        cambio.setCuadroTurno(procesosAtencion.getCuadroTurno());
+        cambio.setProcesos(procesosAtencion.getProcesos());
+        cambio.setEstado(procesosAtencion.getEstado());
+        cambio.setDetalle(procesosAtencion.getDetalle());
+        cambio.setFechaCambio(LocalDateTime.now());
+
+        // Guardar el cambio en la BD
+        cambiosProcesosAtencionRepository.save(cambio);
     }
 }
