@@ -10,22 +10,20 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler  {
+public class GlobalExceptionHandler {
 
     // Maneja errores de deserialización JSON
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleJsonParseError(HttpMessageNotReadableException ex, WebRequest request) {
         String errorMessage = "Error en formato JSON";
 
-        if (ex.getCause() instanceof InvalidFormatException) {
-            InvalidFormatException ife = (InvalidFormatException) ex.getCause();
+        if (ex.getCause() instanceof InvalidFormatException ife) { // Java 17+ Pattern Matching
             errorMessage = String.format("Valor inválido para el campo '%s': Se esperaba %s",
-                    ife.getPath().get(ife.getPath().size()-1).getFieldName(),
+                    ife.getPath().get(ife.getPath().size() - 1).getFieldName(),
                     ife.getTargetType().getSimpleName());
         }
 
@@ -42,30 +40,45 @@ public class GlobalExceptionHandler  {
         return ResponseEntity.badRequest().body(error);
     }
 
+    // Manejo de ApiException personalizada
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApiException(ApiException ex, WebRequest request) {
 
-        // Si es una excepción de NO CONTENT (204)
+        // Si es una excepción de NO CONTENT (204), no hay cuerpo en la respuesta
         if (ex.getCodigoHttp() == HttpStatus.NO_CONTENT.value()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
+
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 ex.getEntidad(),
                 ex.getCodigo(),
                 ex.getMensaje(),
                 ex.getCodigoHttp(),  // Ya es un int
-                ex.getMetodo(),
-                ex.getPath()  // Usamos el path que ya viene en la excepción
+                ex.getMetodo() != null ? ex.getMetodo() : ((ServletWebRequest) request).getRequest().getMethod(),
+                ex.getPath() != null ? ex.getPath() : ((ServletWebRequest) request).getRequest().getRequestURI()
         );
+
         return ResponseEntity.status(ex.getCodigoHttp()).body(error);
     }
 
-    // Puedes añadir más manejadores para otros tipos de excepciones aquí
-    // @ExceptionHandler(Exception.class)
-    // public ResponseEntity<ErrorResponse> handleGeneralException(...)
+    // Manejo genérico de excepciones no controladas
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                "Sistema",
+                "SYS-500",
+                ex.getMessage() != null ? ex.getMessage() : "Error interno del servidor",
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                ((ServletWebRequest) request).getRequest().getMethod(),
+                ((ServletWebRequest) request).getRequest().getRequestURI()
+        );
 
-    // Clase interna para la estructura de respuesta
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    // DTO interno para la respuesta de error
     @Getter
     @AllArgsConstructor
     private static class ErrorResponse {
@@ -73,7 +86,7 @@ public class GlobalExceptionHandler  {
         private String entidad;
         private String codigo;
         private String mensaje;
-        private int codigoHttp;  // Cambiado a int
+        private int codigoHttp;
         private String metodo;
         private String path;
     }

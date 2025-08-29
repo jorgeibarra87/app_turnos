@@ -7,6 +7,7 @@ import com.turnos.enfermeria.model.entity.Equipo;
 import com.turnos.enfermeria.repository.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.Tuple;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -243,15 +244,15 @@ public class EquipoService {
                 "LEFT JOIN titulos_formacion_academica tfa ON ut.id_titulo = tfa.id_titulo " +
                 "WHERE ue.id_equipo = :equipoId";
 
-        List<Object[]> resultados = entityManager.createNativeQuery(sql)
+        List<Tuple> resultados = entityManager.createNativeQuery(sql, Tuple.class)
                 .setParameter("equipoId", equipoId)
                 .getResultList();
 
         Map<Long, MiembroPerfilDTO> map = new LinkedHashMap<>();
-        for (Object[] fila : resultados) {
-            Long idPersona = ((Number) fila[0]).longValue();
-            String nombre = (String) fila[1];
-            String titulo = (String) fila[2];
+        for (Tuple fila : resultados) {
+            Long idPersona = ((Number) fila.get(0)).longValue();
+            String nombre = fila.get(1, String.class);
+            String titulo = fila.get(2, String.class);
 
             map.computeIfAbsent(idPersona, id -> new MiembroPerfilDTO(id, nombre, new ArrayList<>()));
             if (titulo != null) {

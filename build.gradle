@@ -6,9 +6,8 @@ plugins {
 
 group = 'com.turnos'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '23'
-
 description = 'asignación turnos Enfermería'
+sourceCompatibility = '21'   // ✅ usar Java 21 (soportado)
 
 configurations {
     compileOnly {
@@ -26,6 +25,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Jackson para manejo de fechas y JSON ✅
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310' // soporte para LocalDateTime
 
     // OpenAPI/Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
@@ -50,13 +53,11 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-// Configuración del bootJar (equivalente a la exclusión de lombok en Maven)
-jar {
-    enabled = false
-    archiveClassifier = ''
-}
-
+// ✅ solo dejamos el bootJar habilitado
 bootJar {
     enabled = true
     archiveClassifier = ''
+}
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ["-Xlint:unchecked", "-Xlint:deprecation"]
 }
