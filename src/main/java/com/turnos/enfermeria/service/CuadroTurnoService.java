@@ -28,6 +28,7 @@ public class CuadroTurnoService {
     private final SubseccionesServicioRepository subseccionesServicioRepository;
     private final ProcesosAtencionRepository procesosAtencionRepository;
     private final CambiosCuadroTurnoRepository cambiosCuadroTurnoRepository;
+    private final CambiosTurnoRepository cambiosTurnoRepository;
     private final CambiosProcesosAtencionRepository cambiosProcesosAtencionRepository;
     private final CambiosCuadroTurnoService cambiosCuadroTurnoService;
     private final ModelMapper modelMapper;
@@ -125,6 +126,20 @@ public class CuadroTurnoService {
                 })
                 .collect(Collectors.toList());
     }
+
+    public List<CambiosTurnoDTO> obtenerHistorialTurnos(Long id) {
+        List<CambiosTurno> historial = cambiosTurnoRepository.findByCuadroTurno_IdCuadroTurno(id);
+
+        return historial.stream()
+                .map(cambio -> {
+                    CambiosTurnoDTO dto = modelMapper.map(cambio, CambiosTurnoDTO.class);
+                    dto.setIdCuadroTurno(cambio.getCuadroTurno().getIdCuadroTurno()); // Asignar ID manualmente
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+
 
     @Transactional
     public CuadroTurnoDTO actualizarCuadroTurno(Long id, CuadroTurnoDTO cuadroTurnoDTO) {

@@ -1,6 +1,7 @@
 package com.turnos.enfermeria.repository;
 
 import com.turnos.enfermeria.model.dto.CambiosTurnoDTO;
+import com.turnos.enfermeria.model.entity.CambiosCuadroTurno;
 import com.turnos.enfermeria.model.entity.CambiosTurno;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,6 +17,11 @@ public interface CambiosTurnoRepository extends JpaRepository<CambiosTurno, Long
      * Encuentra el historial de cambios de un turno específico.
      */
     List<CambiosTurno> findByTurno_IdTurno(Long idTurno);
+
+    /**
+     * Encuentra el historial de cambios de turno con un  cuadro de turno específico.
+     */
+    List<CambiosTurno>findByCuadroTurno_IdCuadroTurno(Long idCuadroTurno);
 
     // Buscar todos los cambios de turno por versión
     List<CambiosTurno> findByVersion(String version);

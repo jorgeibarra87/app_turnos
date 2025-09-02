@@ -98,6 +98,24 @@ public class CuadroTurnoController {
                 : ResponseEntity.ok(historial);
     }
 
+    @GetMapping("/{id}/historialturnos")
+    @Operation(summary = "Obtener historial de turnos por cuadro de turno", description = "Devuelve los cambios realizados sobre los turnos de un cuadro.",
+            tags={"Cuadro de Turnos"})
+    public ResponseEntity<List<CambiosTurnoDTO>> obtenerHistorialTurno(@PathVariable Long id) {
+        List<CambiosTurnoDTO> historial = cuadroTurnoService.obtenerHistorialTurnos(id);
+        if (historial == null) { // Si tu servicio devuelve null cuando no existe
+            throw new GenericNotFoundException(
+                    CodigoError.HISTORIAL_CUADRO_TURNO_NO_ENCONTRADO,
+                    id,
+                    requestHttp.getMethod(),
+                    requestHttp.getRequestURI()
+            );
+        }
+        return historial.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(historial);
+    }
+
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar cuadro de turnos", description = "Modifica los datos de un cuadro de turnos existente.",
             tags={"Cuadro de Turnos"})
