@@ -4,6 +4,7 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
+import com.turnos.enfermeria.model.dto.ActualizacionEstadoDTO;
 import com.turnos.enfermeria.model.dto.NotificacionDTO;
 import com.turnos.enfermeria.service.NotificacionesService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -113,6 +114,73 @@ public class NotificacionesController {
                         request.getMethod(),
                         request.getRequestURI()
                 ));
+    }
+
+    @GetMapping("/correos-predeterminados-activos")
+    public ResponseEntity<List<NotificacionDTO>> getCorreosPredeterminadosActivos() {
+        List<NotificacionDTO> correos = notificacionesService.getCorreosPredeterminadosActivos();
+        return ResponseEntity.ok(correos);
+    }
+
+    @GetMapping("/correos-seleccionables-activos")
+    public ResponseEntity<List<NotificacionDTO>> getCorreosSeleccionablesActivos() {
+        List<NotificacionDTO> correos = notificacionesService.getCorreosSeleccionablesActivos();
+        return ResponseEntity.ok(correos);
+    }
+
+    @GetMapping("/correos-activos")
+    public ResponseEntity<List<NotificacionDTO>> getTodosCorreosActivos() {
+        List<NotificacionDTO> correos = notificacionesService.getTodosCorreosActivos();
+        return ResponseEntity.ok(correos);
+    }
+
+    @GetMapping("/correos")
+    public ResponseEntity<List<NotificacionDTO>> getCorreosPorTipo(@RequestParam Boolean permanente) {
+        List<NotificacionDTO> correos = notificacionesService.getCorreosPorTipo(permanente);
+        return ResponseEntity.ok(correos);
+    }
+
+    @PutMapping("/actualizar-estados")
+    public ResponseEntity<List<NotificacionDTO>> actualizarEstadosCorreos(@RequestBody List<ActualizacionEstadoDTO> actualizaciones) {
+        List<NotificacionDTO> actualizados = notificacionesService.actualizarEstadosCorreos(actualizaciones);
+        return ResponseEntity.ok(actualizados);
+    }
+
+    @PostMapping("/enviar-automaticas")
+    public ResponseEntity<List<NotificacionDTO>> enviarNotificacionesAutomaticas(@RequestBody List<NotificacionDTO> notificaciones) {
+        List<NotificacionDTO> enviadas = notificacionesService.enviarNotificacionesAutomaticas(notificaciones);
+        return ResponseEntity.ok(enviadas);
+    }
+
+    @PostMapping("/enviar")
+    @Operation(
+            summary = "Enviar notificaciones manuales",
+            description = "Envía notificaciones de forma manual a los destinatarios especificados."
+    )
+    public ResponseEntity<List<NotificacionDTO>> enviarNotificaciones(@RequestBody List<NotificacionDTO> notificaciones) {
+        try {
+            List<NotificacionDTO> enviadas = notificacionesService.enviarNotificaciones(notificaciones);
+            return ResponseEntity.ok(enviadas);
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al enviar notificaciones: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
+    }
+
+    @PostMapping("/create-or-update")
+    public ResponseEntity<NotificacionDTO> createOrUpdate(@RequestBody NotificacionDTO notificacionDTO) {
+        NotificacionDTO resultado = notificacionesService.createOrUpdate(notificacionDTO);
+        return ResponseEntity.ok(resultado);
+    }
+
+    @GetMapping("/correos-unicos")
+    public ResponseEntity<List<NotificacionDTO>> getCorreosUnicos() {
+        List<NotificacionDTO> correos = notificacionesService.getCorreosUnicos();
+        return ResponseEntity.ok(correos);
     }
 
 //    @DeleteMapping("/{idNotificacion}")

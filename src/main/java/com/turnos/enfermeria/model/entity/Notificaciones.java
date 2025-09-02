@@ -3,6 +3,8 @@ package com.turnos.enfermeria.model.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * $table.getTableComment()
  */
@@ -29,5 +31,12 @@ public class Notificaciones {
 
     @Column(name = "permanente")
     private Boolean permanente;
+
+    @Column(name = "fecha_envio")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date fechaEnvio;
+
+    @Column(name = "automatico")
+    private Boolean automatico;
 
 }

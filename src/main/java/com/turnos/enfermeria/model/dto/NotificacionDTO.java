@@ -2,6 +2,8 @@ package com.turnos.enfermeria.model.dto;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class NotificacionDTO {
 
@@ -11,5 +13,9 @@ public class NotificacionDTO {
     private String estadoNotificacion;
     private Boolean permanente;
     private Boolean estado = true;
+    private Boolean automatico;
+    private Date fechaEnvio;
+
+
 
 }
