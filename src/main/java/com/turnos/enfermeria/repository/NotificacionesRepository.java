@@ -23,7 +23,7 @@ public interface NotificacionesRepository extends JpaRepository<Notificaciones, 
             "ORDER BY n.correo")
     List<Notificaciones> findCorreosSeleccionablesActivos();
 
-    // Obtener todos los correos activos usando consulta nativa (más segura)
+    // Obtener todos los correos activos
     @Query(value = "SELECT DISTINCT * FROM notificaciones n " +
             "WHERE (n.permanente = true AND n.estado = true) " +
             "OR (n.permanente = false AND n.estado_notificacion = 'activo') " +
@@ -39,9 +39,5 @@ public interface NotificacionesRepository extends JpaRepository<Notificaciones, 
 
     // Buscar por correo específico
     List<Notificaciones> findByCorreo(String correo);
-
-    // Método más simple sin consulta compleja
-    @Query("SELECT n FROM Notificaciones n ORDER BY n.correo")
-    List<Notificaciones> findCorreosUnicos();
 
 }

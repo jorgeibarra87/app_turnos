@@ -5,9 +5,6 @@ import lombok.Data;
 
 import java.util.Date;
 
-/**
- * $table.getTableComment()
- */
 @Data
 @Entity
 @Table(name = "notificaciones", schema = "public")
@@ -20,8 +17,11 @@ public class Notificaciones {
     @Column(name = "correo")
     private String correo;
 
-    @Column(name = "mensaje")
+    @Column(name = "mensaje", columnDefinition = "TEXT")
     private String mensaje;
+
+    @Column(name = "asunto")
+    private String asunto;
 
     @Column(name = "estado_notificacion")
     private String estadoNotificacion;
@@ -38,5 +38,4 @@ public class Notificaciones {
 
     @Column(name = "automatico")
     private Boolean automatico;
-
 }

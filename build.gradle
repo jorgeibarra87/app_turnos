@@ -47,6 +47,16 @@ dependencies {
     // Test dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    //email
+    // Dependencia para JavaMail
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+
+    // Opcional: para plantillas de email con Thymeleaf
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+
+    // Opcional: para validaciones adicionales
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 }
 
 tasks.named('test') {
