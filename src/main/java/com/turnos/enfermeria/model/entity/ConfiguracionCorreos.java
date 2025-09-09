@@ -21,7 +21,7 @@ public class ConfiguracionCorreos {
 
     @Column(name = "tipo_correo", nullable = false)
     @Enumerated(EnumType.STRING)
-    private TipoCorreo tipoCorreo; // ✅ Ahora usa el enum externo
+    private TipoCorreo tipoCorreo;
 
     @Column(name = "activo")
     private Boolean activo = true;

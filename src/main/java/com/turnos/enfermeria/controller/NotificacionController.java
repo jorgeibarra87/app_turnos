@@ -65,7 +65,6 @@ public class NotificacionController {
         return ResponseEntity.ok(correos);
     }
 
-    // ✅ MOVER ESTA RUTA ANTES DE /{idNotificacion}
     @GetMapping("/correos")
     public ResponseEntity<List<NotificacionDTO>> getCorreosPorTipo(@RequestParam Boolean permanente) {
         List<NotificacionDTO> correos = notificacionesService.getCorreosPorTipo(permanente);
@@ -81,6 +80,28 @@ public class NotificacionController {
         respuesta.put("mensaje", valida ? "Configuración válida" : "Error en configuración");
 
         return ResponseEntity.ok(respuesta);
+    }
+
+    @PostMapping("/agregar-correo-configuracion")
+    public ResponseEntity<NotificacionDTO> agregarCorreoConfiguracion(@RequestBody NotificacionDTO notificacionDTO) {
+        try {
+            NotificacionDTO resultado = notificacionesService.agregarCorreoConfiguracion(notificacionDTO);
+            return ResponseEntity.ok(resultado);
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.NOTIFICACION_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al agregar correo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
     }
 
     // ====== ENDPOINTS CRUD BÁSICOS ======

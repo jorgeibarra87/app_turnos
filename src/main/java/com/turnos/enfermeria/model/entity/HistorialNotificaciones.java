@@ -26,11 +26,11 @@ public class HistorialNotificaciones {
 
     @Column(name = "tipo_envio", nullable = false)
     @Enumerated(EnumType.STRING)
-    private TipoEnvio tipoEnvio; // ✅ Usa el enum externo
+    private TipoEnvio tipoEnvio;
 
     @Column(name = "estado_envio", nullable = false)
     @Enumerated(EnumType.STRING)
-    private EstadoEnvio estadoEnvio; // ✅ Usa el enum externo
+    private EstadoEnvio estadoEnvio;
 
     @CreationTimestamp
     @Column(name = "fecha_envio")
