@@ -2,6 +2,7 @@ package com.turnos.enfermeria.service;
 
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.CambiosCuadroTurnoDTO;
+import com.turnos.enfermeria.model.dto.CuadroTurnoDTO;
 import com.turnos.enfermeria.model.dto.TurnoDTO;
 import com.turnos.enfermeria.model.entity.*;
 import com.turnos.enfermeria.repository.*;
@@ -29,6 +30,7 @@ public class CambiosCuadroTurnoService {
     private final MacroprocesosRepository macroprocesosRepository;
     private final ProcesosRepository procesosRepository;
     private final ServicioRepository servicioRepository;
+    private  final EquipoRepository equipoRepository;
     private final SeccionesServicioRepository seccionesServicioRepository;
     private final ProcesosAtencionRepository procesosAtencionRepository;
 
@@ -171,31 +173,129 @@ public class CambiosCuadroTurnoService {
         cambiosCuadroTurnoRepository.deleteById(idCambioCuadro);
     }
 
-    /**
-     * Registra un cambio en la tabla cambios_cuadro_turno
-     * @param cuadroTurno Cuadro de turno original
-     * @param tipoCambio Tipo de cambio: CREACION, MODIFICACION, ELIMINACION
-     */
-    @Transactional
-    public void registrarCambioCuadroTurno(CuadroTurno cuadroTurno, String tipoCambio) {
-        CambiosCuadroTurno cambio = new CambiosCuadroTurno();
+//    /**
+//     * Registra un cambio en la tabla cambios_cuadro_turno
+//     * @param cuadroTurno Cuadro de turno original
+//     * @param tipoCambio Tipo de cambio: CREACION, MODIFICACION, ELIMINACION
+//     */
+//    @Transactional
+//    public void registrarCambioCuadroTurno(CuadroTurno cuadroTurno, String tipoCambio) {
+//        CambiosCuadroTurno cambio = new CambiosCuadroTurno();
+//
+//        cambio.setCuadroTurno(cuadroTurno);
+//        cambio.setFechaCambio(LocalDateTime.now());
+//        cambio.setNombre(cuadroTurno.getNombre());
+//        cambio.setMes(cuadroTurno.getMes());
+//        cambio.setAnio(cuadroTurno.getAnio());
+//        cambio.setEstadoCuadro(cuadroTurno.getEstadoCuadro());
+//        cambio.setVersion(cuadroTurno.getVersion());
+//        cambio.setMacroProcesos(cuadroTurno.getMacroProcesos());
+//        cambio.setProcesos(cuadroTurno.getProcesos());
+//        cambio.setServicios(cuadroTurno.getServicios());
+//        //cambio.setProcesoAtencion(cuadroTurno.getProcesosAtencion());
+//        cambio.setSeccionesServicios(cuadroTurno.getSeccionesServicios());
+//
+//        // Guardar el cambio en la BD
+//        cambiosCuadroTurnoRepository.save(cambio);
+//    }
 
+//    /**
+//     * Registra un cambio en la tabla cambios_cuadro_turno
+//     * @param cuadroTurno Cuadro de turno original
+//     * @param tipoCambio Tipo de cambio: CREACION, MODIFICACION, ELIMINACION
+//     */
+//    @Transactional
+//    public void registrarCambioCuadroTurno(CuadroTurno cuadroTurno, String tipoCambio) {
+//        CambiosCuadroTurno cambio = new CambiosCuadroTurno();
+//
+//        // Datos básicos del cambio
+//        cambio.setCuadroTurno(cuadroTurno);
+//        cambio.setFechaCambio(LocalDateTime.now());
+//        // Datos del cuadro de turno
+//        cambio.setNombre(cuadroTurno.getNombre());
+//        cambio.setMes(cuadroTurno.getMes());
+//        cambio.setAnio(cuadroTurno.getAnio());
+//        cambio.setEstadoCuadro(cuadroTurno.getEstadoCuadro());
+//        cambio.setVersion(cuadroTurno.getVersion());
+//        cambio.setTurnoExcepcion(cuadroTurno.getTurnoExcepcion());
+//        cambio.setCategoria(cuadroTurno.getCategoria());
+//        cambio.setEstado(cuadroTurno.getEstado());
+//
+//        // Relaciones con otras entidades
+//        cambio.setMacroProcesos(cuadroTurno.getMacroProcesos());
+//        cambio.setProcesos(cuadroTurno.getProcesos());
+//        cambio.setServicios(cuadroTurno.getServicios());
+//        cambio.setEquipos(cuadroTurno.getEquipos());
+//        cambio.setSeccionesServicios(cuadroTurno.getSeccionesServicios());
+//        cambio.setSubseccionesServicios(cuadroTurno.getSubseccionesServicios());
+//
+//        // Manejo especial para categoría multiproceso
+//        // Si es categoría multiproceso, registrar los procesos de atención por separado
+//        if ("multiproceso".equalsIgnoreCase(cuadroTurno.getCategoria())) {
+//            registrarCambiosProcesosAtencion(cuadroTurno.getIdCuadroTurno(), tipoCambio);
+//        }
+//
+//        // Guardar el cambio en la BD
+//        cambiosCuadroTurnoRepository.save(cambio);
+//    }
+
+        public void registrarCambioCuadroTurno(CuadroTurnoDTO cuadroTurnoDTO, String tipoCambio) {
+        Macroprocesos macroprocesos = null;
+        if (cuadroTurnoDTO.getIdMacroproceso() != null) {
+            macroprocesos = macroprocesosRepository.findById(cuadroTurnoDTO.getIdMacroproceso())
+                    .orElseThrow(() -> new RuntimeException("macroproceso no encontrado."));
+        }
+        Procesos procesos = null;
+        if (cuadroTurnoDTO.getIdProceso() != null) {
+            procesos = procesosRepository.findById(cuadroTurnoDTO.getIdProceso())
+                    .orElseThrow(() -> new RuntimeException("Proceso no encontrado."));
+        }
+        Servicio servicio = null;
+        if (cuadroTurnoDTO.getIdServicio() != null) {
+            servicio = servicioRepository.findById(cuadroTurnoDTO.getIdServicio())
+                    .orElseThrow(() -> new RuntimeException("Servicio no encontrado."));
+        }
+        Equipo equipo = null;
+        if(cuadroTurnoDTO.getIdEquipo() != null){
+            equipo = equipoRepository.findById(cuadroTurnoDTO.getIdEquipo())
+                    .orElseThrow(() -> new RuntimeException("Equipo no encontrado."));
+        }
+        SeccionesServicio seccionesServicio = null;
+        if (cuadroTurnoDTO.getIdSeccionesServicios() != null) {
+            seccionesServicio = seccionesServicioRepository.findById(cuadroTurnoDTO.getIdSeccionesServicios())
+                    .orElseThrow(() -> new RuntimeException("Seccion Servicio no encontrada."));
+        }
+
+        // Convertimos el DTO a la entidad CambiosCuadroTurno
+        CambiosCuadroTurno cambio = modelMapper.map(cuadroTurnoDTO, CambiosCuadroTurno.class);
+        // Obtener la entidad CuadroTurno desde el repositorio usando el ID del DTO
+        CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(cuadroTurnoDTO.getIdCuadroTurno())
+                .orElseThrow(() -> new RuntimeException("CuadroTurno no encontrado"));
         cambio.setCuadroTurno(cuadroTurno);
         cambio.setFechaCambio(LocalDateTime.now());
-        cambio.setNombre(cuadroTurno.getNombre());
-        cambio.setMes(cuadroTurno.getMes());
-        cambio.setAnio(cuadroTurno.getAnio());
-        cambio.setEstadoCuadro(cuadroTurno.getEstadoCuadro());
-        cambio.setVersion(cuadroTurno.getVersion());
-        cambio.setMacroProcesos(cuadroTurno.getMacroProcesos());
-        cambio.setProcesos(cuadroTurno.getProcesos());
-        cambio.setServicios(cuadroTurno.getServicios());
-        //cambio.setProcesoAtencion(cuadroTurno.getProcesosAtencion());
-        cambio.setSeccionesServicios(cuadroTurno.getSeccionesServicios());
+        cambio.setNombre(cuadroTurnoDTO.getNombre());
+        cambio.setMes(cuadroTurnoDTO.getMes());
+        cambio.setAnio(cuadroTurnoDTO.getAnio());
+        cambio.setTurnoExcepcion(cuadroTurnoDTO.getTurnoExcepcion());
+        cambio.setEstadoCuadro(cuadroTurnoDTO.getEstadoCuadro());
+        cambio.setVersion(cuadroTurnoDTO.getVersion());
+        cambio.setMacroProcesos(macroprocesos);
+        cambio.setProcesos(procesos);
+        cambio.setServicios(servicio);
+        cambio.setEquipos(equipo);
+        cambio.setSeccionesServicios(seccionesServicio);
+        cambio.setCategoria(cuadroTurnoDTO.getCategoria());
+        cambio.setEstado(cuadroTurnoDTO.getEstado());
 
-        // Guardar el cambio en la BD
+        // Agregar procesosAtencion si la categoría es multiproceso
+        if ("multiproceso".equalsIgnoreCase(cuadroTurno.getCategoria())) {
+            // 🔁 CONSULTA los procesos desde el repositorio (sin usar relación directa en CuadroTurno)
+            //List<ProcesosAtencion> procesosAtencionList = procesosAtencionRepository.findByCuadroTurnoId(cuadroTurno.getIdCuadroTurno());
+            //cambio.setProcesosAtencion(procesosAtencionList);
+        }
         cambiosCuadroTurnoRepository.save(cambio);
     }
+
 
     /**
      * Registra un cambio en la tabla cambios_procesos_atencion
