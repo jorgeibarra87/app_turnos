@@ -108,6 +108,9 @@ public class CuadroTurnoService {
         if (optionalCuadro.isPresent()) {
             CuadroTurno cuadroExistente = optionalCuadro.get();
 
+            // Guardar estado anterior
+            String estadoAnterior = cuadroExistente.getEstadoCuadro();
+
             // Manejar procesos de atención si existen en el DTO
             procesarProcesosAtencion(cuadroTurnoDTO.getIdsProcesosAtencion(), cuadroExistente, "ACTUALIZACION");
 
@@ -124,11 +127,8 @@ public class CuadroTurnoService {
             cuadroExistente.setEstado(cuadroTurnoDTO.getEstado());
             cuadroExistente.setSeccionesServicios(seccionesServicio);
 
-            // Si el estado cambia a "cerrado", generamos una nueva versión
-            if (!"cerrado".equalsIgnoreCase(cuadroExistente.getEstadoCuadro()) &&
-                    "cerrado".equalsIgnoreCase(cuadroTurnoDTO.getEstadoCuadro())) {
-                cuadroExistente.setVersion(generarNuevaVersion(cuadroExistente.getVersion(), cuadroExistente.getAnio(), cuadroExistente.getMes()));
-            }
+            // Manejar versiones según los cambios de estado
+            manejarVersionesPorEstado(cuadroExistente, estadoAnterior, cuadroTurnoDTO.getEstadoCuadro());
 
             // Mapear los datos desde el DTO al objeto existente
             CuadroTurno cuadroActualizado = cuadroTurnoRepository.save(cuadroExistente);
@@ -142,6 +142,58 @@ public class CuadroTurnoService {
         }
         throw new EntityNotFoundException("CuadroTurno no encontrado");
     }
+
+    /**
+     * Maneja las versiones según los cambios de estado del cuadro
+     */
+    private void manejarVersionesPorEstado(CuadroTurno cuadro, String estadoAnterior, String nuevoEstado) {
+        String baseVersion = cuadro.getMes() + cuadro.getAnio().substring(2);
+
+        // Si se está cerrando el cuadro (de cualquier estado a "cerrado")
+        if (!"cerrado".equalsIgnoreCase(estadoAnterior) && "cerrado".equalsIgnoreCase(nuevoEstado)) {
+            // Mantener la versión actual (no cambiarla)
+            if (cuadro.getVersion() == null) {
+                cuadro.setVersion(baseVersion + "_v1");
+            }
+            return;
+        }
+
+        // Si se está reabriendo el cuadro (de "cerrado" a cualquier otro estado)
+        if ("cerrado".equalsIgnoreCase(estadoAnterior) && !"cerrado".equalsIgnoreCase(nuevoEstado)) {
+            // Incrementar la versión
+            cuadro.setVersion(incrementarVersion(cuadro.getVersion(), cuadro.getAnio(), cuadro.getMes()));
+            return;
+        }
+
+        // Para otros cambios de estado, mantener la versión actual
+        if (cuadro.getVersion() == null) {
+            cuadro.setVersion(baseVersion + "_v1");
+        }
+    }
+
+    /**
+     * Incrementa la versión manteniendo el formato mes+año_v+número
+     */
+    private String incrementarVersion(String versionActual, String anio, String mes) {
+        String baseVersion = mes + anio.substring(2);
+
+        if (versionActual != null && versionActual.startsWith(baseVersion)) {
+            // Extraer el número de versión actual e incrementarlo
+            String[] partes = versionActual.split("_v");
+            if (partes.length == 2) {
+                try {
+                    int numeroVersion = Integer.parseInt(partes[1]);
+                    return baseVersion + "_v" + (numeroVersion + 1);
+                } catch (NumberFormatException e) {
+                    return baseVersion + "_v2";
+                }
+            }
+        }
+
+        return baseVersion + "_v2";
+    }
+
+
 
     public void eliminarCuadroTurno(Long id) {
         Optional<CuadroTurno> optionalCuadro = cuadroTurnoRepository.findById(id);
@@ -174,6 +226,8 @@ public class CuadroTurnoService {
         cuadroOriginal.setEstadoCuadro(cambio.getEstadoCuadro());
         cuadroOriginal.setVersion(cambio.getVersion());
         cuadroOriginal.setTurnoExcepcion(cambio.getTurnoExcepcion());
+        cuadroOriginal.setCategoria(cambio.getCategoria());
+        cuadroOriginal.setEstado(cambio.getEstado());
         // Guardar la restauración en la base de datos
         CuadroTurno cuadroActualizado = cuadroTurnoRepository.save(cuadroOriginal);
         // Convertir la entidad actualizada a DTO antes de devolverla
@@ -624,11 +678,15 @@ public class CuadroTurnoService {
 
     private String generarNuevaVersion(String versionAnterior, String anio, String mes) {
         String baseVersion = mes + anio.substring(2);
-        int nuevaVersion = 1;
-        if (versionAnterior != null && versionAnterior.startsWith(baseVersion)) {
-            String[] partes = versionAnterior.split("_v");
-            nuevaVersion = Integer.parseInt(partes[1]) + 1;
+        // Para nuevos cuadros, siempre empezar con v1
+        if (versionAnterior == null) {
+            return baseVersion + "_v1";
         }
-        return baseVersion + "_v" + nuevaVersion;
+        // Si la versión anterior corresponde al mismo periodo, mantenerla
+        if (versionAnterior.startsWith(baseVersion)) {
+            return versionAnterior;
+        }
+        // Si es un periodo diferente, empezar con v1
+        return baseVersion + "_v1";
     }
 }

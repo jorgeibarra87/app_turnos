@@ -23,7 +23,7 @@ public class Turnos {
 
     @ManyToOne
     @JoinColumn(name = "id_persona", referencedColumnName = "id_persona")
-    @JsonIncludeProperties("nombre")
+    @JsonIncludeProperties({"nombre", "documento"})
     private Usuario usuario;
 
     @ManyToOne
@@ -68,6 +68,9 @@ public class Turnos {
     }
     public String getNombrePersona() {
         return usuario != null ? usuario.getPersona().getNombreCompleto() : null;
+    }
+    public String getDocumento() {
+        return usuario != null ? usuario.getPersona().getDocumento() : null;
     }
 }
 

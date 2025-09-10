@@ -28,7 +28,6 @@ import java.util.Map;
 @RestController
 @CrossOrigin("http://localhost:5173/")
 @RequestMapping("/equipo")
-//@Tag(name = "Equipo", description = "Gestión de equipos de trabajo en el sistema de turnos")
 public class EquipoController {
 
     @Autowired
@@ -37,16 +36,12 @@ public class EquipoController {
     private HttpServletRequest request;
     @Autowired
     private ServicioRepository servicioRepository;
-
     @Autowired
     private MacroprocesosRepository macroprocesoRepository;
-
     @Autowired
     private ProcesosRepository procesoRepository;
-
     @Autowired
     private SeccionesServicioRepository seccionRepository;
-
     @Autowired
     private SubseccionesServicioRepository subseccionRepository;
 
@@ -74,7 +69,6 @@ public class EquipoController {
                     request.getMethod(),
                     request.getRequestURI()
             );
-
         } catch (IllegalStateException e) {
             throw new GenericConflictException(
                     CodigoError.EQUIPO_ESTADO_INVALIDO,
@@ -82,7 +76,6 @@ public class EquipoController {
                     request.getMethod(),
                     request.getRequestURI()
             );
-
         } catch (Exception e) {
             throw new GenericBadRequestException(
                     CodigoError.ERROR_PROCESAMIENTO,
@@ -138,75 +131,136 @@ public class EquipoController {
                 ));
     }
 
+    @PostMapping("/with-generated-name")
+    @Operation(
+            summary = "Crear equipo con nombre generado automáticamente",
+            description = "Crea un nuevo equipo generando automáticamente el nombre basado en categoría y subcategoría.",
+            tags={"Cuadro de Turnos"}
+    )
+    public ResponseEntity<EquipoDTO> createWithGeneratedName(@RequestBody EquipoSelectionDTO selection) {
+        try {
+            EquipoDTO equipoCreado = equipoService.createWithGeneratedName(selection);
+            return ResponseEntity.status(HttpStatus.CREATED).body(equipoCreado);
+        } catch (IllegalArgumentException e) {
+            throw new GenericBadRequestException(
+                    CodigoError.EQUIPO_DATOS_INVALIDOS,
+                    e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al crear el equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
+    }
 
-    /**
-     * Obtiene las opciones de subcategoría según la categoría seleccionada
-     */
+    @PutMapping("/{id}/with-generated-name")
+    @Operation(
+            summary = "Actualizar equipo con nombre generado automáticamente",
+            description = "Actualiza un equipo existente generando automáticamente un nuevo nombre basado en categoría y subcategoría.",
+            tags={"Cuadro de Turnos"}
+    )
+    public ResponseEntity<EquipoDTO> updateWithGeneratedName(
+            @PathVariable Long id,
+            @RequestBody EquipoSelectionDTO selection) {
+        try {
+            EquipoDTO equipoActualizado = equipoService.updateWithGeneratedName(id, selection);
+            return ResponseEntity.ok(equipoActualizado);
+        } catch (RuntimeException e) {
+            throw new GenericNotFoundException(
+                    CodigoError.EQUIPO_NO_ENCONTRADO,
+                    id,
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        } catch (Exception e) {
+            throw new GenericBadRequestException(
+                    CodigoError.ERROR_PROCESAMIENTO,
+                    "Error al actualizar el equipo: " + e.getMessage(),
+                    request.getMethod(),
+                    request.getRequestURI()
+            );
+        }
+    }
+
     @GetMapping("/subcategorias/{categoria}")
+    @Operation(
+            summary = "Obtener subcategorías por categoría",
+            description = "Devuelve las opciones de subcategoría disponibles para una categoría específica.",
+            tags={"Cuadro de Turnos"}
+    )
     public ResponseEntity<List<Map<String, Object>>> getSubcategorias(@PathVariable String categoria) {
         List<Map<String, Object>> subcategorias = new ArrayList<>();
 
-        switch (categoria.toUpperCase()) {
-            case "SERVICIO":
+        // REVERTIR: Mantener formato original - categorías con primera letra mayúscula
+        switch (categoria) {
+            case "Servicio":
                 servicioRepository.findAll().forEach(servicio -> {
                     Map<String, Object> item = new HashMap<>();
-                    item.put("id", servicio.getIdServicio());
+                    item.put("idServicio", servicio.getIdServicio());
                     item.put("nombre", servicio.getNombre());
                     subcategorias.add(item);
                 });
                 break;
 
-            case "MACROPROCESO":
+            case "Macroproceso":
                 macroprocesoRepository.findAll().forEach(macroproceso -> {
                     Map<String, Object> item = new HashMap<>();
-                    item.put("id", macroproceso.getIdMacroproceso());
+                    item.put("idMacroproceso", macroproceso.getIdMacroproceso());
                     item.put("nombre", macroproceso.getNombre());
                     subcategorias.add(item);
                 });
                 break;
 
-            case "PROCESO":
+            case "Proceso":
                 procesoRepository.findAll().forEach(proceso -> {
                     Map<String, Object> item = new HashMap<>();
-                    item.put("id", proceso.getIdProceso());
+                    item.put("idProceso", proceso.getIdProceso());
                     item.put("nombre", proceso.getNombre());
                     subcategorias.add(item);
                 });
                 break;
 
-            case "SECCION":
+            case "Seccion":
                 seccionRepository.findAll().forEach(seccion -> {
                     Map<String, Object> item = new HashMap<>();
-                    item.put("id", seccion.getIdSeccionServicio());
+                    item.put("idSeccionServicio", seccion.getIdSeccionServicio());
                     item.put("nombre", seccion.getNombre());
                     subcategorias.add(item);
                 });
                 break;
 
-            case "SUBSECCION":
+            case "Subseccion":
                 subseccionRepository.findAll().forEach(subseccion -> {
                     Map<String, Object> item = new HashMap<>();
-                    item.put("id", subseccion.getIdSubseccionServicio());
+                    item.put("idSubseccionServicio", subseccion.getIdSubseccionServicio());
                     item.put("nombre", subseccion.getNombre());
                     subcategorias.add(item);
                 });
                 break;
 
-            case "MULTIPROCESO":
-                Map<String, Object> item = new HashMap<>();
-                item.put("id", "MULTIPROCESO");
-                item.put("nombre", "Multiproceso");
-                subcategorias.add(item);
-                break;
+            default:
+                throw new GenericBadRequestException(
+                        CodigoError.EQUIPO_DATOS_INVALIDOS,
+                        "Categoría no válida: " + categoria,
+                        request.getMethod(),
+                        request.getRequestURI()
+                );
         }
 
         return ResponseEntity.ok(subcategorias);
     }
 
-    /**
-     * Genera un nombre de equipo basado en la selección
-     */
     @PostMapping("/generate-name")
+    @Operation(
+            summary = "Generar nombre de equipo",
+            description = "Genera un nombre único para un equipo basado en la categoría y subcategoría proporcionadas.",
+            tags={"Cuadro de Turnos"}
+    )
     public ResponseEntity<String> generateEquipoName(@RequestBody EquipoSelectionDTO selection) {
         try {
             String generatedName = equipoService.generateEquipoName(selection);
@@ -216,10 +270,12 @@ public class EquipoController {
         }
     }
 
-    /**
-     * Crea un nuevo equipo con nombre generado
-     */
     @PostMapping("/equipoNombre")
+    @Operation(
+            summary = "Crear equipo con nombre generado (Legacy)",
+            description = "Método legacy para crear equipos con nombre generado. Usar /with-generated-name en su lugar.",
+            tags={"Cuadro de Turnos"}
+    )
     public ResponseEntity<Equipo> createEquipoWithGeneratedName(@RequestBody EquipoSelectionDTO selection) {
         try {
             Equipo equipo = equipoService.createEquipoWithGeneratedName(selection);
@@ -231,8 +287,8 @@ public class EquipoController {
 
     @PutMapping("/{idEquipo}/actualizar-nombre")
     @Operation(
-            summary = "Actualizar nombre del equipo con generación automática",
-            description = "Genera y asigna un nuevo nombre al equipo usando su categoría y subcategoría.",
+            summary = "Actualizar nombre del equipo (Legacy)",
+            description = "Método legacy para actualizar nombres. Usar /{id}/with-generated-name en su lugar.",
             tags = {"Cuadro de Turnos"}
     )
     public ResponseEntity<EquipoDTO> updateNombreGenerado(
@@ -252,82 +308,13 @@ public class EquipoController {
         }
     }
 
-
     @GetMapping("/{id}/miembros-perfil")
+    @Operation(
+            summary = "Obtener miembros del equipo con perfil",
+            description = "Devuelve la lista de miembros del equipo junto con su información de perfil.",
+            tags={"Cuadro de Turnos"}
+    )
     public ResponseEntity<List<MiembroPerfilDTO>> obtenerMiembrosConPerfil(@PathVariable Long id) {
         return ResponseEntity.ok(equipoService.obtenerMiembrosConPerfil(id));
     }
-
-//    /**
-//     * Crea un equipo basado en un perfil específico
-//     */
-//    // OPCIÓN 1: Usando @RequestParam (más simple, para pocos usuarios)
-//    @PostMapping("/crear-por-perfil/{idTitulo}")
-//    @Operation(
-//            summary = "crear por perfil",
-//            description = "Crea un equipo basado en un perfil específico con usuarios seleccionados.",
-//            tags={"Cuadro de Turnos"}
-//    )
-//    public ResponseEntity<EquipoDTO> crearEquipoPorPerfil(
-//            @PathVariable Long idTitulo,
-//            @RequestBody(required = false)  List<Long> idsUsuarios) {
-//        try {
-//            EquipoDTO equipoCreado = equipoService.createEquipoByPerfil(idTitulo, idsUsuarios);
-//            return ResponseEntity.ok(equipoCreado);
-//        } catch (RuntimeException e) {
-//            return ResponseEntity.badRequest().build();
-//        }
-//    }
-//
-//    /**
-//     * Obtiene todos los equipos de un perfil específico
-//     */
-//    @GetMapping("/por-perfil/{idTitulo}")
-//    @Operation(
-//            summary = "equipos por perfil",
-//            description = "Obtiene todos los equipos de un perfil específico.",
-//            tags={"Cuadro de Turnos"}
-//    )
-//    public ResponseEntity<List<EquipoDTO>> obtenerEquiposPorPerfil(@PathVariable Long idTitulo) {
-//        try {
-//            List<EquipoDTO> equipos = equipoService.findEquiposByPerfil(idTitulo);
-//            return ResponseEntity.ok(equipos);
-//        } catch (RuntimeException e) {
-//            return ResponseEntity.badRequest().build();
-//        }
-//    }
-//
-//    /**
-//     * Cuenta los equipos de un perfil específico
-//     */
-//    @GetMapping("/contar-por-perfil/{idTitulo}")
-//    @Operation(
-//            summary = "cuenta equipos por perfil",
-//            description = "Cuenta los equipos de un perfil específico.",
-//            tags={"Cuadro de Turnos"}
-//    )
-//    public ResponseEntity<Long> contarEquiposPorPerfil(@PathVariable Long idTitulo) {
-//        try {
-//            long cantidad = equipoService.contarEquiposByPerfil(idTitulo);
-//            return ResponseEntity.ok(cantidad);
-//        } catch (RuntimeException e) {
-//            return ResponseEntity.badRequest().build();
-//        }
-//    }
-//
-//
-//    public class CrearEquipoRequest {
-//        private Long idTitulo;
-//        private List<Long> idsUsuarios;
-//
-//        // Constructores
-//        public CrearEquipoRequest() {}
-//
-//        // Getters y Setters
-//        public Long getIdTitulo() { return idTitulo; }
-//        public void setIdTitulo(Long idTitulo) { this.idTitulo = idTitulo; }
-//
-//        public List<Long> getIdsUsuarios() { return idsUsuarios; }
-//        public void setIdsUsuarios(List<Long> idsUsuarios) { this.idsUsuarios = idsUsuarios; }
-//    }
 }

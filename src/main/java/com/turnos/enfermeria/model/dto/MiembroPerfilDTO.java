@@ -13,4 +13,5 @@ public class MiembroPerfilDTO {
     private Long idPersona;
     private String nombreCompleto;
     private List<String> titulos;
+    private String documento;
 }

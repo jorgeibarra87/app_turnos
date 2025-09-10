@@ -38,4 +38,15 @@ public interface EquipoRepository extends JpaRepository<Equipo, Long> {
     long countByNombrePattern(@Param("pattern") String pattern);
 
     boolean existsByNombre(String nombre);
+
+    @Query(value = """
+        SELECT p.id_persona, p.nombre_completo, tfa.titulo, p.documento 
+        FROM usuarios_equipo ue 
+        JOIN usuario u ON ue.id_persona = u.id_persona 
+        JOIN persona p ON u.id_persona = p.id_persona 
+        LEFT JOIN usuarios_titulos ut ON ut.id_persona = p.id_persona 
+        LEFT JOIN titulos_formacion_academica tfa ON ut.id_titulo = tfa.id_titulo 
+        WHERE ue.id_equipo = :equipoId
+        """, nativeQuery = true)
+    List<Object[]> findMiembrosConPerfilRaw(@Param("equipoId") Long equipoId);
 }

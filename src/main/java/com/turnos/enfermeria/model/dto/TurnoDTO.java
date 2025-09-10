@@ -18,4 +18,5 @@ public class TurnoDTO {
     private String comentarios;
     private Boolean estado = true;
     private String nombrePersona;
+    private String documento;
 }
