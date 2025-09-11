@@ -94,6 +94,11 @@ public enum CodigoError {
     ROL_USUARIO_NO_ENCONTRADO("TITULOS_USUARIO", "TUSU-404", "titulo de contrato no encontrado", HttpStatus.NOT_FOUND),
     ROL_USUARIO_DATOS_INVALIDOS("TITULOS_USUARIO", "TUSU-400", "Datos inválidos para titulo de contrato", HttpStatus.BAD_REQUEST),
     ROL_USUARIO_ESTADO_INVALIDO("TITULOS_USUARIO", "TUSU-409", "Estado inválido para la operación", HttpStatus.CONFLICT),
+    TURNO_HORAS_EXCESIVAS("TURNOS_VALIDACION", "TRN-422-01", "Exceso de horas en turno", HttpStatus.UNPROCESSABLE_ENTITY),
+    TURNO_HORAS_DIARIAS_EXCESIVAS("TURNOS_VALIDACION", "TRN-422-02", "Exceso de horas diarias", HttpStatus.UNPROCESSABLE_ENTITY),
+    TURNO_HORAS_MENSUALES_EXCESIVAS("TURNOS_VALIDACION", "TRN-422-03", "Exceso de horas mensuales", HttpStatus.UNPROCESSABLE_ENTITY),
+    TURNO_24H_SIN_EXCEPCION("TURNOS_VALIDACION", "TRN-422-04", "Turno de 24 horas sin excepción", HttpStatus.UNPROCESSABLE_ENTITY),
+    TURNO_SOLAPAMIENTO("TURNOS_VALIDACION", "TRN-422-05", "Solapamiento de turnos", HttpStatus.UNPROCESSABLE_ENTITY),
     ;
 
     private final String entidad;

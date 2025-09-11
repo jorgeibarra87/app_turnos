@@ -43,10 +43,6 @@ public class CambiosCuadroTurno {
     @JoinColumn(name = "id_subseccion_servicio", referencedColumnName = "id_subseccion_servicio")
     private SubseccionesServicio subseccionesServicios;
 
-//    @JsonIgnoreProperties("CambiosCuadroTurno")
-//    @OneToMany
-//    private List<ProcesosAtencion> procesosAtencion;
-
     @ManyToOne
     @JoinColumn(name = "id_equipo", referencedColumnName = "id_equipo")
     private Equipo equipos;

@@ -1,6 +1,7 @@
 package com.turnos.enfermeria.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.turnos.enfermeria.exception.custom.TurnoValidationException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -43,6 +44,7 @@ public class GlobalExceptionHandler {
     // Manejo de ApiException personalizada
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApiException(ApiException ex, WebRequest request) {
+        System.out.println("✅ MANEJANDO ApiException: " + ex.getMensaje());
 
         // Si es una excepción de NO CONTENT (204), no hay cuerpo en la respuesta
         if (ex.getCodigoHttp() == HttpStatus.NO_CONTENT.value()) {
@@ -65,6 +67,9 @@ public class GlobalExceptionHandler {
     // Manejo genérico de excepciones no controladas
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, WebRequest request) {
+
+        System.err.println("🔴 EXCEPCIÓN NO CONTROLADA:");
+        ex.printStackTrace(); // Esto imprimirá el stacktrace completo en consola
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 "Sistema",
@@ -76,6 +81,20 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+    @ExceptionHandler(TurnoValidationException.class)
+    public ResponseEntity<ErrorResponse> handleTurnoValidationException(TurnoValidationException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                ex.getEntidad(),
+                ex.getCodigo(),
+                ex.getMensaje(),
+                ex.getCodigoHttp(),
+                ex.getMetodo() != null ? ex.getMetodo() : ((ServletWebRequest) request).getRequest().getMethod(),
+                ex.getPath() != null ? ex.getPath() : ((ServletWebRequest) request).getRequest().getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
     }
 
     // DTO interno para la respuesta de error

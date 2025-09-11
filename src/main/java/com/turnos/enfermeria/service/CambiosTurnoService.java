@@ -9,9 +9,7 @@ import com.turnos.enfermeria.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,142 +21,151 @@ public class CambiosTurnoService {
 
     private final CambiosTurnoRepository cambiosTurnoRepo;
     private final ModelMapper modelMapper;
-    private  final TurnosRepository turnosRepository;
+    private final TurnosRepository turnosRepository;
     private final CuadroTurnoRepository cuadroTurnoRepository;
     private final UsuarioRepository usuarioRepository;
 
     public CambiosTurnoDTO create(CambiosTurnoDTO cambiosTurnoDTO) {
-        CambiosTurno cambiosTurno = modelMapper.map(cambiosTurnoDTO,CambiosTurno.class);
+        // Buscar entidades relacionadas usando métodos auxiliares
+        Turnos turno = buscarTurno(cambiosTurnoDTO.getIdTurno());
+        CuadroTurno cuadroTurno = buscarCuadroTurno(cambiosTurnoDTO.getIdCuadroTurno());
+        Usuario usuario = buscarUsuario(cambiosTurnoDTO.getIdUsuario());
 
-        // Obtener el objeto Turnos a partir del ID
-        Turnos turno = turnosRepository.findById(cambiosTurnoDTO.getIdTurno())
-                .orElseThrow(() -> new RuntimeException("Turno no encontrado"));
-        // Obtener el objeto CuadroTurno a partir del ID
-        CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(cambiosTurnoDTO.getIdCuadroTurno())
-                .orElseThrow(() -> new RuntimeException("CuadroTurno no encontrado"));
-        // Obtener el objeto usuario a partir del ID
-        Usuario usuario = usuarioRepository.findById(cambiosTurnoDTO.getIdUsuario())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        // Convertir DTO a Entidad
+        CambiosTurno cambiosTurno = modelMapper.map(cambiosTurnoDTO, CambiosTurno.class);
 
-        cambiosTurno.setTurno(turno);
-        cambiosTurno.setCuadroTurno(cuadroTurno);
-        cambiosTurno.setUsuario(usuario);
-        cambiosTurno.setFechaCambio(cambiosTurnoDTO.getFechaCambio());
-        cambiosTurno.setFechaInicio(cambiosTurnoDTO.getFechaInicio());
-        cambiosTurno.setFechaFin(cambiosTurnoDTO.getFechaFin());
-        cambiosTurno.setTotalHoras(cambiosTurnoDTO.getTotalHoras());
-        cambiosTurno.setTipoTurno(cambiosTurnoDTO.getTipoTurno());
-        cambiosTurno.setEstadoTurno(cambiosTurnoDTO.getEstadoTurno());
-        cambiosTurno.setJornada(cambiosTurnoDTO.getJornada());
-        cambiosTurno.setVersion(cambiosTurnoDTO.getVersion());
-        cambiosTurno.setComentarios(cambiosTurnoDTO.getComentarios());
+        // Configurar el cambio de turno
+        configurarCambioTurno(cambiosTurno, cambiosTurnoDTO, turno, cuadroTurno, usuario);
 
-        CambiosTurno cambiosTurnoGuardado = cambiosTurnoRepo.save(cambiosTurno);
-        return modelMapper.map(cambiosTurnoGuardado, CambiosTurnoDTO.class);
+        // Guardar en la base de datos
+        CambiosTurno cambioGuardado = cambiosTurnoRepo.save(cambiosTurno);
+
+        return modelMapper.map(cambioGuardado, CambiosTurnoDTO.class);
     }
 
     public CambiosTurnoDTO update(CambiosTurnoDTO detalleCambiosTurnoDTO, Long id) {
+        // Buscar cambio existente
+        CambiosTurno cambioExistente = buscarCambioTurno(id);
 
-        CambiosTurno cambiosTurnoExistente = cambiosTurnoRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("CambiosTurno no encontrado"));
+        // Buscar entidades relacionadas usando métodos auxiliares
+        Turnos turno = buscarTurno(detalleCambiosTurnoDTO.getIdTurno());
+        CuadroTurno cuadroTurno = buscarCuadroTurno(detalleCambiosTurnoDTO.getIdCuadroTurno());
+        Usuario usuario = buscarUsuario(detalleCambiosTurnoDTO.getIdUsuario());
 
-        CambiosTurnoDTO cambiosTurnoDTO = modelMapper.map(cambiosTurnoExistente, CambiosTurnoDTO.class);
+        // Actualizar campos del cambio existente
+        actualizarCambioExistente(cambioExistente, detalleCambiosTurnoDTO, turno, cuadroTurno, usuario);
 
-        // Obtener el objeto Turnos a partir del ID
-        Turnos turno = turnosRepository.findById(cambiosTurnoDTO.getIdTurno())
-                .orElseThrow(() -> new RuntimeException("Turno no encontrado"));
-        // Obtener el objeto CuadroTurno a partir del ID
-        CuadroTurno cuadroTurno = cuadroTurnoRepository.findById(cambiosTurnoDTO.getIdCuadroTurno())
-                .orElseThrow(() -> new RuntimeException("CuadroTurno no encontrado"));
-        // Obtener el objeto usuario a partir del ID
-        Usuario usuario = usuarioRepository.findById(cambiosTurnoDTO.getIdUsuario())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        // Guardar cambios
+        CambiosTurno cambioActualizado = cambiosTurnoRepo.save(cambioExistente);
 
-        // Actualizar los campos si no son nulos
-        if (detalleCambiosTurnoDTO.getIdCambio()!= null) {
-            cambiosTurnoExistente.setIdCambio(detalleCambiosTurnoDTO.getIdCambio());
-        }
-        if (detalleCambiosTurnoDTO.getIdCambio()!= null) {
-            cambiosTurnoExistente.setIdCambio(detalleCambiosTurnoDTO.getIdCambio());
-        }
-        if (detalleCambiosTurnoDTO.getIdTurno()!= null) {
-            cambiosTurnoExistente.setTurno(turno);
-        }
-        if (detalleCambiosTurnoDTO.getIdCuadroTurno()!= null) {
-            cambiosTurnoExistente.setCuadroTurno(cuadroTurno);
-        }
-        if (detalleCambiosTurnoDTO.getIdUsuario()!= null) {
-            cambiosTurnoExistente.setUsuario(usuario);
-        }
-        if (detalleCambiosTurnoDTO.getFechaCambio()!= null) {
-            cambiosTurnoExistente.setFechaCambio(detalleCambiosTurnoDTO.getFechaCambio());
-        }
-        if (detalleCambiosTurnoDTO.getFechaInicio()!= null) {
-            cambiosTurnoExistente.setFechaInicio(detalleCambiosTurnoDTO.getFechaInicio());
-        }
-        if (detalleCambiosTurnoDTO.getFechaFin()!= null) {
-            cambiosTurnoExistente.setFechaFin(detalleCambiosTurnoDTO.getFechaFin());
-        }
-        if (detalleCambiosTurnoDTO.getTotalHoras()!= null) {
-            cambiosTurnoExistente.setTotalHoras(detalleCambiosTurnoDTO.getTotalHoras());
-        }
-        if (detalleCambiosTurnoDTO.getTipoTurno()!= null) {
-            cambiosTurnoExistente.setTipoTurno(detalleCambiosTurnoDTO.getTipoTurno());
-        }
-        if (detalleCambiosTurnoDTO.getEstadoTurno()!= null) {
-            cambiosTurnoExistente.setEstadoTurno(detalleCambiosTurnoDTO.getEstadoTurno());
-        }
-        if (detalleCambiosTurnoDTO.getJornada()!= null) {
-            cambiosTurnoExistente.setJornada(detalleCambiosTurnoDTO.getJornada());
-        }
-        if (detalleCambiosTurnoDTO.getVersion()!= null) {
-            cambiosTurnoExistente.setVersion(detalleCambiosTurnoDTO.getVersion());
-        }
-        if (detalleCambiosTurnoDTO.getComentarios()!= null) {
-            cambiosTurnoExistente.setComentarios(detalleCambiosTurnoDTO.getComentarios());
-        }
-
-
-        // Guardar en la base de datos
-        CambiosTurno cambiosTurnoActualizado = cambiosTurnoRepo.save(cambiosTurnoExistente);
-
-        return modelMapper.map(cambiosTurnoActualizado, CambiosTurnoDTO.class);
+        return modelMapper.map(cambioActualizado, CambiosTurnoDTO.class);
     }
 
     public Optional<CambiosTurnoDTO> findById(Long idCambio) {
         return cambiosTurnoRepo.findById(idCambio)
-                .map(cambiosTurno -> modelMapper.map(cambiosTurno, CambiosTurnoDTO.class)); // Convertir a DTO
+                .map(cambiosTurno -> modelMapper.map(cambiosTurno, CambiosTurnoDTO.class));
     }
 
     public List<CambiosTurnoDTO> findAll() {
-
         return cambiosTurnoRepo.findAll()
                 .stream()
                 .map(cambiosTurno -> modelMapper.map(cambiosTurno, CambiosTurnoDTO.class))
                 .collect(Collectors.toList());
     }
 
-    public void delete(@PathVariable Long idCambio) {
+    public void delete(Long idCambio) {
+        // Buscar cambio a eliminar
+        Optional<CambiosTurno> optionalCambio = cambiosTurnoRepo.findById(idCambio);
 
-        // Buscar el bloque en la base de datos
-        CambiosTurno cambiosTurnoEliminar = cambiosTurnoRepo.findById(idCambio)
-                .orElseThrow(() -> new EntityNotFoundException("cambio no encontrado"));
-
-        // Convertir la entidad a DTO
-        CambiosTurnoDTO cambiosTurnoDTO = modelMapper.map(cambiosTurnoEliminar, CambiosTurnoDTO.class);
-
-        cambiosTurnoRepo.deleteById(idCambio);
+        if (optionalCambio.isPresent()) {
+            cambiosTurnoRepo.deleteById(idCambio);
+        } else {
+            throw new EntityNotFoundException("Cambio de turno no encontrado");
+        }
     }
 
     public List<CambiosTurnoDTO> obtenerCambiosPorTurno(Long idTurno) {
         List<CambiosTurno> cambios = cambiosTurnoRepo.findByTurno_IdTurno(idTurno);
+
         return cambios.stream()
-                .map(cambio -> {
-                    CambiosTurnoDTO dto = modelMapper.map(cambio, CambiosTurnoDTO.class);
-                    dto.setIdTurno(cambio.getTurno().getIdTurno());
-                    dto.setIdUsuario(cambio.getUsuario().getIdPersona());
-                    return dto;
-                })
+                .map(this::mapearCambioConRelaciones)
                 .collect(Collectors.toList());
+    }
+
+    // ===== MÉTODOS AUXILIARES DE BÚSQUEDA =====
+
+    private Turnos buscarTurno(Long id) {
+        return id != null ? turnosRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Turno no encontrado")) : null;
+    }
+
+    private CuadroTurno buscarCuadroTurno(Long id) {
+        return id != null ? cuadroTurnoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("CuadroTurno no encontrado")) : null;
+    }
+
+    private Usuario buscarUsuario(Long id) {
+        return id != null ? usuarioRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado")) : null;
+    }
+
+    private CambiosTurno buscarCambioTurno(Long id) {
+        return cambiosTurnoRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("CambiosTurno no encontrado"));
+    }
+
+    // ===== MÉTODOS AUXILIARES DE CONFIGURACIÓN =====
+
+    private void configurarCambioTurno(CambiosTurno cambio, CambiosTurnoDTO dto,
+                                       Turnos turno, CuadroTurno cuadroTurno, Usuario usuario) {
+        cambio.setTurno(turno);
+        cambio.setCuadroTurno(cuadroTurno);
+        cambio.setUsuario(usuario);
+        cambio.setFechaCambio(dto.getFechaCambio());
+        cambio.setFechaInicio(dto.getFechaInicio());
+        cambio.setFechaFin(dto.getFechaFin());
+        cambio.setTotalHoras(dto.getTotalHoras());
+        cambio.setTipoTurno(dto.getTipoTurno());
+        cambio.setEstadoTurno(dto.getEstadoTurno());
+        cambio.setJornada(dto.getJornada());
+        cambio.setVersion(dto.getVersion());
+        cambio.setComentarios(dto.getComentarios());
+    }
+
+    private void actualizarCambioExistente(CambiosTurno cambioExistente, CambiosTurnoDTO dto,
+                                           Turnos turno, CuadroTurno cuadroTurno, Usuario usuario) {
+        // Actualizar relaciones si los IDs están presentes
+        if (dto.getIdTurno() != null) cambioExistente.setTurno(turno);
+        if (dto.getIdCuadroTurno() != null) cambioExistente.setCuadroTurno(cuadroTurno);
+        if (dto.getIdUsuario() != null) cambioExistente.setUsuario(usuario);
+
+        // Actualizar campos básicos si no son nulos
+        if (dto.getIdCambio() != null) cambioExistente.setIdCambio(dto.getIdCambio());
+        if (dto.getFechaCambio() != null) cambioExistente.setFechaCambio(dto.getFechaCambio());
+        if (dto.getFechaInicio() != null) cambioExistente.setFechaInicio(dto.getFechaInicio());
+        if (dto.getFechaFin() != null) cambioExistente.setFechaFin(dto.getFechaFin());
+        if (dto.getTotalHoras() != null) cambioExistente.setTotalHoras(dto.getTotalHoras());
+        if (dto.getTipoTurno() != null) cambioExistente.setTipoTurno(dto.getTipoTurno());
+        if (dto.getEstadoTurno() != null) cambioExistente.setEstadoTurno(dto.getEstadoTurno());
+        if (dto.getJornada() != null) cambioExistente.setJornada(dto.getJornada());
+        if (dto.getVersion() != null) cambioExistente.setVersion(dto.getVersion());
+        if (dto.getComentarios() != null) cambioExistente.setComentarios(dto.getComentarios());
+    }
+
+    private CambiosTurnoDTO mapearCambioConRelaciones(CambiosTurno cambio) {
+        CambiosTurnoDTO dto = modelMapper.map(cambio, CambiosTurnoDTO.class);
+
+        // Asignar IDs de relaciones manualmente para asegurar consistencia
+        if (cambio.getTurno() != null) {
+            dto.setIdTurno(cambio.getTurno().getIdTurno());
+        }
+        if (cambio.getUsuario() != null) {
+            dto.setIdUsuario(cambio.getUsuario().getIdPersona());
+        }
+        if (cambio.getCuadroTurno() != null) {
+            dto.setIdCuadroTurno(cambio.getCuadroTurno().getIdCuadroTurno());
+        }
+
+        return dto;
     }
 }

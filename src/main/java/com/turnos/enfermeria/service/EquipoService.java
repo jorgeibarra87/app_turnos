@@ -109,7 +109,6 @@ public class EquipoService {
             throw new IllegalArgumentException("Categoría y subcategoría no pueden ser nulos");
         }
 
-        // RESTAURAR: Mantener categoría como viene del frontend (Proceso, Servicio, etc.)
         String categoria = selection.getCategoria(); // Mantener como "Proceso", "Servicio", etc.
         String subcategoria = selection.getSubcategoria().toUpperCase()
                 .replaceAll("\\s+", "_")

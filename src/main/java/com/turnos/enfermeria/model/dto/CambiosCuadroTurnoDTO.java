@@ -19,12 +19,13 @@ public class CambiosCuadroTurnoDTO {
     private Long idSeccionesServicios;
     private Long idSubseccionesServicios;
     private List<Long> idsProcesosAtencion;
+    private Long idEquipo;
     private String nombre;
     private String anio;
     private String mes;
     private String estadoCuadro; // "abierto" o "cerrado"
     private String version; // Ejemplo: "v01_0225"
-    private boolean TurnoExcepcion;
+    private Boolean TurnoExcepcion;
     private Boolean estado;
     private String categoria;
 
