@@ -302,8 +302,12 @@ public class TurnosService {
         turno.setVersion(cuadroTurno.getVersion());
         turno.setComentarios(dto.getComentarios());
         turno.setTipoTurno(dto.getTipoTurno() != null ? dto.getTipoTurno() : "Presencial");
-        turno.setJornada(dto.getJornada() != null ? dto.getJornada() : "Tarde");
+        turno.setJornada(calcularJornadaAutomatica(dto.getFechaInicio(), dto.getFechaFin()));
         turno.setEstadoTurno(dto.getEstadoTurno() != null ? dto.getEstadoTurno() : "abierto");
+        if (dto.getJornada() != null && !dto.getJornada().trim().isEmpty()) {
+            turno.setJornada(dto.getJornada());
+            System.out.println("⚠️ Jornada manual aplicada: " + dto.getJornada());
+        }
     }
 
     /**
@@ -328,7 +332,8 @@ public class TurnosService {
                 cambioVersionAnterior.setVersion(versionAnterior);
                 cambioVersionAnterior.setComentarios(turno.getComentarios());
                 cambioVersionAnterior.setTipoTurno(turno.getTipoTurno() != null ? turno.getTipoTurno() : "Presencial");
-                cambioVersionAnterior.setJornada(turno.getJornada() != null ? turno.getJornada() : "Tarde");
+                cambioVersionAnterior.setJornada(turno.getJornada() != null ? turno.getJornada() :
+                        calcularJornadaAutomatica(turno.getFechaInicio(), turno.getFechaFin()));
 
                 cambiosTurnoRepository.save(cambioVersionAnterior);
                 // ACTUALIZAR TURNO ACTIVO CON NUEVA VERSIÓN Y NUEVO ESTADO
@@ -347,7 +352,8 @@ public class TurnosService {
                 cambioVersionNueva.setVersion(nuevaVersion);
                 cambioVersionNueva.setComentarios(turno.getComentarios());
                 cambioVersionNueva.setTipoTurno(turno.getTipoTurno() != null ? turno.getTipoTurno() : "Presencial");
-                cambioVersionNueva.setJornada(turno.getJornada() != null ? turno.getJornada() : "Tarde");
+                cambioVersionNueva.setJornada(turno.getJornada() != null ? turno.getJornada() :
+                        calcularJornadaAutomatica(turno.getFechaInicio(), turno.getFechaFin()));
 
                 cambiosTurnoRepository.save(cambioVersionNueva);
             }
@@ -365,17 +371,29 @@ public class TurnosService {
     }
 
     private void actualizarCamposTurno(Turnos turnoExistente, TurnoDTO turnoDetallesDTO) {
+        boolean fechasCambiaron = false;
         if (turnoDetallesDTO.getFechaInicio() != null) {
             turnoExistente.setFechaInicio(turnoDetallesDTO.getFechaInicio());
+            fechasCambiaron = true;
         }
         if (turnoDetallesDTO.getFechaFin() != null) {
             turnoExistente.setFechaFin(turnoDetallesDTO.getFechaFin());
+            fechasCambiaron = true;
         }
         if (turnoDetallesDTO.getEstadoTurno() != null) {
             turnoExistente.setEstadoTurno(turnoDetallesDTO.getEstadoTurno());
         }
         if (turnoDetallesDTO.getComentarios() != null) {
             turnoExistente.setComentarios(turnoDetallesDTO.getComentarios());
+        }
+        // ✅ RECALCULAR JORNADA SI LAS FECHAS CAMBIARON
+        if (fechasCambiaron) {
+            String nuevaJornada = calcularJornadaAutomatica(
+                    turnoExistente.getFechaInicio(),
+                    turnoExistente.getFechaFin()
+            );
+            turnoExistente.setJornada(nuevaJornada);
+            System.out.println("✅ Jornada recalculada automáticamente: " + nuevaJornada);
         }
     }
 
@@ -425,7 +443,8 @@ public class TurnosService {
         cambio.setCuadroTurno(cuadroTurno);
         cambio.setVersion(cuadroTurno.getVersion());
         cambio.setTipoTurno(turnoOriginal.getTipoTurno() != null ? turnoOriginal.getTipoTurno() : "Presencial");
-        cambio.setJornada(turnoOriginal.getJornada() != null ? turnoOriginal.getJornada() : "");
+        cambio.setJornada(turnoOriginal.getJornada() != null ? turnoOriginal.getJornada() :
+                calcularJornadaAutomatica(turnoOriginal.getFechaInicio(), turnoOriginal.getFechaFin()));
 
         cambiosTurnoRepository.save(cambio);
     }
@@ -459,5 +478,35 @@ public class TurnosService {
             }
         }
         return versionAnterior + "_v2";
+    }
+
+    /**
+     * Calcula la jornada automáticamente basada en la hora de inicio del turno
+     */
+    private String calcularJornadaAutomatica(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        if (fechaInicio == null || fechaFin == null) {
+            return "Tarde"; // Por defecto
+        }
+
+        // Calcular duración del turno
+        long horasDuracion = Duration.between(fechaInicio, fechaFin).toHours();
+
+        // Si es turno de 24 horas
+        if (horasDuracion == 24) {
+            return "24 Horas";
+        }
+
+        // Obtener hora de inicio (0-23)
+        int horaInicio = fechaInicio.getHour();
+
+        // Definir jornadas según hora de inicio
+        if (horaInicio >= 6 && horaInicio < 12) {
+            return "Mañana";
+        } else if (horaInicio >= 12 && horaInicio < 18) {
+            return "Tarde";
+        } else {
+            // 22:00 - 05:59 (incluye madrugada)
+            return "Noche";
+        }
     }
 }
