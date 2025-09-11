@@ -51,4 +51,5 @@ public interface CambiosTurnoRepository extends JpaRepository<CambiosTurno, Long
 """)
     List<CambiosTurnoDTO> findCambiosTurnoDTOByTurno(@Param("idTurno") Long idTurno);
 
+    List<CambiosTurno> findByCuadroTurno_IdCuadroTurnoAndVersionOrderByFechaCambioDesc(Long idCuadroTurno, String versionDeseada);
 }

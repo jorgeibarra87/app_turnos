@@ -299,8 +299,69 @@ public class TurnosService {
         turno.setUsuario(usuario);
         turno.setCuadroTurno(cuadroTurno);
         turno.setTotalHoras(calcularHorasTrabajadas(dto.getFechaInicio(), dto.getFechaFin()));
-        turno.setVersion(generarVersion(dto.getFechaInicio()));
+        turno.setVersion(cuadroTurno.getVersion());
         turno.setComentarios(dto.getComentarios());
+        turno.setTipoTurno(dto.getTipoTurno() != null ? dto.getTipoTurno() : "Presencial");
+        turno.setJornada(dto.getJornada() != null ? dto.getJornada() : "Tarde");
+        turno.setEstadoTurno(dto.getEstadoTurno() != null ? dto.getEstadoTurno() : "abierto");
+    }
+
+    /**
+     * Registra todos los turnos existentes en historial al cambiar versión del cuadro
+     */
+    public void registrarTurnosEnHistorialAlCambiarVersion(Long idCuadroTurno, String versionAnterior, String nuevaVersion, String nuevoEstadoTurnos) {
+        try {
+            // Obtener todos los turnos del cuadro
+            List<Turnos> turnos = turnosRepository.findByCuadroTurno_IdCuadroTurno(idCuadroTurno);
+
+            for (Turnos turno : turnos) {
+                // Crear registro en historial con versión anterior (mantener estado actual)
+                CambiosTurno cambioVersionAnterior = new CambiosTurno();
+                cambioVersionAnterior.setTurno(turno);
+                cambioVersionAnterior.setCuadroTurno(turno.getCuadroTurno());
+                cambioVersionAnterior.setUsuario(turno.getUsuario());
+                cambioVersionAnterior.setFechaCambio(LocalDateTime.now());
+                cambioVersionAnterior.setFechaInicio(turno.getFechaInicio());
+                cambioVersionAnterior.setFechaFin(turno.getFechaFin());
+                cambioVersionAnterior.setTotalHoras(turno.getTotalHoras());
+                cambioVersionAnterior.setEstadoTurno(turno.getEstadoTurno()); // Estado actual
+                cambioVersionAnterior.setVersion(versionAnterior);
+                cambioVersionAnterior.setComentarios(turno.getComentarios());
+                cambioVersionAnterior.setTipoTurno(turno.getTipoTurno() != null ? turno.getTipoTurno() : "Presencial");
+                cambioVersionAnterior.setJornada(turno.getJornada() != null ? turno.getJornada() : "Tarde");
+
+                cambiosTurnoRepository.save(cambioVersionAnterior);
+                // ACTUALIZAR TURNO ACTIVO CON NUEVA VERSIÓN Y NUEVO ESTADO
+                turno.setVersion(nuevaVersion);
+                turno.setEstadoTurno(nuevoEstadoTurnos);
+                // Crear registro en historial con nueva versión Y NUEVO ESTADO
+                CambiosTurno cambioVersionNueva = new CambiosTurno();
+                cambioVersionNueva.setTurno(turno);
+                cambioVersionNueva.setCuadroTurno(turno.getCuadroTurno());
+                cambioVersionNueva.setUsuario(turno.getUsuario());
+                cambioVersionNueva.setFechaCambio(LocalDateTime.now());
+                cambioVersionNueva.setFechaInicio(turno.getFechaInicio());
+                cambioVersionNueva.setFechaFin(turno.getFechaFin());
+                cambioVersionNueva.setTotalHoras(turno.getTotalHoras());
+                cambioVersionNueva.setEstadoTurno(nuevoEstadoTurnos); // ← NUEVO ESTADO
+                cambioVersionNueva.setVersion(nuevaVersion);
+                cambioVersionNueva.setComentarios(turno.getComentarios());
+                cambioVersionNueva.setTipoTurno(turno.getTipoTurno() != null ? turno.getTipoTurno() : "Presencial");
+                cambioVersionNueva.setJornada(turno.getJornada() != null ? turno.getJornada() : "Tarde");
+
+                cambiosTurnoRepository.save(cambioVersionNueva);
+            }
+
+            // Guardar turnos actualizados
+            turnosRepository.saveAll(turnos);
+
+            System.out.println(String.format("✅ Registrados %d turnos en historial: %s -> %s (estado: %s)",
+                    turnos.size(), versionAnterior, nuevaVersion, nuevoEstadoTurnos));
+
+        } catch (Exception e) {
+            System.err.println("Error al registrar turnos en historial: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void actualizarCamposTurno(Turnos turnoExistente, TurnoDTO turnoDetallesDTO) {
@@ -353,16 +414,18 @@ public class TurnosService {
             return turnosRepository.findByCuadroTurno_IdCuadroTurno(idCuadroTurno);
         }
     }
-
     // ===== MÉTODOS AUXILIARES DE REGISTRO =====
-
     private void registrarCambioTurno(Long idTurno, TurnoDTO turnoDTO, String tipoCambio) {
         Turnos turnoOriginal = buscarTurno(idTurno);
-
+        CuadroTurno cuadroTurno = turnoOriginal.getCuadroTurno();
         CambiosTurno cambio = modelMapper.map(turnoDTO, CambiosTurno.class);
         cambio.setTurno(turnoOriginal);
         cambio.setFechaCambio(LocalDateTime.now());
         cambio.setUsuario(turnoOriginal.getUsuario());
+        cambio.setCuadroTurno(cuadroTurno);
+        cambio.setVersion(cuadroTurno.getVersion());
+        cambio.setTipoTurno(turnoOriginal.getTipoTurno() != null ? turnoOriginal.getTipoTurno() : "Presencial");
+        cambio.setJornada(turnoOriginal.getJornada() != null ? turnoOriginal.getJornada() : "");
 
         cambiosTurnoRepository.save(cambio);
     }

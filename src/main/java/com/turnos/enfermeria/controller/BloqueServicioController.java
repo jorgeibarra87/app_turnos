@@ -44,13 +44,6 @@ public class BloqueServicioController {
                     request.getMethod(),
                     request.getRequestURI()
             );
-        } catch (Exception e) {
-            throw new GenericConflictException(
-                    CodigoError.BLOQUE_SERVICIO_CONFLICTO,
-                    "Error al crear el bloque: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 

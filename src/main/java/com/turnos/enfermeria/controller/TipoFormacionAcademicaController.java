@@ -58,13 +58,6 @@ public class TipoFormacionAcademicaController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el tipo formacion: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 

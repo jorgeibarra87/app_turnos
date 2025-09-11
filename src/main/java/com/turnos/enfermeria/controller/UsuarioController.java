@@ -78,13 +78,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el usuario: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -155,13 +148,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en equipo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -172,42 +158,7 @@ public class UsuarioController {
         List<PersonaEquipoDTO> usuarios = usuarioService.obtenerUsuariosPorEquipo(idEquipo);
         return ResponseEntity.ok(usuarios);
     }
-//    public ResponseEntity<List<PersonaEquipoDTO>> obtenerUsuariosPorEquipo(@PathVariable Long idEquipo) {
-//        try {
-//            List<PersonaEquipoDTO> usuarios = usuarioService.obtenerUsuariosPorEquipo(idEquipo);
-//            return ResponseEntity.ok(usuarios);
-//        }catch (EntityNotFoundException e) {
-//            throw new GenericNotFoundException(
-//                    CodigoError.USUARIO_NO_ENCONTRADO,
-//                    idEquipo,
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//        } catch (IllegalArgumentException e) {
-//            throw new GenericBadRequestException(
-//                    CodigoError.USUARIO_DATOS_INVALIDOS,
-//                    e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//
-//        } catch (IllegalStateException e) {
-//            throw new GenericConflictException(
-//                    CodigoError.USUARIO_ESTADO_INVALIDO,
-//                    "No se pudo crear usuario: " + e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//
-//        } catch (Exception e) {
-//            throw new GenericBadRequestException(
-//                    CodigoError.ERROR_PROCESAMIENTO,
-//                    "Error al crear el usuario: " + e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//        }
-//    }
+
 
     // POST: Agregar un equipo a un usuario
     @PostMapping("/{id}/equipo/{idEquipo}")
@@ -240,13 +191,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en equipo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -281,13 +225,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el usuario: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -323,13 +260,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el usuario: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -365,13 +295,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en equipo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -410,13 +333,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en titulo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -450,13 +366,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el usuario: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -485,45 +394,6 @@ public class UsuarioController {
 
         return ResponseEntity.ok("Título asignado correctamente al usuario");
     }
-//    @PostMapping("/{id}/titulo/{idTitulo}")
-//    @Operation(summary = "Asignar título a usuario", description = "Asocia un título académico existente a un usuario.",
-//            tags={"Usuarios"})
-//    public ResponseEntity<PersonaTituloDTO> agregarTituloAUsuario(@PathVariable Long id, @PathVariable Long idTitulo) {
-//        try{
-//        PersonaTituloDTO usuarioDTO = usuarioService.agregarTituloAUsuario(id, idTitulo);
-//        return ResponseEntity.ok(usuarioDTO);
-//        }catch (EntityNotFoundException e) {
-//            throw new GenericNotFoundException(
-//                    CodigoError.TITULO_USUARIO_NO_ENCONTRADO,
-//                    idTitulo,
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//        } catch (IllegalArgumentException e) {
-//            throw new GenericBadRequestException(
-//                    CodigoError.TITULO_USUARIO_DATOS_INVALIDOS,
-//                    e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//
-//        } catch (IllegalStateException e) {
-//            throw new GenericConflictException(
-//                    CodigoError.TITULO_USUARIO_ESTADO_INVALIDO,
-//                    "No se pudo acceder a titulo: " + e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//
-//        } catch (Exception e) {
-//            throw new GenericBadRequestException(
-//                    CodigoError.ERROR_PROCESAMIENTO,
-//                    "Error en titulo: " + e.getMessage(),
-//                    request.getMethod(),
-//                    request.getRequestURI()
-//            );
-//        }
-//    }
 
     // POST: Agregar un usuario a un titulo
     @PostMapping("/titulo/{idTitulo}/usuario/{idPersona}")
@@ -556,13 +426,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el usuario: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -598,13 +461,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en titulo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -640,13 +496,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en titulo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -681,13 +530,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en rol: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -721,13 +563,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en rol: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -762,13 +597,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en rol: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -803,13 +631,6 @@ public class UsuarioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error en rol: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -845,13 +666,6 @@ public class UsuarioController {
                 request.getRequestURI()
         );
 
-    } catch (Exception e) {
-        throw new GenericBadRequestException(
-                CodigoError.ERROR_PROCESAMIENTO,
-                "Error en rol: " + e.getMessage(),
-                request.getMethod(),
-                request.getRequestURI()
-        );
     }
     }
 

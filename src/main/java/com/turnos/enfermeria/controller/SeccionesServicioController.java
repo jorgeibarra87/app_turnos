@@ -59,13 +59,6 @@ public class SeccionesServicioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear la seccion: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 

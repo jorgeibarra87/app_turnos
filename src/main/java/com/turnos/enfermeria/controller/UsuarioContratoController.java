@@ -62,13 +62,6 @@ public class UsuarioContratoController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el usuario contrato: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 

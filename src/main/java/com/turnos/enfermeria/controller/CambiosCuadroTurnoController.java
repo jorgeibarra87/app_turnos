@@ -62,13 +62,6 @@ public class CambiosCuadroTurnoController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el cambio: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 

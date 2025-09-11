@@ -62,24 +62,10 @@ public class EquipoController {
                     request.getMethod(),
                     request.getRequestURI()
             );
-        } catch (IllegalArgumentException e) {
-            throw new GenericBadRequestException(
-                    CodigoError.EQUIPO_DATOS_INVALIDOS,
-                    e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
-        } catch (IllegalStateException e) {
+        }  catch (IllegalStateException e) {
             throw new GenericConflictException(
                     CodigoError.EQUIPO_ESTADO_INVALIDO,
                     "No se pudo crear equipo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el equipo: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
@@ -148,13 +134,6 @@ public class EquipoController {
                     request.getMethod(),
                     request.getRequestURI()
             );
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el equipo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -174,13 +153,6 @@ public class EquipoController {
             throw new GenericNotFoundException(
                     CodigoError.EQUIPO_NO_ENCONTRADO,
                     id,
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al actualizar el equipo: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );

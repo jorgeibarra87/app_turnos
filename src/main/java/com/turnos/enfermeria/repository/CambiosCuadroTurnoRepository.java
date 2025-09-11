@@ -15,4 +15,6 @@ public interface CambiosCuadroTurnoRepository extends JpaRepository<CambiosCuadr
     List<CambiosCuadroTurno> findByCuadroTurno_IdCuadroTurno(Long idCuadroTurno);
 
     List<CambiosCuadroTurno> findByCuadroTurnoIdCuadroTurnoIn(List<Long> idsCuadros);
+
+    List<CambiosCuadroTurno> findByCuadroTurno_IdCuadroTurnoAndVersionOrderByFechaCambioDesc(Long idCuadroTurno, String versionDeseada);
 }

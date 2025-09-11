@@ -4,7 +4,6 @@ import com.turnos.enfermeria.exception.CodigoError;
 import com.turnos.enfermeria.exception.custom.GenericBadRequestException;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
-//import com.turnos.enfermeria.model.dto.ActualizacionEstadoDTO;
 import com.turnos.enfermeria.model.dto.ActualizacionEstadoDTO;
 import com.turnos.enfermeria.model.dto.NotificacionDTO;
 import com.turnos.enfermeria.service.EmailService;
@@ -94,13 +93,6 @@ public class NotificacionController {
                     request.getMethod(),
                     request.getRequestURI()
             );
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al agregar correo: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
     }
 
@@ -130,13 +122,6 @@ public class NotificacionController {
             throw new GenericConflictException(
                     CodigoError.NOTIFICACION_ESTADO_INVALIDO,
                     "No se pudo crear turno: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el turno: " + e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );
@@ -191,10 +176,10 @@ public class NotificacionController {
         try {
             List<NotificacionDTO> enviadas = notificacionesService.enviarNotificaciones(notificaciones);
             return ResponseEntity.ok(enviadas);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al enviar notificaciones: " + e.getMessage(),
+                    CodigoError.NOTIFICACION_DATOS_INVALIDOS,
+                    e.getMessage(),
                     request.getMethod(),
                     request.getRequestURI()
             );

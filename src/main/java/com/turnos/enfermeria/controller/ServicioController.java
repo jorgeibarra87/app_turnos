@@ -61,13 +61,6 @@ public class ServicioController {
                     request.getRequestURI()
             );
 
-        } catch (Exception e) {
-            throw new GenericBadRequestException(
-                    CodigoError.ERROR_PROCESAMIENTO,
-                    "Error al crear el servicio: " + e.getMessage(),
-                    request.getMethod(),
-                    request.getRequestURI()
-            );
         }
 
     }

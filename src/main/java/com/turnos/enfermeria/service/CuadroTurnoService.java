@@ -29,6 +29,7 @@ public class CuadroTurnoService {
     private final CambiosTurnoRepository cambiosTurnoRepository;
     private final CambiosProcesosAtencionRepository cambiosProcesosAtencionRepository;
     private final CambiosCuadroTurnoService cambiosCuadroTurnoService;
+    private final TurnosService turnosService;
     private final ModelMapper modelMapper;
 
     public CuadroTurnoDTO crearCuadroTurno(CuadroTurnoDTO cuadroTurnoDTO) {
@@ -146,25 +147,43 @@ public class CuadroTurnoService {
     /**
      * Maneja las versiones según los cambios de estado del cuadro
      */
-    private void manejarVersionesPorEstado(CuadroTurno cuadro, String estadoAnterior, String nuevoEstado) {
+    public void manejarVersionesPorEstado(CuadroTurno cuadro, String estadoAnterior, String nuevoEstado) {
         String baseVersion = cuadro.getMes() + cuadro.getAnio().substring(2);
-
         // Si se está cerrando el cuadro (de cualquier estado a "cerrado")
         if (!"cerrado".equalsIgnoreCase(estadoAnterior) && "cerrado".equalsIgnoreCase(nuevoEstado)) {
             // Mantener la versión actual (no cambiarla)
             if (cuadro.getVersion() == null) {
                 cuadro.setVersion(baseVersion + "_v1");
             }
+            CuadroTurnoDTO dtoParaCambio = modelMapper.map(cuadro, CuadroTurnoDTO.class);
+            dtoParaCambio.setEstadoCuadro("cerrado");
+            cambiosCuadroTurnoService.registrarCambioCuadroTurno(dtoParaCambio, "CIERRE_CUADRO");
+            System.out.println("✅ Cuadro cerrado - Versión: " + cuadro.getVersion());
             return;
         }
 
         // Si se está reabriendo el cuadro (de "cerrado" a cualquier otro estado)
         if ("cerrado".equalsIgnoreCase(estadoAnterior) && !"cerrado".equalsIgnoreCase(nuevoEstado)) {
-            // Incrementar la versión
-            cuadro.setVersion(incrementarVersion(cuadro.getVersion(), cuadro.getAnio(), cuadro.getMes()));
+            String versionAnterior = cuadro.getVersion();
+            String nuevaVersion = incrementarVersion(cuadro.getVersion(), cuadro.getAnio(), cuadro.getMes());
+
+            cuadro.setVersion(nuevaVersion);
+
+            // ✅ REGISTRAR TURNOS CON EL NUEVO ESTADO "abierto"
+            turnosService.registrarTurnosEnHistorialAlCambiarVersion(
+                    cuadro.getIdCuadroTurno(),
+                    versionAnterior,
+                    nuevaVersion,
+                    nuevoEstado // ← PASAR EL NUEVO ESTADO ("abierto")
+            );
+
+            CuadroTurnoDTO dtoParaCambio = modelMapper.map(cuadro, CuadroTurnoDTO.class);
+            dtoParaCambio.setEstadoCuadro(nuevoEstado);
+            cambiosCuadroTurnoService.registrarCambioCuadroTurno(dtoParaCambio, "REAPERTURA_CUADRO");
+
+            System.out.println("✅ Cuadro reabierto - Versión: " + versionAnterior + " -> " + nuevaVersion);
             return;
         }
-
         // Para otros cambios de estado, mantener la versión actual
         if (cuadro.getVersion() == null) {
             cuadro.setVersion(baseVersion + "_v1");
@@ -192,8 +211,6 @@ public class CuadroTurnoService {
 
         return baseVersion + "_v2";
     }
-
-
 
     public void eliminarCuadroTurno(Long id) {
         Optional<CuadroTurno> optionalCuadro = cuadroTurnoRepository.findById(id);
@@ -234,23 +251,85 @@ public class CuadroTurnoService {
         return modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
     }
 
+    /**
+     * Restaura cuadro Y turnos a una versión específica
+     */
+    public CuadroTurnoDTO restaurarCuadroYTurnosAVersion(Long idCuadroTurno, String versionDeseada) {
+        // 1. Restaurar cuadro
+        List<CambiosCuadroTurno> cambiosCuadro = cambiosCuadroTurnoRepository
+                .findByCuadroTurno_IdCuadroTurnoAndVersionOrderByFechaCambioDesc(idCuadroTurno, versionDeseada);
+
+        if (cambiosCuadro.isEmpty()) {
+            throw new EntityNotFoundException("No se encontró historial del cuadro para la versión " + versionDeseada);
+        }
+
+        CambiosCuadroTurno cambioCuadro = cambiosCuadro.get(0);
+        CuadroTurno cuadro = cambioCuadro.getCuadroTurno();
+
+        // Restaurar datos del cuadro
+        cuadro.setVersion(versionDeseada);
+        cuadro.setNombre(cambioCuadro.getNombre());
+        cuadro.setEstadoCuadro(cambioCuadro.getEstadoCuadro());
+        cuadro.setAnio(cambioCuadro.getAnio());
+        cuadro.setMes(cambioCuadro.getMes());
+        cuadro.setTurnoExcepcion(cambioCuadro.getTurnoExcepcion());
+        cuadro.setCategoria(cambioCuadro.getCategoria());
+        cuadro.setEstado(cambioCuadro.getEstado());
+
+        cuadroTurnoRepository.save(cuadro);
+
+        // 2. Restaurar turnos a la misma versión
+        List<CambiosTurno> cambiosTurnos = cambiosTurnoRepository
+                .findByCuadroTurno_IdCuadroTurnoAndVersionOrderByFechaCambioDesc(idCuadroTurno, versionDeseada);
+
+        for (CambiosTurno cambioTurno : cambiosTurnos) {
+            Turnos turno = cambioTurno.getTurno();
+
+            // Restaurar datos del turno
+            turno.setVersion(versionDeseada);
+            turno.setFechaInicio(cambioTurno.getFechaInicio());
+            turno.setFechaFin(cambioTurno.getFechaFin());
+            turno.setEstadoTurno(cambioTurno.getEstadoTurno());
+            turno.setTotalHoras(cambioTurno.getTotalHoras());
+            turno.setComentarios(cambioTurno.getComentarios());
+
+            turnosRepository.save(turno);
+        }
+
+        // Registrar la restauración
+        CuadroTurnoDTO dtoParaCambio = modelMapper.map(cuadro, CuadroTurnoDTO.class);
+        cambiosCuadroTurnoService.registrarCambioCuadroTurno(dtoParaCambio,
+                "RESTAURACION_VERSION_" + versionDeseada);
+
+        return dtoParaCambio;
+    }
+
     public CambiosEstadoDTO cambiarEstadoDeCuadrosYTurnos(String estadoActual, String nuevoEstado, List<Long> idsCuadros) {
-        // 1️⃣ Cambiar estado de los cuadros de turno seleccionados
+        System.out.println("🔍 DEBUG - cambiarEstadoDeCuadrosYTurnos iniciado");
+        System.out.println("   Estado actual: " + estadoActual);
+        System.out.println("   Nuevo estado: " + nuevoEstado);
+        System.out.println("   IDs cuadros: " + idsCuadros);
+
+        // 1️ Cambiar estado de los cuadros CON manejo de versiones
         List<CuadroTurno> cuadros = cuadroTurnoRepository.findAllById(idsCuadros).stream()
                 .filter(cuadro -> estadoActual.equals(cuadro.getEstadoCuadro()))
-                .peek(cuadro -> cuadro.setEstadoCuadro(nuevoEstado))
+                .peek(cuadro -> {
+                    String estadoAnterior = cuadro.getEstadoCuadro();
+                    cuadro.setEstadoCuadro(nuevoEstado);
+
+                    System.out.println("   🔧 Manejando versiones para cuadro: " + cuadro.getIdCuadroTurno());
+                    System.out.println("      Estado anterior: " + estadoAnterior + " -> Nuevo estado: " + nuevoEstado);
+
+                    // MANEJAR VERSIONES
+                    manejarVersionesPorEstado(cuadro, estadoAnterior, nuevoEstado);
+                })
                 .collect(Collectors.toList());
+
+        // Guardar cuadros actualizados
         cuadroTurnoRepository.saveAll(cuadros);
 
-        // 2️⃣ Cambiar estado en cambios_cuadro_turno en base a la relación con cuadroTurno
-        List<CambiosCuadroTurno> cambios = cambiosCuadroTurnoRepository
-                .findByCuadroTurnoIdCuadroTurnoIn(idsCuadros).stream()
-                .filter(cambio -> estadoActual.equals(cambio.getEstadoCuadro()))
-                .peek(cambio -> cambio.setEstadoCuadro(nuevoEstado))
-                .collect(Collectors.toList());
-        cambiosCuadroTurnoRepository.saveAll(cambios);
-
-        // 3️⃣ Cambiar estado de los turnos asociados a los cuadros seleccionados
+        // 2 NO MODIFICAR EL HISTORIAL EXISTENTE
+        // 3️ Cambiar estado de los turnos asociados a los cuadros seleccionados
         List<Turnos> turnos = turnosRepository
                 .findByCuadroTurnoIdCuadroTurnoIn(idsCuadros).stream()
                 .filter(turno -> estadoActual.equals(turno.getEstadoTurno()))
@@ -395,7 +474,6 @@ public class CuadroTurnoService {
         cambiosCuadroTurnoService.registrarCambioCuadroTurno(estadoAnterior, "ACTUALIZACION_ANTERIOR");
         CuadroTurnoDTO estadoNuevo = modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
         cambiosCuadroTurnoService.registrarCambioCuadroTurno(estadoNuevo, "ACTUALIZACION");
-
 
         return estadoNuevo;
     }
