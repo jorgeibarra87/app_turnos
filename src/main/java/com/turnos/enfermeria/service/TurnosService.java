@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.service;
 
+import com.turnos.enfermeria.events.CambioTurnoEvent;
 import com.turnos.enfermeria.exception.custom.TurnoValidationException;
 import com.turnos.enfermeria.model.dto.CambiosTurnoDTO;
 import com.turnos.enfermeria.model.dto.TurnoDTO;
@@ -7,7 +8,9 @@ import com.turnos.enfermeria.model.entity.*;
 import com.turnos.enfermeria.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class TurnosService {
@@ -31,6 +35,8 @@ public class TurnosService {
     private final CuadroTurnoRepository cuadroTurnoRepository;
     private final CambiosTurnoRepository cambiosTurnoRepository;
     private final ModelMapper modelMapper;
+    private final ApplicationEventPublisher eventPublisher;
+    private final PersonaRepository personaRepository;
 
     @Transactional
     public TurnoDTO create(TurnoDTO turnoDTO) {
@@ -53,6 +59,25 @@ public class TurnosService {
         // Registrar cambio en historial
         TurnoDTO turnoGuardadoDTO = modelMapper.map(turnoGuardado, TurnoDTO.class);
         registrarCambioTurno(turnoGuardado.getIdTurno(), turnoGuardadoDTO, "CREACION");
+        Persona persona = buscarPersona(turnoDTO.getIdPersona());
+
+        try {
+            CambioTurnoEvent evento = new CambioTurnoEvent(
+                    turnoGuardado.getIdTurno(),
+                    "CREACIÓN DE TURNO",
+                    "Se ha creado un nuevo turno para " + persona.getNombreCompleto() +
+                            " del " + turnoGuardado.getFechaInicio() + " al " + turnoGuardado.getFechaFin() +
+                            " (" + turnoGuardado.getTipoTurno() + ")",
+                    cuadroTurno.getIdCuadroTurno().toString()
+            );
+
+            eventPublisher.publishEvent(evento);
+            log.info("🚀 Evento de creación publicado para turno ID: {}", turnoGuardado.getIdTurno());
+
+        } catch (Exception eventException) {
+            log.error("❌ Error al publicar evento de creación de turno: {}", eventException.getMessage());
+            // No fallar la transacción por el evento
+        }
 
         return turnoGuardadoDTO;
     }
@@ -79,6 +104,26 @@ public class TurnosService {
         // Registrar nuevo estado en historial
         TurnoDTO estadoNuevo = modelMapper.map(turnoActualizado, TurnoDTO.class);
         registrarCambioTurno(id, estadoNuevo, "ACTUALIZACION");
+
+        // ✅ AGREGAR EVENTO PARA MODIFICACIÓN
+        try {
+            Persona persona = buscarPersona(turnoDetallesDTO.getIdPersona());
+
+            CambioTurnoEvent evento = new CambioTurnoEvent(
+                    turnoActualizado.getIdTurno(),
+                    "MODIFICACIÓN DE TURNO",
+                    "Se ha modificado el turno de " + persona.getNombreCompleto() +
+                            " - Nuevas fechas: " + turnoActualizado.getFechaInicio() +
+                            " al " + turnoActualizado.getFechaFin(),
+                    turnoActualizado.getCuadroTurno().getIdCuadroTurno().toString()
+            );
+
+            eventPublisher.publishEvent(evento);
+            log.info("🚀 Evento de modificación publicado para turno ID: {}", turnoActualizado.getIdTurno());
+
+        } catch (Exception eventException) {
+            log.error("❌ Error al publicar evento de modificación de turno: {}", eventException.getMessage());
+        }
 
         return estadoNuevo;
     }
@@ -508,5 +553,10 @@ public class TurnosService {
             // 22:00 - 05:59 (incluye madrugada)
             return "Noche";
         }
+    }
+
+    private Persona buscarPersona(Long id) {
+        return id != null ? personaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada con ID: " + id)) : null;
     }
 }

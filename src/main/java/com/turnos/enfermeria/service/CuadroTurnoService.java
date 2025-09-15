@@ -1,16 +1,20 @@
 package com.turnos.enfermeria.service;
 
+import com.turnos.enfermeria.events.CambioCuadroEvent;
 import com.turnos.enfermeria.model.dto.*;
 import com.turnos.enfermeria.model.entity.*;
 import com.turnos.enfermeria.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 @AllArgsConstructor
@@ -31,6 +35,7 @@ public class CuadroTurnoService {
     private final CambiosCuadroTurnoService cambiosCuadroTurnoService;
     private final TurnosService turnosService;
     private final ModelMapper modelMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CuadroTurnoDTO crearCuadroTurno(CuadroTurnoDTO cuadroTurnoDTO) {
         // Buscar entidades relacionadas
@@ -54,6 +59,23 @@ public class CuadroTurnoService {
         // Registrar cambio
         CuadroTurnoDTO dtoParaCambio = modelMapper.map(nuevoCuadro, CuadroTurnoDTO.class);
         cambiosCuadroTurnoService.registrarCambioCuadroTurno(dtoParaCambio, "CREACION");
+
+        // 🔔 PUBLICAR EVENTO AUTOMÁTICAMENTE (CORREGIDO)
+        try {
+            CambioCuadroEvent evento = new CambioCuadroEvent(
+                    nuevoCuadro.getIdCuadroTurno(),
+                    "CREACIÓN DE CUADRO",
+                    "Se ha creado un nuevo cuadro: " + nuevoCuadro.getNombre() +
+                            " para el período " + nuevoCuadro.getMes() + "/" + nuevoCuadro.getAnio()
+            );
+
+            eventPublisher.publishEvent(evento);
+            log.info("🚀 Evento de creación publicado para cuadro ID: {}", nuevoCuadro.getIdCuadroTurno());
+
+        } catch (Exception eventException) {
+            log.error("❌ Error al publicar evento de creación: {}", eventException.getMessage());
+            // No fallar la transacción por el evento
+        }
 
         // Convertir Entidad a DTO y devolverlo
         return modelMapper.map(nuevoCuadro, CuadroTurnoDTO.class);
@@ -137,6 +159,21 @@ public class CuadroTurnoService {
             // Guardamos solo los datos relevantes en un objeto de historial
             CuadroTurnoDTO dtoParaCambio = modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
             cambiosCuadroTurnoService.registrarCambioCuadroTurno(dtoParaCambio, "ACTUALIZACION");
+
+            try {
+                CambioCuadroEvent evento = new CambioCuadroEvent(
+                        cuadroActualizado.getIdCuadroTurno(),
+                        "MODIFICACIÓN DE CUADRO",
+                        "Se ha modificado el cuadro: " + cuadroActualizado.getNombre() +
+                                " - Cambios realizados en la configuración"
+                );
+
+                eventPublisher.publishEvent(evento);
+                log.info("🚀 Evento de modificación publicado para cuadro ID: {}", cuadroActualizado.getIdCuadroTurno());
+
+            } catch (Exception eventException) {
+                log.error("❌ Error al publicar evento de modificación: {}", eventException.getMessage());
+            }
 
             // Convertimos la entidad actualizada de vuelta a DTO
             return modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
@@ -415,6 +452,23 @@ public class CuadroTurnoService {
             CuadroTurnoDTO dtoParaCambio = modelMapper.map(savedCuadro, CuadroTurnoDTO.class);
             cambiosCuadroTurnoService.registrarCambioCuadroTurno(dtoParaCambio, "CREACION");
 
+            // 🔔 PUBLICAR EVENTO AUTOMÁTICAMENTE (CORREGIDO)
+            try {
+                CambioCuadroEvent evento = new CambioCuadroEvent(
+                        savedCuadro.getIdCuadroTurno(),
+                        "CREACIÓN DE CUADRO",
+                        "Se ha creado un nuevo cuadro: " + savedCuadro.getNombre() +
+                                " para el período " + savedCuadro.getMes() + "/" + savedCuadro.getAnio()
+                );
+
+                eventPublisher.publishEvent(evento);
+                log.info("🚀 Evento de creación publicado para cuadro ID: {}", savedCuadro.getIdCuadroTurno());
+
+            } catch (Exception eventException) {
+                log.error("❌ Error al publicar evento de creación: {}", eventException.getMessage());
+                // No fallar la transacción por el evento
+            }
+
             return modelMapper.map(savedCuadro, CuadroTurnoDTO.class);
 
         } catch (Exception e) {
@@ -474,6 +528,21 @@ public class CuadroTurnoService {
         cambiosCuadroTurnoService.registrarCambioCuadroTurno(estadoAnterior, "ACTUALIZACION_ANTERIOR");
         CuadroTurnoDTO estadoNuevo = modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
         cambiosCuadroTurnoService.registrarCambioCuadroTurno(estadoNuevo, "ACTUALIZACION");
+
+        try {
+            CambioCuadroEvent evento = new CambioCuadroEvent(
+                    cuadroActualizado.getIdCuadroTurno(),
+                    "MODIFICACIÓN DE CUADRO",
+                    "Se ha modificado el cuadro: " + cuadroActualizado.getNombre() +
+                            " - Cambios realizados en la configuración"
+            );
+
+            eventPublisher.publishEvent(evento);
+            log.info("🚀 Evento de modificación publicado para cuadro ID: {}", cuadroActualizado.getIdCuadroTurno());
+
+        } catch (Exception eventException) {
+            log.error("❌ Error al publicar evento de modificación: {}", eventException.getMessage());
+        }
 
         return estadoNuevo;
     }

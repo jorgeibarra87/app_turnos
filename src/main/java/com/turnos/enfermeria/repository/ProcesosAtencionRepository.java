@@ -21,4 +21,6 @@ public interface ProcesosAtencionRepository extends JpaRepository<ProcesosAtenci
     // Método para buscar procesos por ID de cuadro de turno
     @Query("SELECT pa FROM ProcesosAtencion pa WHERE pa.cuadroTurno.id = :cuadroTurnoId")
     List<ProcesosAtencion> findByCuadroTurnoId(@Param("cuadroTurnoId") Long cuadroTurnoId);
+
+    List<ProcesosAtencion> findByCuadroTurno_IdCuadroTurno(Long idCuadroTurno);
 }
