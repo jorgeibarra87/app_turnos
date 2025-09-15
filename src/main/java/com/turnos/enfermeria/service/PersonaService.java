@@ -3,6 +3,7 @@ package com.turnos.enfermeria.service;
 import com.turnos.enfermeria.model.dto.BloqueServicioDTO;
 import com.turnos.enfermeria.model.dto.PersonaDTO;
 import com.turnos.enfermeria.model.entity.BloqueServicio;
+import com.turnos.enfermeria.model.entity.Equipo;
 import com.turnos.enfermeria.model.entity.Persona;
 import com.turnos.enfermeria.model.entity.Usuario;
 import com.turnos.enfermeria.repository.PersonaRepository;
@@ -25,6 +26,7 @@ public class PersonaService {
     private final PersonaRepository personaRepo;
     private final UsuarioRepository usuarioRepo; // 👈 Agregado
     private final ModelMapper modelMapper;
+    private final CambiosEquipoService cambiosEquipoService;
 
     public PersonaDTO create(PersonaDTO personaDTO) {
         Persona persona = modelMapper.map(personaDTO, Persona.class);
@@ -98,6 +100,19 @@ public class PersonaService {
     public void delete(@PathVariable Long idPersona) {
         Persona personaEliminar = personaRepo.findById(idPersona)
                 .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada"));
+
+        // 🔥 REGISTRAR DESVINCULACIÓN DE TODOS LOS EQUIPOS
+        Usuario usuario = usuarioRepo.findById(idPersona).orElse(null);
+        if (usuario != null && usuario.getEquipos() != null) {
+            for (Equipo equipo : usuario.getEquipos()) {
+                cambiosEquipoService.registrarCambioPersonaEquipo(
+                        personaEliminar,
+                        equipo, // equipoAnterior
+                        null, // equipoNuevo = null porque se elimina la persona
+                        "DESVINCULACION"
+                );
+            }
+        }
 
         // 👇 Eliminar también el usuario asociado
         usuarioRepo.findById(idPersona)

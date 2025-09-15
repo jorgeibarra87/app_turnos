@@ -32,6 +32,7 @@ public class UsuarioService {
     private final RolMapper rolMapper;
     private final UsuarioRolMapper usuarioRolMapper;
     private final UsuarioMapper usuarioMapper;
+    private final CambiosEquipoService cambiosEquipoService;
 
     @Transactional
     public UsuarioDTO create(UsuarioDTO usuarioDTO) {
@@ -126,6 +127,16 @@ public class UsuarioService {
         Equipo equipo = equipoRepository.findById(idEquipo)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
 
+        // 🔥 REGISTRAR CAMBIO ANTES DE AGREGAR
+        if (!usuario.getEquipos().contains(equipo)) {
+            cambiosEquipoService.registrarCambioPersonaEquipo(
+                    usuario.getPersona(),
+                    null, // equipoAnterior = null porque es una nueva asignación
+                    equipo, // equipoNuevo
+                    "ASIGNACION"
+            );
+        }
+
         usuario.getEquipos().add(equipo);
         Usuario usuarioActualizado = usuarioRepo.save(usuario);
 
@@ -214,10 +225,24 @@ public class UsuarioService {
     public EquipoDTO actualizarUsuariosDeEquipo(Long idEquipo, List<Long> nuevosUsuariosIds) {
         Equipo equipo = equipoRepository.findById(idEquipo)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+        // 🔥 OBTENER USUARIOS ACTUALES DEL EQUIPO
+        List<Usuario> usuariosActuales = usuarioRepo.findDistinctByEquipos_IdEquipo(idEquipo);
 
-        // Usuarios actuales
+        // Usuarios actuales - limpiar asociaciones
         List<Usuario> todos = usuarioRepo.findAll();
         for (Usuario usuario : todos) {
+            // 🔥 REGISTRAR DESVINCULACIÓN SI ESTABA ASIGNADO
+            if (usuario.getEquipos().contains(equipo)) {
+                boolean sigueAsignado = nuevosUsuariosIds.contains(usuario.getPersona().getIdPersona());
+                if (!sigueAsignado) {
+                    cambiosEquipoService.registrarCambioPersonaEquipo(
+                            usuario.getPersona(),
+                            equipo, // equipoAnterior
+                            null, // equipoNuevo = null
+                            "DESVINCULACION"
+                    );
+                }
+            }
             usuario.getEquipos().remove(equipo);
         }
 
@@ -226,6 +251,19 @@ public class UsuarioService {
         // Nuevos usuarios a asociar
         List<Usuario> nuevosUsuarios = usuarioRepo.findAllById(nuevosUsuariosIds);
         for (Usuario usuario : nuevosUsuarios) {
+            // 🔥 REGISTRAR NUEVA ASIGNACIÓN
+            boolean yaEstabaAsignado = usuariosActuales.stream()
+                    .anyMatch(u -> u.getPersona().getIdPersona().equals(usuario.getPersona().getIdPersona()));
+
+            if (!yaEstabaAsignado) {
+                cambiosEquipoService.registrarCambioPersonaEquipo(
+                        usuario.getPersona(),
+                        null, // equipoAnterior = null
+                        equipo, // equipoNuevo
+                        "ASIGNACION"
+                );
+            }
+
             usuario.getEquipos().add(equipo);
         }
 
@@ -237,10 +275,41 @@ public class UsuarioService {
     public PersonaEquipoDTO actualizarEquiposDeUsuario(Long idUsuario, List<Long> nuevosEquiposIds) {
         Usuario usuario = usuarioRepo.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        // 🔥 CAPTURAR EQUIPOS ANTERIORES
+        List<Equipo> equiposAnteriores = new ArrayList<>(usuario.getEquipos());
         // Limpiar equipos anteriores
         usuario.getEquipos().clear();
         // Obtener nuevos equipos
         List<Equipo> nuevosEquipos = equipoRepository.findAllById(nuevosEquiposIds);
+        // 🔥 REGISTRAR DESVINCULACIONES
+        for (Equipo equipoAnterior : equiposAnteriores) {
+            boolean sigueAsignado = nuevosEquipos.stream()
+                    .anyMatch(eq -> eq.getIdEquipo().equals(equipoAnterior.getIdEquipo()));
+
+            if (!sigueAsignado) {
+                cambiosEquipoService.registrarCambioPersonaEquipo(
+                        usuario.getPersona(),
+                        equipoAnterior, // equipoAnterior
+                        null, // equipoNuevo = null porque se desvincula
+                        "DESVINCULACION"
+                );
+            }
+        }
+
+        // 🔥 REGISTRAR NUEVAS ASIGNACIONES
+        for (Equipo equipoNuevo : nuevosEquipos) {
+            boolean yaEstabaAsignado = equiposAnteriores.stream()
+                    .anyMatch(eq -> eq.getIdEquipo().equals(equipoNuevo.getIdEquipo()));
+
+            if (!yaEstabaAsignado) {
+                cambiosEquipoService.registrarCambioPersonaEquipo(
+                        usuario.getPersona(),
+                        null, // equipoAnterior = null porque es nueva asignación
+                        equipoNuevo, // equipoNuevo
+                        "ASIGNACION"
+                );
+            }
+        }
         // Asociar nuevos títulos
         usuario.getEquipos().addAll(nuevosEquipos);
         // Guardar cambios
@@ -254,6 +323,16 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         Equipo equipo = equipoRepository.findById(idEquipo)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+
+        // 🔥 REGISTRAR DESVINCULACIÓN
+        if (usuario.getEquipos().contains(equipo)) {
+            cambiosEquipoService.registrarCambioPersonaEquipo(
+                    usuario.getPersona(),
+                    equipo, // equipoAnterior
+                    null, // equipoNuevo = null
+                    "DESVINCULACION"
+            );
+        }
 
         usuario.getEquipos().remove(equipo);
         usuarioRepo.save(usuario);

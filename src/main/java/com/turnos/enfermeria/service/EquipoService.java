@@ -24,6 +24,7 @@ public class EquipoService {
     private final ProcesosRepository procesoRepository;
     private final SeccionesServicioRepository seccionRepository;
     private final SubseccionesServicioRepository subseccionRepository;
+    private final CambiosEquipoService cambiosEquipoService;
 
     private String generateOrValidateName(String providedName, EquipoSelectionDTO selection) {
         // Si no se proporciona nombre O se proporciona selection, generar automáticamente
@@ -45,6 +46,8 @@ public class EquipoService {
         equipo.setEstado(true); // Asegurar que siempre tenga estado
 
         Equipo equipoGuardado = equipoRepository.save(equipo);
+        // Registrar cambio
+        cambiosEquipoService.registrarCambioEquipo(null, equipoGuardado, "CREACION");
         return modelMapper.map(equipoGuardado, EquipoDTO.class);
     }
 
@@ -68,6 +71,8 @@ public class EquipoService {
         }
 
         Equipo equipoActualizado = equipoRepository.save(equipoExistente);
+        // Registrar cambio
+        cambiosEquipoService.registrarCambioEquipo(equipoActualizado, equipoActualizado, "MODIFICACION");
         return modelMapper.map(equipoActualizado, EquipoDTO.class);
     }
 
