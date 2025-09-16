@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.service;
 
+import com.turnos.enfermeria.events.CambioPersonaEquipoEvent;
 import com.turnos.enfermeria.mapper.*;
 import com.turnos.enfermeria.model.dto.*;
 import com.turnos.enfermeria.model.entity.*;
@@ -8,6 +9,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +35,7 @@ public class UsuarioService {
     private final UsuarioRolMapper usuarioRolMapper;
     private final UsuarioMapper usuarioMapper;
     private final CambiosEquipoService cambiosEquipoService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public UsuarioDTO create(UsuarioDTO usuarioDTO) {
@@ -163,37 +166,7 @@ public class UsuarioService {
         return equipoMapper.toDTOList(usuario.getEquipos());
     }
 
-//    public List<PersonaEquipoDTO> obtenerUsuariosPorEquipo(Long idEquipo) {
-//        List<Usuario> usuarios = usuarioRepo.findUsuariosByEquipos_IdEquipo(idEquipo);
-//        return usuarios.stream()
-//                .map(usuariosEquipoMapper::toDTO)
-//                .collect(Collectors.toList());
-//    }
 
-//    public List<PersonaEquipoDTO> obtenerUsuariosPorEquipo(Long idEquipo) {
-//        List<Usuario> usuarios = usuarioRepo.findDistinctByEquipos_IdEquipo(idEquipo);
-//        return usuarios.stream().map(usuario -> {
-//            Persona persona = usuario.getPersona();
-//            PersonaEquipoDTO dto = new PersonaEquipoDTO();
-//            dto.setIdPersona(persona.getIdPersona());
-//            dto.setNombreCompleto(persona.getNombreCompleto());
-//            dto.setDocumento(persona.getDocumento());
-//
-//            // Solo incluir el equipo solicitado
-//            List<EquipoDTO> equiposFiltrados = usuario.getEquipos().stream()
-//                    .filter(equipo -> equipo.getIdEquipo().equals(idEquipo))
-//                    .map(equipo -> {
-//                        EquipoDTO equipoDTO = new EquipoDTO();
-//                        equipoDTO.setIdEquipo(equipo.getIdEquipo());
-//                        equipoDTO.setNombre(equipo.getNombre());
-//                        equipoDTO.setEstado(equipo.getEstado());
-//                        return equipoDTO;
-//                    }).toList();
-//
-//            dto.setEquipos(equiposFiltrados);
-//            return dto;
-//        }).toList();
-//    }
 
     public List<PersonaEquipoDTO> obtenerUsuariosPorEquipo(Long idEquipo) {
         List<Usuario> usuarios = usuarioRepo.findDistinctByEquipos_IdEquipo(idEquipo);
@@ -222,37 +195,48 @@ public class UsuarioService {
         return resultado;
     }
 
+    @Transactional
     public EquipoDTO actualizarUsuariosDeEquipo(Long idEquipo, List<Long> nuevosUsuariosIds) {
         Equipo equipo = equipoRepository.findById(idEquipo)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
-        // 🔥 OBTENER USUARIOS ACTUALES DEL EQUIPO
-        List<Usuario> usuariosActuales = usuarioRepo.findDistinctByEquipos_IdEquipo(idEquipo);
 
-        // Usuarios actuales - limpiar asociaciones
-        List<Usuario> todos = usuarioRepo.findAll();
-        for (Usuario usuario : todos) {
-            // 🔥 REGISTRAR DESVINCULACIÓN SI ESTABA ASIGNADO
-            if (usuario.getEquipos().contains(equipo)) {
-                boolean sigueAsignado = nuevosUsuariosIds.contains(usuario.getPersona().getIdPersona());
-                if (!sigueAsignado) {
-                    cambiosEquipoService.registrarCambioPersonaEquipo(
-                            usuario.getPersona(),
-                            equipo, // equipoAnterior
-                            null, // equipoNuevo = null
-                            "DESVINCULACION"
-                    );
-                }
+        //OBTENER SOLO USUARIOS ACTUALES DE ESTE EQUIPO
+        List<Usuario> usuariosActualesDelEquipo = usuarioRepo.findDistinctByEquipos_IdEquipo(idEquipo);
+
+        // LIMPIAR LAS RELACIONES DE ESTE EQUIPO
+        for (Usuario usuario : usuariosActualesDelEquipo) {
+            // Registrar desvinculación si no va a seguir asignado
+            boolean sigueAsignado = nuevosUsuariosIds.contains(usuario.getPersona().getIdPersona());
+            if (!sigueAsignado) {
+                cambiosEquipoService.registrarCambioPersonaEquipo(
+                        usuario.getPersona(),
+                        equipo, // equipoAnterior
+                        null, // equipoNuevo = null
+                        "DESVINCULACION"
+                );
+
+                // PUBLICAR EVENTO DE DESVINCULACIÓN
+                eventPublisher.publishEvent(new CambioPersonaEquipoEvent(
+                        usuario.getPersona().getIdPersona(),
+                        idEquipo,
+                        "DESVINCULACIÓN DE PERSONA",
+                        "Se ha desvinculado a " + usuario.getPersona().getNombreCompleto() +
+                                " del equipo " + equipo.getNombre()
+                ));
             }
+
+            // remover ESTE equipo específico del usuario
             usuario.getEquipos().remove(equipo);
         }
 
-        usuarioRepo.saveAll(todos); // guardar la limpieza primero
+        // Guardar usuarios actuales (con relaciones removidas)
+        usuarioRepo.saveAll(usuariosActualesDelEquipo);
 
-        // Nuevos usuarios a asociar
+        //OBTENER Y PROCESAR NUEVOS USUARIOS
         List<Usuario> nuevosUsuarios = usuarioRepo.findAllById(nuevosUsuariosIds);
         for (Usuario usuario : nuevosUsuarios) {
-            // 🔥 REGISTRAR NUEVA ASIGNACIÓN
-            boolean yaEstabaAsignado = usuariosActuales.stream()
+            // Registrar nueva asignación solo si no estaba previamente asignado
+            boolean yaEstabaAsignado = usuariosActualesDelEquipo.stream()
                     .anyMatch(u -> u.getPersona().getIdPersona().equals(usuario.getPersona().getIdPersona()));
 
             if (!yaEstabaAsignado) {
@@ -262,12 +246,25 @@ public class UsuarioService {
                         equipo, // equipoNuevo
                         "ASIGNACION"
                 );
+
+                // PUBLICAR EVENTO DE ASIGNACIÓN
+                eventPublisher.publishEvent(new CambioPersonaEquipoEvent(
+                        usuario.getPersona().getIdPersona(),
+                        idEquipo,
+                        "ASIGNACIÓN DE PERSONA",
+                        "Se ha asignado a " + usuario.getPersona().getNombreCompleto() +
+                                " al equipo " + equipo.getNombre()
+                ));
             }
 
-            usuario.getEquipos().add(equipo);
+            // Agregar relación solo si no existe (evitar duplicados)
+            if (!usuario.getEquipos().contains(equipo)) {
+                usuario.getEquipos().add(equipo);
+            }
         }
 
-        usuarioRepo.saveAll(nuevosUsuarios); // guardar las nuevas asociaciones
+        // Guardar nuevas asociaciones
+        usuarioRepo.saveAll(nuevosUsuarios);
 
         return equipoMapper.toDTO(equipo);
     }
@@ -275,7 +272,7 @@ public class UsuarioService {
     public PersonaEquipoDTO actualizarEquiposDeUsuario(Long idUsuario, List<Long> nuevosEquiposIds) {
         Usuario usuario = usuarioRepo.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        // 🔥 CAPTURAR EQUIPOS ANTERIORES
+        // CAPTURAR EQUIPOS ANTERIORES
         List<Equipo> equiposAnteriores = new ArrayList<>(usuario.getEquipos());
         // Limpiar equipos anteriores
         usuario.getEquipos().clear();
@@ -296,7 +293,7 @@ public class UsuarioService {
             }
         }
 
-        // 🔥 REGISTRAR NUEVAS ASIGNACIONES
+        // REGISTRAR NUEVAS ASIGNACIONES
         for (Equipo equipoNuevo : nuevosEquipos) {
             boolean yaEstabaAsignado = equiposAnteriores.stream()
                     .anyMatch(eq -> eq.getIdEquipo().equals(equipoNuevo.getIdEquipo()));
@@ -324,7 +321,7 @@ public class UsuarioService {
         Equipo equipo = equipoRepository.findById(idEquipo)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
 
-        // 🔥 REGISTRAR DESVINCULACIÓN
+        // REGISTRAR DESVINCULACIÓN
         if (usuario.getEquipos().contains(equipo)) {
             cambiosEquipoService.registrarCambioPersonaEquipo(
                     usuario.getPersona(),
@@ -358,19 +355,6 @@ public class UsuarioService {
         return usuarioRepo.save(usuario);
     }
 
-
-//    public PersonaTituloDTO agregarTituloAUsuario(Long idPersona, Long idTitulo) {
-//        Usuario usuario = usuarioRepo.findById(idPersona)
-//                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-//
-//        TitulosFormacionAcademica titulosFormacionAcademica = titulosFormacionAcademicaRepository.findById(idTitulo)
-//                .orElseThrow(() -> new RuntimeException("Titulo no encontrado"));
-//
-//        usuario.getTitulosFormacionAcademica().add(titulosFormacionAcademica);
-//        Usuario usuarioActualizado = usuarioRepo.save(usuario);
-//
-//        return usuariosTituloMapper.toDTO(usuarioActualizado);
-//    }
 
     public TitulosFormacionAcademicaDTO agregarUsuarioATitulo(Long idTitulo, Long idPersona) {
         TitulosFormacionAcademica titulosFormacionAcademica = titulosFormacionAcademicaRepository.findById(idTitulo)

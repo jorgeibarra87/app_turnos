@@ -2,8 +2,6 @@ package com.turnos.enfermeria.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-
 import java.time.LocalDateTime;
 
 @Data
@@ -27,8 +25,8 @@ public class CambiosPersonaEquipo {
     @Column(name = "fecha_cambio")
     private LocalDateTime fechaCambio;
 
-    @Column(name = "tipo_cambio")
-    private String tipoCambio;
+    @Column(name = "tipo_cambio", nullable = false, length = 50)
+    private String tipoCambio; // 'ASIGNACION', 'REASIGNACION', 'DESVINCULACION'
 
     @ManyToOne
     @JoinColumn(name = "equipo_anterior_id", referencedColumnName = "id_equipo")
@@ -38,9 +36,16 @@ public class CambiosPersonaEquipo {
     @JoinColumn(name = "equipo_nuevo_id", referencedColumnName = "id_equipo")
     private Equipo equipoNuevo;
 
-    @Column(name = "observaciones")
+    @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
 
-    @Column(name = "usuario_cambio")
+    @Column(name = "usuario_cambio", length = 100)
     private String usuarioCambio;
+
+    @PrePersist
+    private void onCreate() {
+        if (fechaCambio == null) {
+            fechaCambio = LocalDateTime.now();
+        }
+    }
 }

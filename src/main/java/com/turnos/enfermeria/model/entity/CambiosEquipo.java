@@ -2,7 +2,6 @@ package com.turnos.enfermeria.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
 @Data
@@ -22,7 +21,7 @@ public class CambiosEquipo {
     @Column(name = "fecha_cambio")
     private LocalDateTime fechaCambio;
 
-    @Column(name = "tipo_cambio")
+    @Column(name = "tipo_cambio", nullable = false, length = 50)
     private String tipoCambio;
 
     @Column(name = "nombre_anterior")
@@ -37,10 +36,16 @@ public class CambiosEquipo {
     @Column(name = "estado_nuevo")
     private Boolean estadoNuevo;
 
-    @Column(name = "observaciones")
+    @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
 
-    @Column(name = "usuario_cambio")
+    @Column(name = "usuario_cambio", length = 100)
     private String usuarioCambio;
-}
 
+    @PrePersist
+    private void onCreate() {
+        if (fechaCambio == null) {
+            fechaCambio = LocalDateTime.now();
+        }
+    }
+}

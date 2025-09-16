@@ -8,6 +8,4 @@ import java.util.List;
 public class CambiosEstadoDTO {
     private List<CuadroTurnoDTO> cuadrosActualizados;
     private List<TurnoDTO> turnosActualizados;
-//    private List<Long> idsCuadros;
-//    private List<Long> idsTurnos;
 }

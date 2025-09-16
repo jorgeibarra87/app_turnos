@@ -1,13 +1,16 @@
 package com.turnos.enfermeria.service;
 
+import com.turnos.enfermeria.events.CambioEquipoEvent;
 import com.turnos.enfermeria.model.dto.EquipoDTO;
 import com.turnos.enfermeria.model.dto.EquipoSelectionDTO;
 import com.turnos.enfermeria.model.dto.MiembroPerfilDTO;
 import com.turnos.enfermeria.model.entity.Equipo;
+import com.turnos.enfermeria.model.entity.Usuario;
 import com.turnos.enfermeria.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 public class EquipoService {
 
     private final EquipoRepository equipoRepository;
+    private final UsuarioRepository usuarioRepository;
     private final ModelMapper modelMapper;
     private final ServicioRepository servicioRepository;
     private final MacroprocesosRepository macroprocesoRepository;
@@ -25,6 +29,7 @@ public class EquipoService {
     private final SeccionesServicioRepository seccionRepository;
     private final SubseccionesServicioRepository subseccionRepository;
     private final CambiosEquipoService cambiosEquipoService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private String generateOrValidateName(String providedName, EquipoSelectionDTO selection) {
         // Si no se proporciona nombre O se proporciona selection, generar automáticamente
@@ -48,6 +53,15 @@ public class EquipoService {
         Equipo equipoGuardado = equipoRepository.save(equipo);
         // Registrar cambio
         cambiosEquipoService.registrarCambioEquipo(null, equipoGuardado, "CREACION");
+
+        // PUBLICAR EVENTO PARA NOTIFICACIONES
+        eventPublisher.publishEvent(new CambioEquipoEvent(
+                equipoGuardado.getIdEquipo(),
+                "CREACIÓN DE EQUIPO",
+                "Se ha creado un nuevo equipo: " + equipoGuardado.getNombre() +
+                        ". Categoría: " + (selection != null ? selection.getCategoria() : "Individual") +
+                        ". Subcategoría: " + (selection != null ? selection.getSubcategoria() : "No especificada")
+        ));
         return modelMapper.map(equipoGuardado, EquipoDTO.class);
     }
 
@@ -58,6 +72,7 @@ public class EquipoService {
     public EquipoDTO update(EquipoDTO detalleEquipoDTO, Long id, EquipoSelectionDTO selection) {
         Equipo equipoExistente = equipoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+        String nombreAnterior = equipoExistente.getNombre();
 
         // Actualizar nombre usando lógica unificada
         if (detalleEquipoDTO.getNombre() != null || selection != null) {
@@ -73,6 +88,15 @@ public class EquipoService {
         Equipo equipoActualizado = equipoRepository.save(equipoExistente);
         // Registrar cambio
         cambiosEquipoService.registrarCambioEquipo(equipoActualizado, equipoActualizado, "MODIFICACION");
+
+        // PUBLICAR EVENTO PARA NOTIFICACIONES
+        eventPublisher.publishEvent(new CambioEquipoEvent(
+                equipoActualizado.getIdEquipo(),
+                "MODIFICACIÓN DE EQUIPO",
+                "Se ha modificado el equipo ID: " + id +
+                        ". Nombre anterior: " + nombreAnterior +
+                        ". Nuevo nombre: " + equipoActualizado.getNombre()
+        ));
         return modelMapper.map(equipoActualizado, EquipoDTO.class);
     }
 
@@ -89,12 +113,46 @@ public class EquipoService {
     }
 
     public void delete(Long idEquipo) {
-        equipoRepository.findById(idEquipo)
+        Equipo equipo = equipoRepository.findById(idEquipo)
                 .orElseThrow(() -> new EntityNotFoundException("Equipo no encontrado"));
+
+        String nombreEquipo = equipo.getNombre();
+
+        // 🔥 DESVINCULAR TODAS LAS PERSONAS DEL EQUIPO
+        List<Usuario> usuariosDelEquipo = usuarioRepository.findDistinctByEquipos_IdEquipo(idEquipo);
+
+        for (Usuario usuario : usuariosDelEquipo) {
+            cambiosEquipoService.registrarCambioPersonaEquipo(
+                    usuario.getPersona(),
+                    equipo, // equipoAnterior
+                    null, // equipoNuevo = null porque se elimina el equipo
+                    "DESVINCULACION"
+            );
+
+            // Remover la relación
+            usuario.getEquipos().remove(equipo);
+            usuarioRepository.save(usuario);
+        }
+
+        // Registrar eliminación del equipo
+        cambiosEquipoService.registrarCambioEquipo(equipo, null, "ELIMINACION");
+
+        // PUBLICAR EVENTO PARA NOTIFICACIONES
+        eventPublisher.publishEvent(new CambioEquipoEvent(
+                idEquipo,
+                "ELIMINACIÓN DE EQUIPO",
+                "Se ha eliminado el equipo: " + nombreEquipo +
+                        ". Se desvincularon " + usuariosDelEquipo.size() + " personas del equipo."
+        ));
         equipoRepository.deleteById(idEquipo);
     }
 
-    // MÉTODOS NUEVOS PARA EL FRONTEND
+//    public void delete(Long idEquipo) {
+//        equipoRepository.findById(idEquipo)
+//                .orElseThrow(() -> new EntityNotFoundException("Equipo no encontrado"));
+//        equipoRepository.deleteById(idEquipo);
+//    }
+
     public EquipoDTO createWithGeneratedName(EquipoSelectionDTO selection) {
         // Crear un DTO vacío
         EquipoDTO equipoDTO = new EquipoDTO();

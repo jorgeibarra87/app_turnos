@@ -11,4 +11,6 @@ public class DatosNotificacionDTO {
     private List<CambioCuadroDTO> historialCuadro;
     private List<CambioTurnoDTO> historialTurnos;
     private List<ProcesoDTO> procesos;
+    private List<CambiosEquipoDTO> historialEquipos;
+    private List<CambiosPersonaEquipoDTO> historialPersonasEquipo;
 }

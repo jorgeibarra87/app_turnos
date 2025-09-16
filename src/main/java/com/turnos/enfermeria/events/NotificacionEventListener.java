@@ -33,4 +33,41 @@ public class NotificacionEventListener {
             log.error("❌ Error procesando evento de cambio de cuadro: {}", e.getMessage(), e);
         }
     }
+
+    // Manejar eventos de cambios en equipos
+    @EventListener
+    @Async
+    public void manejarCambioEquipo(CambioEquipoEvent event) {
+        try {
+            log.info("🎯 Evento recibido: {} para equipo ID: {}",
+                    event.getTipoOperacion(), event.getIdEquipo());
+
+            notificacionAutomaticaService.enviarNotificacionCambioEquipo(
+                    event.getIdEquipo(),
+                    event.getTipoOperacion(),
+                    event.getDetallesOperacion()
+            );
+        } catch (Exception e) {
+            log.error("❌ Error procesando evento de cambio de equipo: {}", e.getMessage(), e);
+        }
+    }
+
+    // Manejar eventos de cambios en asignación de personas
+    @EventListener
+    @Async
+    public void manejarCambioPersonaEquipo(CambioPersonaEquipoEvent event) {
+        try {
+            log.info("🎯 Evento recibido: {} para persona ID: {} en equipo ID: {}",
+                    event.getTipoOperacion(), event.getIdPersona(), event.getIdEquipo());
+
+            notificacionAutomaticaService.enviarNotificacionCambioPersonaEquipo(
+                    event.getIdPersona(),
+                    event.getIdEquipo(),
+                    event.getTipoOperacion(),
+                    event.getDetallesOperacion()
+            );
+        } catch (Exception e) {
+            log.error("❌ Error procesando evento de cambio persona-equipo: {}", e.getMessage(), e);
+        }
+    }
 }

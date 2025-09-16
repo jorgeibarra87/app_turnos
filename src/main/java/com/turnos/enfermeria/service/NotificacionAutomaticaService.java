@@ -30,6 +30,8 @@ public class NotificacionAutomaticaService {
     private final EquipoRepository equipoRepository;
     private final PersonaRepository personaRepository;
     private final ProcesosAtencionRepository procesosAtencionRepository;
+    private final CambiosEquipoRepository cambiosEquipoRepository;
+    private final CambiosPersonaEquipoRepository cambiosPersonaEquipoRepository;
 
     /**
      * Envía notificación automática cuando se realizan cambios en cuadro de turno
@@ -141,12 +143,667 @@ public class NotificacionAutomaticaService {
                 datos.setProcesos(procesos);
             }
 
+            List<CambiosEquipoDTO> historialEquipos = obtenerHistorialEquipos(idCuadroTurno);
+            datos.setHistorialEquipos(historialEquipos);
+
+            List<CambiosPersonaEquipoDTO> historialPersonasEquipo = obtenerHistorialPersonasEquipo(idCuadroTurno);
+            datos.setHistorialPersonasEquipo(historialPersonasEquipo);
+
         } catch (Exception e) {
             log.error("Error recopilando datos del cuadro {}: {}", idCuadroTurno, e.getMessage());
             throw new RuntimeException("Error recopilando datos para notificación", e);
         }
 
         return datos;
+    }
+
+    // Notificaciones para cambios en equipos
+    @Async
+    @Transactional
+    public void enviarNotificacionCambioEquipo(Long idEquipo, String tipoOperacion, String detallesOperacion) {
+        try {
+            log.info("🔔 Iniciando notificación automática para cambio en equipo: {}", idEquipo);
+
+            List<ConfiguracionCorreos> correosActivos = configuracionCorreosRepository.findByActivoTrue();
+
+            if (correosActivos.isEmpty()) {
+                log.warn("⚠️ No hay correos activos configurados para notificaciones");
+                return;
+            }
+
+            // Recopilar datos del equipo
+            DatosNotificacionEquipoDTO datosNotificacion = recopilarDatosEquipo(idEquipo);
+
+            // Generar HTML del correo
+            String htmlContent = generarHTMLNotificacionEquipo(
+                    datosNotificacion,
+                    tipoOperacion,
+                    detallesOperacion
+            );
+
+            // Crear notificaciones para envío
+            List<NotificacionDTO> notificaciones = correosActivos.stream()
+                    .map(correo -> crearNotificacionEquipoDTO(
+                            correo,
+                            htmlContent,
+                            tipoOperacion,
+                            datosNotificacion.getEquipo().getNombre(),
+                            idEquipo
+                    ))
+                    .collect(Collectors.toList());
+
+            // Enviar notificaciones
+            notificacionService.enviarNotificacionesAutomaticas(notificaciones);
+
+            log.info("✅ Notificaciones automáticas de equipo enviadas a {} destinatarios", correosActivos.size());
+
+        } catch (Exception e) {
+            log.error("❌ Error al enviar notificación automática para equipo {}: {}", idEquipo, e.getMessage(), e);
+        }
+    }
+
+    // Notificaciones para cambios en personas de equipos
+    @Async
+    @Transactional
+    public void enviarNotificacionCambioPersonaEquipo(Long idPersona, Long idEquipo, String tipoOperacion, String detallesOperacion) {
+        try {
+            log.info("🔔 Iniciando notificación automática para cambio persona-equipo: persona={}, equipo={}", idPersona, idEquipo);
+
+            List<ConfiguracionCorreos> correosActivos = configuracionCorreosRepository.findByActivoTrue();
+
+            if (correosActivos.isEmpty()) {
+                log.warn("⚠️ No hay correos activos configurados para notificaciones");
+                return;
+            }
+
+            // Recopilar datos de la persona y equipo
+            DatosNotificacionPersonaEquipoDTO datosNotificacion = recopilarDatosPersonaEquipo(idPersona, idEquipo);
+
+            // Generar HTML del correo
+            String htmlContent = generarHTMLNotificacionPersonaEquipo(
+                    datosNotificacion,
+                    tipoOperacion,
+                    detallesOperacion
+            );
+
+            // Crear notificaciones para envío
+            List<NotificacionDTO> notificaciones = correosActivos.stream()
+                    .map(correo -> crearNotificacionPersonaEquipoDTO(
+                            correo,
+                            htmlContent,
+                            tipoOperacion,
+                            datosNotificacion.getPersona().getNombreCompleto(),
+                            datosNotificacion.getEquipo().getNombre()
+                    ))
+                    .collect(Collectors.toList());
+
+            // Enviar notificaciones
+            notificacionService.enviarNotificacionesAutomaticas(notificaciones);
+
+            log.info("✅ Notificaciones automáticas persona-equipo enviadas a {} destinatarios", correosActivos.size());
+
+        } catch (Exception e) {
+            log.error("❌ Error al enviar notificación automática persona-equipo: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Genera el HTML completo para notificaciones de equipos
+     */
+    private String generarHTMLNotificacionEquipo(DatosNotificacionEquipoDTO datos, String tipoOperacion, String detallesOperacion) {
+        String fechaActual = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+
+        return String.format("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+                .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; }
+                .header { background: #16a34a; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; }
+                .section { margin-bottom: 30px; }
+                .section-title { background: #f8fafc; padding: 10px; margin-bottom: 15px; border-left: 4px solid #16a34a; font-weight: bold; }
+                .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 20px; }
+                .info-card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; }
+                .info-label { font-size: 12px; color: #6b7280; margin-bottom: 5px; }
+                .info-value { font-weight: 500; color: #1f2937; }
+                table { width: 100%%; border-collapse: collapse; margin-top: 10px; }
+                th { background: #1f2937; color: white; padding: 8px; text-align: left; font-size: 12px; }
+                td { padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+                tr:hover { background: #f9fafb; }
+                .status-active { background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 12px; }
+                .status-inactive { background: #fed7d7; color: #c53030; padding: 2px 6px; border-radius: 12px; }
+                .alert { padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+                .alert-success { background: #d1fae5; border: 1px solid #16a34a; color: #065f46; }
+                .footer { background: #f8fafc; padding: 15px; text-align: center; color: #6b7280; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <!-- Header -->
+                <div class="header">
+                    <h1>🏥 Notificación de Cambio en Equipos de Trabajo</h1>
+                    <p>Sistema de Gestión Hospitalaria - %s</p>
+                </div>
+
+                <div class="content">
+                    <!-- Alerta de Operación -->
+                    <div class="alert alert-success">
+                        <strong>Tipo de Operación:</strong> %s<br>
+                        <strong>Detalles:</strong> %s
+                    </div>
+
+                    %s <!-- Contenido dinámico del equipo -->
+                </div>
+
+                <div class="footer">
+                    <p>Este correo ha sido generado automáticamente por el Sistema de Gestión Hospitalaria</p>
+                    <p>Por favor, no responder a este correo</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """,
+                fechaActual,
+                tipoOperacion,
+                detallesOperacion,
+                generarContenidoEquipo(datos)
+        );
+    }
+
+    /**
+     * Genera el HTML completo para notificaciones de persona-equipo
+     */
+    private String generarHTMLNotificacionPersonaEquipo(DatosNotificacionPersonaEquipoDTO datos, String tipoOperacion, String detallesOperacion) {
+        String fechaActual = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+
+        return String.format("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+                .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; }
+                .header { background: #7c3aed; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; }
+                .section { margin-bottom: 30px; }
+                .section-title { background: #f8fafc; padding: 10px; margin-bottom: 15px; border-left: 4px solid #7c3aed; font-weight: bold; }
+                .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
+                .info-card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; }
+                .info-label { font-size: 12px; color: #6b7280; margin-bottom: 5px; }
+                .info-value { font-weight: 500; color: #1f2937; }
+                table { width: 100%%; border-collapse: collapse; margin-top: 10px; }
+                th { background: #1f2937; color: white; padding: 8px; text-align: left; font-size: 12px; }
+                td { padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+                tr:hover { background: #f9fafb; }
+                .status-active { background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 12px; }
+                .status-inactive { background: #fed7d7; color: #c53030; padding: 2px 6px; border-radius: 12px; }
+                .alert { padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+                .alert-info { background: #ede9fe; border: 1px solid #7c3aed; color: #5b21b6; }
+                .footer { background: #f8fafc; padding: 15px; text-align: center; color: #6b7280; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <!-- Header -->
+                <div class="header">
+                    <h1>👤 Notificación de Cambio en Asignación de Personal</h1>
+                    <p>Sistema de Gestión Hospitalaria - %s</p>
+                </div>
+
+                <div class="content">
+                    <!-- Alerta de Operación -->
+                    <div class="alert alert-info">
+                        <strong>Tipo de Operación:</strong> %s<br>
+                        <strong>Detalles:</strong> %s
+                    </div>
+
+                    %s <!-- Contenido dinámico de persona-equipo -->
+                </div>
+
+                <div class="footer">
+                    <p>Este correo ha sido generado automáticamente por el Sistema de Gestión Hospitalaria</p>
+                    <p>Por favor, no responder a este correo</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """,
+                fechaActual,
+                tipoOperacion,
+                detallesOperacion,
+                generarContenidoPersonaEquipo(datos)
+        );
+    }
+
+    /**
+     * Genera el contenido específico del equipo para el HTML
+     */
+    private String generarContenidoEquipo(DatosNotificacionEquipoDTO datos) {
+        StringBuilder contenido = new StringBuilder();
+
+        // Información del equipo
+        contenido.append(generarSeccionInformacionEquipo(datos.getEquipo()));
+
+        // Miembros del equipo
+        if (datos.getMiembros() != null && !datos.getMiembros().isEmpty()) {
+            contenido.append(generarSeccionMiembrosEquipo(datos.getMiembros()));
+        }
+
+        // Historial de cambios del equipo
+        if (datos.getHistorialEquipo() != null && !datos.getHistorialEquipo().isEmpty()) {
+            contenido.append(generarSeccionHistorialEquipo(datos.getHistorialEquipo()));
+        }
+
+        // Historial de cambios de personas
+        if (datos.getHistorialPersonas() != null && !datos.getHistorialPersonas().isEmpty()) {
+            contenido.append(generarSeccionHistorialPersonas(datos.getHistorialPersonas()));
+        }
+
+        return contenido.toString();
+    }
+
+    /**
+     * Genera el contenido específico de persona-equipo para el HTML
+     */
+    private String generarContenidoPersonaEquipo(DatosNotificacionPersonaEquipoDTO datos) {
+        StringBuilder contenido = new StringBuilder();
+
+        // Información de la persona
+        contenido.append(generarSeccionInformacionPersona(datos.getPersona()));
+
+        // Información del equipo actual
+        contenido.append(generarSeccionInformacionEquipoActual(datos.getEquipo()));
+
+        // Equipos anteriores (si aplica)
+        if (datos.getEquiposAnteriores() != null && !datos.getEquiposAnteriores().isEmpty()) {
+            contenido.append(generarSeccionEquiposAnteriores(datos.getEquiposAnteriores()));
+        }
+
+        // Historial de cambios de la persona
+        if (datos.getHistorialCambios() != null && !datos.getHistorialCambios().isEmpty()) {
+            contenido.append(generarSeccionHistorialPersona(datos.getHistorialCambios()));
+        }
+
+        return contenido.toString();
+    }
+
+    /**
+     * ✅ MÉTODO FALTANTE: Genera la sección de equipos anteriores
+     */
+    private String generarSeccionEquiposAnteriores(List<EquipoDTO> equiposAnteriores) {
+        StringBuilder tabla = new StringBuilder(String.format("""
+        <div class="section">
+            <div class="section-title">📋 Equipos Anteriores (%d equipos)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Equipo</th>
+                        <th>Nombre del Equipo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """, equiposAnteriores.size()));
+
+        for (EquipoDTO equipo : equiposAnteriores) {
+            tabla.append(String.format("""
+                    <tr>
+                        <td>#%s</td>
+                        <td>%s</td>
+                        <td><span class="%s">%s</span></td>
+                    </tr>
+            """,
+                    equipo.getIdEquipo() != null ? equipo.getIdEquipo() : "N/A",
+                    equipo.getNombre() != null ? equipo.getNombre() : "No especificado",
+                    equipo.getEstado() != null && equipo.getEstado() ? "status-active" : "status-inactive",
+                    equipo.getEstado() != null && equipo.getEstado() ? "Activo" : "Inactivo"
+            ));
+        }
+
+        tabla.append("""
+                </tbody>
+            </table>
+        </div>
+        """);
+
+        return tabla.toString();
+    }
+
+    /**
+     * ✅ MÉTODO FALTANTE: Genera la sección del historial de cambios de la persona
+     */
+    private String generarSeccionHistorialPersona(List<CambiosPersonaEquipoDTO> historialCambios) {
+        StringBuilder tabla = new StringBuilder(String.format("""
+        <div class="section">
+            <div class="section-title">📊 Historial de Cambios de la Persona (Últimos %d)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo de Cambio</th>
+                        <th>Equipo Anterior</th>
+                        <th>Equipo Nuevo</th>
+                        <th>Resumen del Cambio</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """, historialCambios.size()));
+
+        for (CambiosPersonaEquipoDTO cambio : historialCambios) {
+            tabla.append(String.format("""
+                    <tr>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                    </tr>
+            """,
+                    cambio.getFechaCambio() != null
+                            ? cambio.getFechaCambio().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                            : "N/A",
+                    cambio.getTipoCambio() != null ? cambio.getTipoCambio() : "N/A",
+                    cambio.getNombreEquipoAnterior() != null ? cambio.getNombreEquipoAnterior() : "-",
+                    cambio.getNombreEquipoNuevo() != null ? cambio.getNombreEquipoNuevo() : "-",
+                    cambio.getResumenCambio() != null ? cambio.getResumenCambio() : "Sin resumen disponible",
+                    cambio.getObservaciones() != null ? cambio.getObservaciones() : "Sin observaciones"
+            ));
+        }
+
+        tabla.append("""
+                </tbody>
+            </table>
+        </div>
+        """);
+
+        return tabla.toString();
+    }
+
+
+    /**
+     * Genera la sección de información del equipo
+     */
+    private String generarSeccionInformacionEquipo(EquipoDTO equipo) {
+        return String.format("""
+        <div class="section">
+            <div class="section-title">👥 Información del Equipo</div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-label">Nombre del Equipo</div>
+                    <div class="info-value">%s</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">ID del Equipo</div>
+                    <div class="info-value">#%s</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Estado</div>
+                    <div class="info-value">
+                        <span class="%s">%s</span>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Fecha de Creación</div>
+                    <div class="info-value">%s</div>
+                </div>
+            </div>
+        </div>
+        """,
+                equipo.getNombre() != null ? equipo.getNombre() : "No especificado",
+                equipo.getIdEquipo() != null ? equipo.getIdEquipo() : "N/A",
+                equipo.getEstado() != null && equipo.getEstado() ? "status-active" : "status-inactive",
+                equipo.getEstado() != null && equipo.getEstado() ? "Activo" : "Inactivo",
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+        );
+    }
+
+    /**
+     * Genera la sección de miembros del equipo
+     */
+    private String generarSeccionMiembrosEquipo(List<MiembroPerfilDTO> miembros) {
+        StringBuilder tabla = new StringBuilder("""
+        <div class="section">
+            <div class="section-title">👤 Miembros del Equipo (%d personas)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre Completo</th>
+                        <th>Documento</th>
+                        <th>Perfiles</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """.formatted(miembros.size()));
+
+        for (MiembroPerfilDTO miembro : miembros) {
+            tabla.append(String.format("""
+                    <tr>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                    </tr>
+            """,
+                    miembro.getNombreCompleto() != null ? miembro.getNombreCompleto() : "Nombre no disponible",
+                    miembro.getDocumento() != null ? miembro.getDocumento() : "N/A",
+                    miembro.getTitulos() != null && !miembro.getTitulos().isEmpty()
+                            ? String.join(", ", miembro.getTitulos())
+                            : "Sin perfil definido"
+            ));
+        }
+
+        tabla.append("""
+                </tbody>
+            </table>
+        </div>
+        """);
+
+        return tabla.toString();
+    }
+
+    /**
+     * Genera la sección del historial de cambios del equipo
+     */
+    private String generarSeccionHistorialEquipo(List<CambiosEquipoDTO> historial) {
+        StringBuilder tabla = new StringBuilder("""
+        <div class="section">
+            <div class="section-title">📊 Historial de Cambios del Equipo (Últimos %d)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo de Cambio</th>
+                        <th>Nombre Anterior</th>
+                        <th>Nombre Nuevo</th>
+                        <th>Estado</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """.formatted(historial.size()));
+
+        for (CambiosEquipoDTO cambio : historial) {
+            tabla.append(String.format("""
+                    <tr>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td><span class="%s">%s</span></td>
+                        <td>%s</td>
+                    </tr>
+            """,
+                    cambio.getFechaCambio() != null
+                            ? cambio.getFechaCambio().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                            : "N/A",
+                    cambio.getTipoCambio() != null ? cambio.getTipoCambio() : "N/A",
+                    cambio.getNombreAnterior() != null ? cambio.getNombreAnterior() : "-",
+                    cambio.getNombreNuevo() != null ? cambio.getNombreNuevo() : "-",
+                    cambio.getEstadoNuevo() != null && cambio.getEstadoNuevo() ? "status-active" : "status-inactive",
+                    cambio.getEstadoNuevo() != null && cambio.getEstadoNuevo() ? "Activo" : "Inactivo",
+                    cambio.getObservaciones() != null ? cambio.getObservaciones() : "Sin observaciones"
+            ));
+        }
+
+        tabla.append("""
+                </tbody>
+            </table>
+        </div>
+        """);
+
+        return tabla.toString();
+    }
+
+    /**
+     * Genera la sección del historial de personas en equipos
+     */
+    private String generarSeccionHistorialPersonas(List<CambiosPersonaEquipoDTO> historial) {
+        StringBuilder tabla = new StringBuilder("""
+        <div class="section">
+            <div class="section-title">🔄 Historial de Cambios de Personal (Últimos %d)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo de Cambio</th>
+                        <th>Persona</th>
+                        <th>Equipo Anterior</th>
+                        <th>Equipo Nuevo</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """.formatted(historial.size()));
+
+        for (CambiosPersonaEquipoDTO cambio : historial) {
+            tabla.append(String.format("""
+                    <tr>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                    </tr>
+            """,
+                    cambio.getFechaCambio() != null
+                            ? cambio.getFechaCambio().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                            : "N/A",
+                    cambio.getTipoCambio() != null ? cambio.getTipoCambio() : "N/A",
+                    cambio.getNombrePersona() != null ? cambio.getNombrePersona() : "Persona ID: " + cambio.getIdPersona(),
+                    cambio.getNombreEquipoAnterior() != null ? cambio.getNombreEquipoAnterior() : "-",
+                    cambio.getNombreEquipoNuevo() != null ? cambio.getNombreEquipoNuevo() : "-",
+                    cambio.getObservaciones() != null ? cambio.getObservaciones() : "Sin observaciones"
+            ));
+        }
+
+        tabla.append("""
+                </tbody>
+            </table>
+        </div>
+        """);
+
+        return tabla.toString();
+    }
+
+    /**
+     * Genera la sección de información de la persona
+     */
+    private String generarSeccionInformacionPersona(PersonaDTO persona) {
+        return String.format("""
+        <div class="section">
+            <div class="section-title">👤 Información de la Persona</div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-label">Nombre Completo</div>
+                    <div class="info-value">%s</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Documento</div>
+                    <div class="info-value">%s</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">ID de Persona</div>
+                    <div class="info-value">#%s</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Estado</div>
+                    <div class="info-value">
+                        <span class="status-active">Activo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """,
+                persona.getNombreCompleto() != null ? persona.getNombreCompleto() : "No especificado",
+                persona.getDocumento() != null ? persona.getDocumento() : "N/A",
+                persona.getIdPersona() != null ? persona.getIdPersona() : "N/A"
+        );
+    }
+
+    /**
+     * Genera la sección de información del equipo actual
+     */
+    private String generarSeccionInformacionEquipoActual(EquipoDTO equipo) {
+        return String.format("""
+        <div class="section">
+            <div class="section-title">👥 Equipo Actual</div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-label">Nombre del Equipo</div>
+                    <div class="info-value">%s</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">ID del Equipo</div>
+                    <div class="info-value">#%s</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Estado del Equipo</div>
+                    <div class="info-value">
+                        <span class="%s">%s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """,
+                equipo.getNombre() != null ? equipo.getNombre() : "No especificado",
+                equipo.getIdEquipo() != null ? equipo.getIdEquipo() : "N/A",
+                equipo.getEstado() != null && equipo.getEstado() ? "status-active" : "status-inactive",
+                equipo.getEstado() != null && equipo.getEstado() ? "Activo" : "Inactivo"
+        );
+    }
+
+    /**
+     * Métodos auxiliares para crear DTOs de notificación
+     */
+    private NotificacionDTO crearNotificacionEquipoDTO(ConfiguracionCorreos correo, String htmlContent,
+                                                       String tipoOperacion, String nombreEquipo, Long idEquipo) {
+        NotificacionDTO notificacion = new NotificacionDTO();
+        notificacion.setCorreo(correo.getCorreo());
+        notificacion.setAsunto("👥 " + tipoOperacion + " - " + nombreEquipo);
+        notificacion.setMensaje(htmlContent);
+        notificacion.setEstado(true);
+        notificacion.setPermanente(correo.getTipoCorreo() == TipoCorreo.PERMANENTE);
+        notificacion.setAutomatico(true);
+        // Nota: Podrías agregar un campo idEquipo si lo necesitas en tu DTO
+        return notificacion;
+    }
+
+    private NotificacionDTO crearNotificacionPersonaEquipoDTO(ConfiguracionCorreos correo, String htmlContent,
+                                                              String tipoOperacion, String nombrePersona, String nombreEquipo) {
+        NotificacionDTO notificacion = new NotificacionDTO();
+        notificacion.setCorreo(correo.getCorreo());
+        notificacion.setAsunto("👤 " + tipoOperacion + " - " + nombrePersona + " ↔ " + nombreEquipo);
+        notificacion.setMensaje(htmlContent);
+        notificacion.setEstado(true);
+        notificacion.setPermanente(correo.getTipoCorreo() == TipoCorreo.PERMANENTE);
+        notificacion.setAutomatico(true);
+        return notificacion;
     }
 
     // ===== MÉTODOS AUXILIARES PARA OBTENER DATOS =====
@@ -217,6 +874,47 @@ public class NotificacionAutomaticaService {
         }
     }
 
+    private List<CambiosEquipoDTO> obtenerHistorialEquipos(Long idCuadroTurno) {
+        try {
+            // Obtener cambios recientes de equipos
+            List<CambiosEquipo> cambios = cambiosEquipoRepository.findAllByOrderByFechaCambioDesc();
+
+            return cambios.stream()
+                    .limit(15) // Últimos 15 cambios de equipos
+                    .map(this::mapearCambioEquipoADTO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error obteniendo historial de equipos: {}", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    private List<CambiosPersonaEquipoDTO> obtenerHistorialPersonasEquipo(Long idCuadroTurno) {
+        try {
+            List<CambiosPersonaEquipo> cambios = cambiosPersonaEquipoRepository.findAllByOrderByFechaCambioDesc();
+
+            return cambios.stream()
+                    .limit(20) // Últimos 20 cambios de personas
+                    .map(this::mapearCambioPersonaEquipoADTO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error obteniendo historial de personas-equipo: {}", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    // Métodos auxiliares para recopilar datos y generar HTML
+    private DatosNotificacionEquipoDTO recopilarDatosEquipo(Long idEquipo) {
+        // Implementar lógica para recopilar datos del equipo
+        // Similar a recopilarDatosCuadro pero para equipos
+        return new DatosNotificacionEquipoDTO();
+    }
+
+    private DatosNotificacionPersonaEquipoDTO recopilarDatosPersonaEquipo(Long idPersona, Long idEquipo) {
+        // Implementar lógica para recopilar datos de persona y equipo
+        return new DatosNotificacionPersonaEquipoDTO();
+    }
+
     private TurnoDTO mapearTurnoADTO(Turnos turno) {
         TurnoDTO dto = new TurnoDTO();
         dto.setIdTurno(turno.getIdTurno());
@@ -230,6 +928,59 @@ public class NotificacionAutomaticaService {
         dto.setComentarios(turno.getComentarios());
         dto.setIdCuadroTurno(turno.getCuadroTurno().getIdCuadroTurno());
         dto.setIdPersona(turno.getIdPersona());
+        return dto;
+    }
+
+    private CambiosEquipoDTO mapearCambioEquipoADTO(CambiosEquipo cambio) {
+        CambiosEquipoDTO dto = new CambiosEquipoDTO();
+        dto.setIdCambioEquipo(cambio.getIdCambioEquipo());
+        dto.setIdEquipo(cambio.getEquipo().getIdEquipo());
+        dto.setFechaCambio(cambio.getFechaCambio());
+        dto.setTipoCambio(cambio.getTipoCambio());
+        dto.setNombreAnterior(cambio.getNombreAnterior());
+        dto.setNombreNuevo(cambio.getNombreNuevo());
+        dto.setEstadoAnterior(cambio.getEstadoAnterior());
+        dto.setEstadoNuevo(cambio.getEstadoNuevo());
+        dto.setObservaciones(cambio.getObservaciones());
+        dto.setUsuarioCambio(cambio.getUsuarioCambio());
+
+        if (cambio.getEquipo() != null) {
+            dto.setNombreEquipo(cambio.getEquipo().getNombre());
+            dto.setEstadoActual(cambio.getEquipo().getEstado());
+        }
+
+        return dto;
+    }
+
+    private CambiosPersonaEquipoDTO mapearCambioPersonaEquipoADTO(CambiosPersonaEquipo cambio) {
+        CambiosPersonaEquipoDTO dto = new CambiosPersonaEquipoDTO();
+        dto.setIdCambioPersonaEquipo(cambio.getIdCambioPersonaEquipo());
+        dto.setIdPersona(cambio.getPersona().getIdPersona());
+        dto.setIdEquipo(cambio.getEquipo().getIdEquipo());
+        dto.setFechaCambio(cambio.getFechaCambio());
+        dto.setTipoCambio(cambio.getTipoCambio());
+        dto.setObservaciones(cambio.getObservaciones());
+        dto.setUsuarioCambio(cambio.getUsuarioCambio());
+
+        if (cambio.getPersona() != null) {
+            dto.setNombrePersona(cambio.getPersona().getNombreCompleto());
+            dto.setDocumentoPersona(cambio.getPersona().getDocumento());
+        }
+
+        if (cambio.getEquipo() != null) {
+            dto.setNombreEquipo(cambio.getEquipo().getNombre());
+        }
+
+        if (cambio.getEquipoAnterior() != null) {
+            dto.setEquipoAnteriorId(cambio.getEquipoAnterior().getIdEquipo());
+            dto.setNombreEquipoAnterior(cambio.getEquipoAnterior().getNombre());
+        }
+
+        if (cambio.getEquipoNuevo() != null) {
+            dto.setEquipoNuevoId(cambio.getEquipoNuevo().getIdEquipo());
+            dto.setNombreEquipoNuevo(cambio.getEquipoNuevo().getNombre());
+        }
+
         return dto;
     }
 
@@ -451,6 +1202,13 @@ public class NotificacionAutomaticaService {
         // Historial de cambios de turnos
         if (datos.getHistorialTurnos() != null && !datos.getHistorialTurnos().isEmpty()) {
             contenido.append(generarSeccionHistorialTurnos(datos.getHistorialTurnos()));
+        }
+
+        if (datos.getHistorialEquipos() != null && !datos.getHistorialEquipos().isEmpty()) {
+            contenido.append(generarSeccionHistorialEquipos(datos.getHistorialEquipos()));
+        }
+        if (datos.getHistorialPersonasEquipo() != null && !datos.getHistorialPersonasEquipo().isEmpty()) {
+            contenido.append(generarSeccionHistorialPersonasEquipo(datos.getHistorialPersonasEquipo()));
         }
 
         return contenido.toString();
@@ -718,4 +1476,101 @@ public class NotificacionAutomaticaService {
 
         return tabla.toString();
     }
+
+    private String generarSeccionHistorialEquipos(List<CambiosEquipoDTO> historialEquipos) {
+        StringBuilder tabla = new StringBuilder("""
+        <div class="section">
+            <div class="section-title">🔧 Historial de Cambios de Equipos (Últimos %d cambios)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Equipo</th>
+                        <th>Tipo Cambio</th>
+                        <th>Cambios</th>
+                        <th>Usuario</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """.formatted(historialEquipos.size()));
+
+        for (CambiosEquipoDTO cambio : historialEquipos) {
+            tabla.append(String.format("""
+                    <tr>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td><span class="status-active">%s</span></td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                    </tr>
+            """,
+                    cambio.getFechaCambio() != null ? cambio.getFechaCambio().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "N/A",
+                    cambio.getNombreEquipo() != null ? cambio.getNombreEquipo() : "Equipo ID: " + cambio.getIdEquipo(),
+                    cambio.getTipoCambio(),
+                    cambio.getResumenCambio(),
+                    cambio.getUsuarioCambio() != null ? cambio.getUsuarioCambio() : "Sistema",
+                    cambio.getObservaciones() != null ? cambio.getObservaciones() : "Sin observaciones"
+            ));
+        }
+
+        tabla.append("""
+                </tbody>
+            </table>
+        </div>
+        """);
+
+        return tabla.toString();
+    }
+
+    private String generarSeccionHistorialPersonasEquipo(List<CambiosPersonaEquipoDTO> historialPersonas) {
+        StringBuilder tabla = new StringBuilder("""
+        <div class="section">
+            <div class="section-title">👥 Historial de Cambios Persona-Equipo (Últimos %d cambios)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Persona</th>
+                        <th>Tipo Cambio</th>
+                        <th>Detalles</th>
+                        <th>Usuario</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """.formatted(historialPersonas.size()));
+
+        for (CambiosPersonaEquipoDTO cambio : historialPersonas) {
+            tabla.append(String.format("""
+                    <tr>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td><span class="%s">%s</span></td>
+                        <td>%s</td>
+                        <td>%s</td>
+                        <td>%s</td>
+                    </tr>
+            """,
+                    cambio.getFechaCambio() != null ? cambio.getFechaCambio().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "N/A",
+                    cambio.getNombrePersona() != null ? cambio.getNombrePersona() + " (" + cambio.getDocumentoPersona() + ")" : "Persona ID: " + cambio.getIdPersona(),
+                    cambio.getTipoCambio().equals("ASIGNACION") ? "status-active" :
+                            cambio.getTipoCambio().equals("DESVINCULACION") ? "status-inactive" : "status-active",
+                    cambio.getTipoCambio(),
+                    cambio.getResumenCambio(),
+                    cambio.getUsuarioCambio() != null ? cambio.getUsuarioCambio() : "Sistema",
+                    cambio.getObservaciones() != null ? cambio.getObservaciones() : "Sin observaciones"
+            ));
+        }
+
+        tabla.append("""
+                </tbody>
+            </table>
+        </div>
+        """);
+
+        return tabla.toString();
+    }
+
 }

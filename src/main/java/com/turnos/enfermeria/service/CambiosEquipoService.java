@@ -10,13 +10,18 @@ import com.turnos.enfermeria.repository.CambiosEquipoRepository;
 import com.turnos.enfermeria.repository.CambiosPersonaEquipoRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 @AllArgsConstructor
@@ -85,5 +90,71 @@ public class CambiosEquipoService {
         return historial.stream()
                 .map(cambio -> modelMapper.map(cambio, CambiosPersonaEquipoDTO.class))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtener historial completo relacionado a un cuadro (equipos y personas)
+     */
+    public Map<String, Object> obtenerHistorialPorCuadro(Long cuadroId) {
+        Map<String, Object> resultado = new HashMap<>();
+
+        try {
+            // Obtener historial de cambios de equipos (puedes filtrar por cuadro si tienes esa relación)
+            List<CambiosEquipo> cambiosEquipos = cambiosEquipoRepository.findAllByOrderByFechaCambioDesc();
+            List<CambiosEquipoDTO> historialEquipos = cambiosEquipos.stream()
+                    .map(cambio -> {
+                        CambiosEquipoDTO dto = modelMapper.map(cambio, CambiosEquipoDTO.class);
+                        dto.setIdEquipo(cambio.getEquipo().getIdEquipo());
+                        if (cambio.getEquipo() != null) {
+                            dto.setNombreEquipo(cambio.getEquipo().getNombre());
+                            dto.setEstadoActual(cambio.getEquipo().getEstado());
+                        }
+                        return dto;
+                    })
+                    .limit(20) // Últimos 20 cambios
+                    .collect(Collectors.toList());
+
+            // Obtener historial de cambios de personas
+            List<CambiosPersonaEquipo> cambiosPersonas = cambiosPersonaEquipoRepository.findAllByOrderByFechaCambioDesc();
+            List<CambiosPersonaEquipoDTO> historialPersonas = cambiosPersonas.stream()
+                    .map(cambio -> {
+                        CambiosPersonaEquipoDTO dto = modelMapper.map(cambio, CambiosPersonaEquipoDTO.class);
+
+                        if (cambio.getPersona() != null) {
+                            dto.setIdPersona(cambio.getPersona().getIdPersona());
+                            dto.setNombrePersona(cambio.getPersona().getNombreCompleto());
+                            dto.setDocumentoPersona(cambio.getPersona().getDocumento());
+                        }
+
+                        if (cambio.getEquipo() != null) {
+                            dto.setNombreEquipo(cambio.getEquipo().getNombre());
+                        }
+
+                        if (cambio.getEquipoAnterior() != null) {
+                            dto.setEquipoAnteriorId(cambio.getEquipoAnterior().getIdEquipo());
+                            dto.setNombreEquipoAnterior(cambio.getEquipoAnterior().getNombre());
+                        }
+
+                        if (cambio.getEquipoNuevo() != null) {
+                            dto.setEquipoNuevoId(cambio.getEquipoNuevo().getIdEquipo());
+                            dto.setNombreEquipoNuevo(cambio.getEquipoNuevo().getNombre());
+                        }
+
+                        return dto;
+                    })
+                    .limit(30) // Últimos 30 cambios
+                    .collect(Collectors.toList());
+
+            resultado.put("historialEquipos", historialEquipos);
+            resultado.put("historialPersonas", historialPersonas);
+
+        } catch (Exception e) {
+            log.error("Error obteniendo historial por cuadro {}: {}", cuadroId, e.getMessage());
+            resultado.put("historialEquipos", new ArrayList<>());
+            resultado.put("historialPersonas", new ArrayList<>());
+            resultado.put("error", e.getMessage());
+        }
+
+        return resultado;
     }
 }
