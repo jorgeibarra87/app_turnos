@@ -1142,7 +1142,7 @@ public class NotificacionAutomaticaService {
                     <!-- Header -->
                     <div class="header">
                         <h1>🏥 Notificación Automática de Cambio en Sistema de Turnos</h1>
-                        <p>Sistema de Gestión Hospitalaria - %s</p>
+                        <p>App Turnos Hospital Universitario San Jose - %s</p>
                     </div>
 
                     <div class="content">
