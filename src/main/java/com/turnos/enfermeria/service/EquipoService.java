@@ -49,6 +49,7 @@ public class EquipoService {
         String nombre = generateOrValidateName(equipoDTO.getNombre(), selection);
         equipo.setNombre(nombre);
         equipo.setEstado(true); // Asegurar que siempre tenga estado
+        equipo.setObservaciones(equipoDTO.getObservaciones());
 
         Equipo equipoGuardado = equipoRepository.save(equipo);
         // Registrar cambio
@@ -83,6 +84,9 @@ public class EquipoService {
         // Actualizar otros campos si no son nulos
         if (detalleEquipoDTO.getIdEquipo() != null) {
             equipoExistente.setIdEquipo(detalleEquipoDTO.getIdEquipo());
+        }
+        if (detalleEquipoDTO.getObservaciones() != null) {
+            equipoExistente.setObservaciones(detalleEquipoDTO.getObservaciones());
         }
 
         Equipo equipoActualizado = equipoRepository.save(equipoExistente);
@@ -157,12 +161,14 @@ public class EquipoService {
         // Crear un DTO vacío
         EquipoDTO equipoDTO = new EquipoDTO();
         equipoDTO.setEstado(true);
+        equipoDTO.setObservaciones(selection.getObservaciones());
         return create(equipoDTO, selection);
     }
 
     public EquipoDTO updateWithGeneratedName(Long idEquipo, EquipoSelectionDTO selection) {
         // Crear un DTO vacío
         EquipoDTO equipoDTO = new EquipoDTO();
+        equipoDTO.setObservaciones(selection.getObservaciones());
         return update(equipoDTO, idEquipo, selection);
     }
 

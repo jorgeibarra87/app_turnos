@@ -83,6 +83,8 @@ public class CuadroTurno {
     @Column(name = "estado")
     private Boolean estado;
 
+    @Column(name = "observaciones", columnDefinition = "TEXT")
+    private String observaciones;
 
     // Métodos de conveniencia para obtener IDs
     public Long getIdMacroproceso() {

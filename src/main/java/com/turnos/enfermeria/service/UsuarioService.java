@@ -183,7 +183,7 @@ public class UsuarioService {
 
             // Para evitar duplicados
             List<EquipoDTO> equipos = usuario.getEquipos().stream()
-                    .map(equipo -> new EquipoDTO(equipo.getIdEquipo(), equipo.getNombre(), equipo.getEstado()))
+                    .map(equipo -> new EquipoDTO(equipo.getIdEquipo(), equipo.getNombre(), equipo.getEstado(), equipo.getObservaciones()))
                     .distinct()
                     .collect(Collectors.toList());
 

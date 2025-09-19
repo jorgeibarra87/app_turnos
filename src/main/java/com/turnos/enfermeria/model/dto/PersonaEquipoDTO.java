@@ -19,7 +19,7 @@ public class PersonaEquipoDTO {
         this.idPersona = idPersona;
         this.nombreCompleto = nombreCompleto;
         this.documento = documento;
-        this.equipos.add(new EquipoDTO(equipo.getIdEquipo(), equipo.getNombre(), equipo.getEstado()));
+        this.equipos.add(new EquipoDTO(equipo.getIdEquipo(), equipo.getNombre(), equipo.getEstado(), equipo.getObservaciones()));
     }
 
     public PersonaEquipoDTO() {}

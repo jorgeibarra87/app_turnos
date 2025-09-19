@@ -1,7 +1,6 @@
 package com.turnos.enfermeria.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,5 +23,8 @@ public class Equipo {
 
     @Column(name = "estado")
     private Boolean estado;
+
+    @Column(name = "observaciones", columnDefinition = "TEXT")
+    private String observaciones;
 
 }
