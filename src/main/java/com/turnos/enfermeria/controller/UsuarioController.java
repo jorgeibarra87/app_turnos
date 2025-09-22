@@ -686,4 +686,12 @@ public class UsuarioController {
         List<Usuario> usuarios = usuarioService.findAllEquipos();
         return usuariosEquipoMapper.toDTOList(usuarios);
     }
+
+    @DeleteMapping("/{idPersona}/titulo/{idTitulo}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminarTituloDeUsuario(
+            @PathVariable Long idPersona,
+            @PathVariable Long idTitulo) {
+        usuarioService.eliminarTituloDeUsuario(idPersona, idTitulo);
+    }
 }
