@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class PersonaService {
 
     private final PersonaRepository personaRepo;
-    private final UsuarioRepository usuarioRepo; // 👈 Agregado
+    private final UsuarioRepository usuarioRepo;
     private final ModelMapper modelMapper;
     private final CambiosEquipoService cambiosEquipoService;
 

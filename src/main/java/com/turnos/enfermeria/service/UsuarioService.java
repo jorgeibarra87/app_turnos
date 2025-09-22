@@ -113,7 +113,7 @@ public class UsuarioService {
     }
 
     public void delete(Long idPersona) {
-        // Buscar el bloque en la base de datos
+        // Buscar el usuario en la base de datos
         Usuario usuarioEliminar = usuarioRepo.findById(idPersona)
                 .orElseThrow(() -> new EntityNotFoundException("usuario no encontrado"));
 
