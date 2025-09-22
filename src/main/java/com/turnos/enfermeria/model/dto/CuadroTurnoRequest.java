@@ -30,6 +30,7 @@ public class CuadroTurnoRequest {
     private Boolean estado = true;
     private String estadoCuadro = "abierto";
     private String version;
+    private String observaciones;
 
     // Métodos de conveniencia para manejar procesos de atención
     public void addIdProcesoAtencion(Long idProcesoAtencion) {

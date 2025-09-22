@@ -5,7 +5,6 @@ import com.turnos.enfermeria.exception.custom.ApiResponse;
 import com.turnos.enfermeria.exception.custom.GenericConflictException;
 import com.turnos.enfermeria.exception.custom.GenericNotFoundException;
 import com.turnos.enfermeria.model.dto.*;
-import com.turnos.enfermeria.model.entity.CuadroTurno;
 import com.turnos.enfermeria.service.CuadroTurnoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
