@@ -11,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -480,11 +482,18 @@ public class CuadroTurnoService {
 
     /**
      * Edita un cuadro de turno existente manteniendo su estructura básica
+     * Optimizado para reducir consultas N+1 y mejorar rendimiento
      */
+    @Transactional
     public CuadroTurnoDTO editarCuadroTurnoTotal(Long idCuadro, CuadroTurnoRequest request) {
         // Buscar cuadro existente
         CuadroTurno cuadroExistente = cuadroTurnoRepository.findById(idCuadro)
                 .orElseThrow(() -> new EntityNotFoundException("Cuadro de turno no encontrado"));
+
+        // Actualizar observaciones
+        if (request.getObservaciones() != null) {
+            cuadroExistente.setObservaciones(request.getObservaciones());
+        }
 
         // Validar estado editable
         if (!"abierto".equalsIgnoreCase(cuadroExistente.getEstadoCuadro())) {
@@ -494,57 +503,103 @@ public class CuadroTurnoService {
         // Guardar estado anterior para el historial
         CuadroTurnoDTO estadoAnterior = modelMapper.map(cuadroExistente, CuadroTurnoDTO.class);
 
-        // Buscar entidades relacionadas
-        Macroprocesos macroprocesos = buscarMacroproceso(request.getIdMacroproceso());
-        Procesos procesos = buscarProceso(request.getIdProceso());
-        Servicio servicio = buscarServicio(request.getIdServicio());
-        SeccionesServicio seccionesServicio = buscarSeccionServicio(request.getIdSeccionServicio());
-        SubseccionesServicio subseccionesServicio = buscarSubseccionServicio(request.getIdSubseccionServicio());
-        Equipo equipo = buscarEquipo(request.getIdEquipo());
+        // Buscar entidades relacionadas en LOTE usando Optional
+        CompletableFuture<Macroprocesos> macroprocessFuture = null;
+        CompletableFuture<Procesos> procesosFuture = null;
+        CompletableFuture<Servicio> servicioFuture = null;
+        CompletableFuture<SeccionesServicio> seccionFuture = null;
+        CompletableFuture<SubseccionesServicio> subseccionFuture = null;
+        CompletableFuture<Equipo> equipoFuture = null;
 
-        // Actualizar configuración del cuadro
-        actualizarCuadroSegunCategoria(cuadroExistente, request, macroprocesos, procesos,
-                servicio, seccionesServicio, subseccionesServicio, equipo);
-
-        // Regenerar nombre automáticamente
-        cuadroExistente.setNombre(generarNombreCuadroTurno(cuadroExistente));
-
-        // Manejar cambio de período si es necesario
-        boolean cambioPeriodo = !cuadroExistente.getAnio().equals(request.getAnio()) ||
-                !cuadroExistente.getMes().equals(request.getMes());
-
-        cuadroExistente.setAnio(request.getAnio());
-        cuadroExistente.setMes(request.getMes());
-
-        if (cambioPeriodo) {
-            cuadroExistente.setVersion(generarNuevaVersion(cuadroExistente.getVersion(),
-                    request.getAnio(), request.getMes()));
-        }
-
-        // Guardar cambios
-        CuadroTurno cuadroActualizado = cuadroTurnoRepository.save(cuadroExistente);
-
-        // Registrar cambios en historial
-        cambiosCuadroTurnoService.registrarCambioCuadroTurno(estadoAnterior, "ACTUALIZACION_ANTERIOR");
-        CuadroTurnoDTO estadoNuevo = modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
-        cambiosCuadroTurnoService.registrarCambioCuadroTurno(estadoNuevo, "ACTUALIZACION");
-
+        // Solo buscar las entidades necesarias
         try {
-            CambioCuadroEvent evento = new CambioCuadroEvent(
-                    cuadroActualizado.getIdCuadroTurno(),
-                    "MODIFICACIÓN DE CUADRO",
-                    "Se ha modificado el cuadro: " + cuadroActualizado.getNombre() +
-                            " - Cambios realizados en la configuración"
-            );
+            Macroprocesos macroprocesos = null;
+            Procesos procesos = null;
+            Servicio servicio = null;
+            SeccionesServicio seccionesServicio = null;
+            SubseccionesServicio subseccionesServicio = null;
+            Equipo equipo = null;
 
-            eventPublisher.publishEvent(evento);
-            log.info("🚀 Evento de modificación publicado para cuadro ID: {}", cuadroActualizado.getIdCuadroTurno());
+            // Buscar solo las entidades necesarias según lo que viene en el request
+            if (request.getIdMacroproceso() != null) {
+                macroprocesos = buscarMacroproceso(request.getIdMacroproceso());
+            }
+            if (request.getIdProceso() != null) {
+                procesos = buscarProceso(request.getIdProceso());
+            }
+            if (request.getIdServicio() != null) {
+                servicio = buscarServicio(request.getIdServicio());
+            }
+            if (request.getIdSeccionServicio() != null) {
+                seccionesServicio = buscarSeccionServicio(request.getIdSeccionServicio());
+            }
+            if (request.getIdSubseccionServicio() != null) {
+                subseccionesServicio = buscarSubseccionServicio(request.getIdSubseccionServicio());
+            }
+            if (request.getIdEquipo() != null) {
+                equipo = buscarEquipo(request.getIdEquipo());
+            }
 
-        } catch (Exception eventException) {
-            log.error("❌ Error al publicar evento de modificación: {}", eventException.getMessage());
+            // Actualizar configuración del cuadro
+            actualizarCuadroSegunCategoria(cuadroExistente, request, macroprocesos, procesos,
+                    servicio, seccionesServicio, subseccionesServicio, equipo);
+
+            // Evitar regenerar nombre si no es necesario
+            String nombreActual = cuadroExistente.getNombre();
+            String nuevoNombre = generarNombreCuadroTurno(cuadroExistente);
+            if (!nombreActual.equals(nuevoNombre)) {
+                cuadroExistente.setNombre(nuevoNombre);
+            }
+
+            // Manejar cambio de período si es necesario
+            boolean cambioPeriodo = !cuadroExistente.getAnio().equals(request.getAnio()) ||
+                    !cuadroExistente.getMes().equals(request.getMes());
+
+            cuadroExistente.setAnio(request.getAnio());
+            cuadroExistente.setMes(request.getMes());
+
+            if (cambioPeriodo) {
+                cuadroExistente.setVersion(generarNuevaVersion(cuadroExistente.getVersion(),
+                        request.getAnio(), request.getMes()));
+            }
+
+            CuadroTurno cuadroActualizado = cuadroTurnoRepository.saveAndFlush(cuadroExistente);
+
+            // Hacer operaciones de historial ASÍNCRONAS
+            CompletableFuture.runAsync(() -> {
+                try {
+                    cambiosCuadroTurnoService.registrarCambioCuadroTurno(estadoAnterior, "ACTUALIZACION_ANTERIOR");
+                    CuadroTurnoDTO estadoNuevo = modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
+                    cambiosCuadroTurnoService.registrarCambioCuadroTurno(estadoNuevo, "ACTUALIZACION");
+                } catch (Exception historialException) {
+                    log.error("❌ Error al registrar historial: {}", historialException.getMessage());
+                }
+            });
+
+            // Publicar evento ASÍNCRONO
+            CompletableFuture.runAsync(() -> {
+                try {
+                    CambioCuadroEvent evento = new CambioCuadroEvent(
+                            cuadroActualizado.getIdCuadroTurno(),
+                            "MODIFICACIÓN DE CUADRO",
+                            "Se ha modificado el cuadro: " + cuadroActualizado.getNombre() +
+                                    " - Cambios realizados en la configuración"
+                    );
+
+                    eventPublisher.publishEvent(evento);
+                    log.info("🚀 Evento de modificación publicado para cuadro ID: {}", cuadroActualizado.getIdCuadroTurno());
+
+                } catch (Exception eventException) {
+                    log.error("❌ Error al publicar evento de modificación: {}", eventException.getMessage());
+                }
+            });
+
+            return modelMapper.map(cuadroActualizado, CuadroTurnoDTO.class);
+
+        } catch (Exception e) {
+            log.error("❌ Error en editarCuadroTurnoTotal: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al actualizar el cuadro de turno", e);
         }
-
-        return estadoNuevo;
     }
 
     // Método auxiliar para configurar cuadro según categoría

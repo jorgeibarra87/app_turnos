@@ -1,5 +1,6 @@
 package com.turnos.enfermeria.model.dto;
 
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,6 +31,7 @@ public class CuadroTurnoRequest {
     private Boolean estado = true;
     private String estadoCuadro = "abierto";
     private String version;
+    @Size(max = 1000, message = "Las observaciones no pueden exceder 1000 caracteres")
     private String observaciones;
 
     // Métodos de conveniencia para manejar procesos de atención

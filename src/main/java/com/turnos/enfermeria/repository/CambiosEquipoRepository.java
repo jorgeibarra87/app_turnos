@@ -14,6 +14,9 @@ public interface CambiosEquipoRepository extends JpaRepository<CambiosEquipo, Lo
     // Buscar historial por equipo ordenado por fecha descendente
     List<CambiosEquipo> findByEquipo_IdEquipoOrderByFechaCambioDesc(Long idEquipo);
 
+    List<CambiosEquipo> findByEquipoIdEquipoOrderByFechaCambioDesc(Long idEquipo);
+
+
     // Buscar historial por equipo en un rango de fechas
     @Query("SELECT c FROM CambiosEquipo c WHERE c.equipo.idEquipo = :idEquipo " +
             "AND c.fechaCambio BETWEEN :fechaInicio AND :fechaFin " +

@@ -285,7 +285,7 @@ public class NotificacionAutomaticaService {
                 <!-- Header -->
                 <div class="header">
                     <h1>🏥 Notificación de Cambio en Equipos de Trabajo</h1>
-                    <p>Sistema de Gestión Hospitalaria - %s</p>
+                    <p>Sistema de Gestión de Turnos Hospital Universitario San Jose - %s</p>
                 </div>
 
                 <div class="content">
@@ -299,7 +299,7 @@ public class NotificacionAutomaticaService {
                 </div>
 
                 <div class="footer">
-                    <p>Este correo ha sido generado automáticamente por el Sistema de Gestión Hospitalaria</p>
+                    <p>Este correo ha sido generado automáticamente por el Sistema de Turnos (HUSJ)</p>
                     <p>Por favor, no responder a este correo</p>
                 </div>
             </div>
@@ -351,7 +351,7 @@ public class NotificacionAutomaticaService {
                 <!-- Header -->
                 <div class="header">
                     <h1>👤 Notificación de Cambio en Asignación de Personal</h1>
-                    <p>Sistema de Gestión Hospitalaria - %s</p>
+                    <p>Sistema de Gestión Turnos Hospital Universitario San Jose - %s</p>
                 </div>
 
                 <div class="content">
@@ -365,7 +365,7 @@ public class NotificacionAutomaticaService {
                 </div>
 
                 <div class="footer">
-                    <p>Este correo ha sido generado automáticamente por el Sistema de Gestión Hospitalaria</p>
+                    <p>Este correo ha sido generado automáticamente por el Sistema de Turnos (HUSJ)</p>
                     <p>Por favor, no responder a este correo</p>
                 </div>
             </div>
@@ -549,6 +549,10 @@ public class NotificacionAutomaticaService {
                     </div>
                 </div>
                 <div class="info-card">
+                    <div class="info-label">Observaciones</div>
+                    <div class="info-value">%s</div>
+                </div>
+                <div class="info-card">
                     <div class="info-label">Fecha de Creación</div>
                     <div class="info-value">%s</div>
                 </div>
@@ -559,6 +563,7 @@ public class NotificacionAutomaticaService {
                 equipo.getIdEquipo() != null ? equipo.getIdEquipo() : "N/A",
                 equipo.getEstado() != null && equipo.getEstado() ? "status-active" : "status-inactive",
                 equipo.getEstado() != null && equipo.getEstado() ? "Activo" : "Inactivo",
+                equipo.getObservaciones() != null ? equipo.getObservaciones() : "Sin observaciones",
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
         );
     }
@@ -768,13 +773,18 @@ public class NotificacionAutomaticaService {
                         <span class="%s">%s</span>
                     </div>
                 </div>
+                <div class="info-card">
+                    <div class="info-label">Observaciones</div>
+                    <div class="info-value">%s</div>
+                </div>
             </div>
         </div>
         """,
                 equipo.getNombre() != null ? equipo.getNombre() : "No especificado",
                 equipo.getIdEquipo() != null ? equipo.getIdEquipo() : "N/A",
                 equipo.getEstado() != null && equipo.getEstado() ? "status-active" : "status-inactive",
-                equipo.getEstado() != null && equipo.getEstado() ? "Activo" : "Inactivo"
+                equipo.getEstado() != null && equipo.getEstado() ? "Activo" : "Inactivo",
+                equipo.getObservaciones() != null ? equipo.getObservaciones() : "Sin observaciones"
         );
     }
 
@@ -819,6 +829,7 @@ public class NotificacionAutomaticaService {
         dto.setEstadoCuadro(cuadro.getEstadoCuadro());
         dto.setTurnoExcepcion(cuadro.getTurnoExcepcion());
         dto.setIdEquipo(cuadro.getIdEquipo());
+        dto.setObservaciones(cuadro.getObservaciones());
 
         // Nombres de entidades relacionadas (si están disponibles)
         if (cuadro.getMacroProcesos() != null) {
@@ -888,31 +899,153 @@ public class NotificacionAutomaticaService {
             return new ArrayList<>();
         }
     }
-
-    private List<CambiosPersonaEquipoDTO> obtenerHistorialPersonasEquipo(Long idCuadroTurno) {
+    private List<CambiosEquipoDTO> obtenerHistorialCambiosEquipo(Long idEquipo) {
         try {
-            List<CambiosPersonaEquipo> cambios = cambiosPersonaEquipoRepository.findAllByOrderByFechaCambioDesc();
-
+            List<CambiosEquipo> cambios = cambiosEquipoRepository
+                    .findByEquipoIdEquipoOrderByFechaCambioDesc(idEquipo);
             return cambios.stream()
-                    .limit(20) // Últimos 20 cambios de personas
-                    .map(this::mapearCambioPersonaEquipoADTO)
+                    .limit(15) // Últimos 15 cambios del equipo
+                    .map(this::mapearCambioEquipoADTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            log.error("Error obteniendo historial de personas-equipo: {}", e.getMessage());
+            log.error("Error obteniendo historial de cambios del equipo {}: {}", idEquipo, e.getMessage());
             return new ArrayList<>();
         }
     }
 
+    private List<CambiosPersonaEquipoDTO> obtenerHistorialPersonasEquipo(Long idEquipo) {
+        try {
+            List<CambiosPersonaEquipo> cambios = cambiosPersonaEquipoRepository
+                    .findByEquipoIdEquipoOrderByFechaCambioDesc(idEquipo);
+            return cambios.stream()
+                    .limit(20) // Últimos 20 cambios de personas en este equipo
+                    .map(this::mapearCambioPersonaEquipoADTO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error obteniendo historial de personas del equipo {}: {}", idEquipo, e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    private List<EquipoDTO> obtenerEquiposAnterioresPersona(Long idPersona) {
+        try {
+            // Obtener los últimos 5 equipos donde estuvo esta persona
+            List<CambiosPersonaEquipo> cambiosPersona = cambiosPersonaEquipoRepository
+                    .findByPersonaIdPersonaAndTipoCambioOrderByFechaCambioDesc(idPersona, "DESVINCULACION");
+
+            return cambiosPersona.stream()
+                    .limit(5)
+                    .map(cambio -> cambio.getEquipoAnterior())
+                    .filter(equipo -> equipo != null)
+                    .distinct()
+                    .map(this::mapearEquipoADTO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error obteniendo equipos anteriores de la persona {}: {}", idPersona, e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    private List<CambiosPersonaEquipoDTO> obtenerHistorialCambiosPersonaEspecifica(Long idPersona) {
+        try {
+            List<CambiosPersonaEquipo> cambios = cambiosPersonaEquipoRepository
+                    .findByPersonaIdPersonaOrderByFechaCambioDesc(idPersona);
+            return cambios.stream()
+                    .limit(15) // Últimos 15 cambios de esta persona específica
+                    .map(this::mapearCambioPersonaEquipoADTO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error obteniendo historial de cambios de la persona {}: {}", idPersona, e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    private EquipoDTO mapearEquipoADTO(Equipo equipo) {
+        EquipoDTO dto = new EquipoDTO();
+        dto.setIdEquipo(equipo.getIdEquipo());
+        dto.setNombre(equipo.getNombre());
+        dto.setEstado(equipo.getEstado());
+        dto.setObservaciones(equipo.getObservaciones());
+        return dto;
+    }
+
+    private PersonaDTO mapearPersonaADTO(Persona persona) {
+        PersonaDTO dto = new PersonaDTO();
+        dto.setIdPersona(persona.getIdPersona());
+        dto.setNombreCompleto(persona.getNombreCompleto());
+        dto.setDocumento(persona.getDocumento());
+        return dto;
+    }
+
     // Métodos auxiliares para recopilar datos y generar HTML
     private DatosNotificacionEquipoDTO recopilarDatosEquipo(Long idEquipo) {
-        // Implementar lógica para recopilar datos del equipo
-        // Similar a recopilarDatosCuadro pero para equipos
-        return new DatosNotificacionEquipoDTO();
+        DatosNotificacionEquipoDTO datos = new DatosNotificacionEquipoDTO();
+
+        try {
+            log.info("Recopilando datos del equipo ID: {}", idEquipo);
+
+            // 1. Datos básicos del equipo
+            Equipo equipo = equipoRepository.findById(idEquipo)
+                    .orElseThrow(() -> new EntityNotFoundException("Equipo no encontrado"));
+            datos.setEquipo(mapearEquipoADTO(equipo));
+
+            // 2. Miembros actuales del equipo
+            List<MiembroPerfilDTO> miembros = obtenerMiembrosEquipo(idEquipo);
+            datos.setMiembros(miembros);
+
+            // 3. Historial de cambios del equipo (últimos 15)
+            List<CambiosEquipoDTO> historialEquipo = obtenerHistorialCambiosEquipo(idEquipo);
+            datos.setHistorialEquipo(historialEquipo);
+
+            // 4. Historial de cambios de personas en este equipo (últimos 20)
+            List<CambiosPersonaEquipoDTO> historialPersonas = obtenerHistorialPersonasEquipo(idEquipo);
+            datos.setHistorialPersonas(historialPersonas);
+
+            log.info("Datos del equipo recopilados exitosamente. Miembros: {}, Historial equipo: {}, Historial personas: {}",
+                    miembros.size(), historialEquipo.size(), historialPersonas.size());
+
+        } catch (Exception e) {
+            log.error("Error recopilando datos del equipo {}: {}", idEquipo, e.getMessage());
+            throw new RuntimeException("Error recopilando datos para notificación de equipo", e);
+        }
+
+        return datos;
     }
 
     private DatosNotificacionPersonaEquipoDTO recopilarDatosPersonaEquipo(Long idPersona, Long idEquipo) {
-        // Implementar lógica para recopilar datos de persona y equipo
-        return new DatosNotificacionPersonaEquipoDTO();
+        DatosNotificacionPersonaEquipoDTO datos = new DatosNotificacionPersonaEquipoDTO();
+
+        try {
+            log.info("Recopilando datos persona-equipo. Persona ID: {}, Equipo ID: {}", idPersona, idEquipo);
+
+            // 1. Datos de la persona
+            Persona persona = personaRepository.findById(idPersona)
+                    .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada"));
+            datos.setPersona(mapearPersonaADTO(persona));
+
+            // 2. Datos del equipo actual
+            Equipo equipo = equipoRepository.findById(idEquipo)
+                    .orElseThrow(() -> new EntityNotFoundException("Equipo no encontrado"));
+            datos.setEquipo(mapearEquipoADTO(equipo));
+
+            // 3. Equipos anteriores de esta persona (últimos 5)
+            List<EquipoDTO> equiposAnteriores = obtenerEquiposAnterioresPersona(idPersona);
+            datos.setEquiposAnteriores(equiposAnteriores);
+
+            // 4. Historial de cambios específicos de esta persona en equipos (últimos 15)
+            List<CambiosPersonaEquipoDTO> historialCambios = obtenerHistorialCambiosPersonaEspecifica(idPersona);
+            datos.setHistorialCambios(historialCambios);
+
+            log.info("Datos persona-equipo recopilados exitosamente. Equipos anteriores: {}, Historial cambios: {}",
+                    equiposAnteriores.size(), historialCambios.size());
+
+        } catch (Exception e) {
+            log.error("Error recopilando datos persona-equipo. Persona: {}, Equipo: {}: {}",
+                    idPersona, idEquipo, e.getMessage());
+            throw new RuntimeException("Error recopilando datos para notificación persona-equipo", e);
+        }
+
+        return datos;
     }
 
     private TurnoDTO mapearTurnoADTO(Turnos turno) {
@@ -1156,7 +1289,7 @@ public class NotificacionAutomaticaService {
                     </div>
 
                     <div class="footer">
-                        <p>Este correo ha sido generado automáticamente por el Sistema de Gestión Hospitalaria</p>
+                        <p>Este correo ha sido generado automáticamente por el Sistema de Turnos (HUSJ)</p>
                         <p>Por favor, no responder a este correo</p>
                     </div>
                 </div>
@@ -1245,6 +1378,10 @@ public class NotificacionAutomaticaService {
                         <div class="info-label">Turno Excepción</div>
                         <div class="info-value">%s</div>
                     </div>
+                    <div class="info-card">
+                         <div class="info-label">Observaciones</div>
+                         <div class="info-value">%s</div>
+                    </div>
                 </div>
             </div>
             """,
@@ -1255,7 +1392,8 @@ public class NotificacionAutomaticaService {
                 cuadro.getCategoria(),
                 cuadro.getEstadoCuadro() != null && cuadro.getEstadoCuadro().equals("abierto") ? "status-active" : "status-inactive",
                 cuadro.getEstadoCuadro(),
-                cuadro.getTurnoExcepcion() != null && cuadro.getTurnoExcepcion() ? "Sí" : "No"
+                cuadro.getTurnoExcepcion() != null && cuadro.getTurnoExcepcion() ? "Sí" : "No",
+                cuadro.getObservaciones() != null ? cuadro.getObservaciones() : "Sin observaciones"
         );
     }
 

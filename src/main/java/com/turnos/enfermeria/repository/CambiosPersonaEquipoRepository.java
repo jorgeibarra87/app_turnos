@@ -11,6 +11,10 @@ import java.util.List;
 @Repository
 public interface CambiosPersonaEquipoRepository extends JpaRepository<CambiosPersonaEquipo, Long> {
 
+    List<CambiosPersonaEquipo> findByEquipoIdEquipoOrderByFechaCambioDesc(Long idEquipo);
+    List<CambiosPersonaEquipo> findByPersonaIdPersonaOrderByFechaCambioDesc(Long idPersona);
+    List<CambiosPersonaEquipo> findByPersonaIdPersonaAndTipoCambioOrderByFechaCambioDesc(Long idPersona, String tipoCambio);
+
     // Buscar historial por persona ordenado por fecha descendente
     List<CambiosPersonaEquipo> findByPersona_IdPersonaOrderByFechaCambioDesc(Long idPersona);
 
