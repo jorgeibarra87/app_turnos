@@ -8,6 +8,7 @@ import com.turnos.enfermeria.model.dto.ActualizacionEstadoDTO;
 import com.turnos.enfermeria.model.dto.NotificacionDTO;
 import com.turnos.enfermeria.service.EmailService;
 import com.turnos.enfermeria.service.NotificacionService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Hidden
 @Validated
 @RestController
 @CrossOrigin("http://localhost:5173/")
