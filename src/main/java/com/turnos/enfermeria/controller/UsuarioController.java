@@ -371,6 +371,8 @@ public class UsuarioController {
 
     // POST: Agregar un titulo a un usuario
     @PostMapping("/{idUsuario}/titulo/{idTitulo}")
+    @Operation(summary = "Agregar un titulo a un usuario", description = "Permite asignar un titulo a un usuario.",
+            tags={"Usuarios"})
     public ResponseEntity<?> asignarTitulo(
             @PathVariable Long idUsuario,
             @PathVariable Long idTitulo) {
@@ -670,24 +672,32 @@ public class UsuarioController {
     }
 
     @GetMapping("/titulos")
+    @Operation(summary = "Obtener los títulos de usuarios", description = "permite obtener los títulos de los usuarios.",
+            tags={"Usuarios"})
     public List<PersonaTituloDTO> getUsuariosConTitulos() {
         List<Usuario> usuarios = usuarioService.findAllUsuarios();
         return usuariosTituloMapper.toDTOList(usuarios);
     }
 
     @GetMapping("/roles")
+    @Operation(summary = "Obtener los roles de usuarios", description = "permite obtener los roles de los usuarios.",
+            tags={"Usuarios"})
     public List<UsuariosRolDTO> getUsuariosConRoles() {
         List<Usuario> usuarios = usuarioService.findAllRoles();
         return usuariosRolMapper.toDTOList(usuarios);
     }
 
     @GetMapping("/equipos")
+    @Operation(summary = "Obtener los equipos de usuarios", description = "permite obtener los equipos de los usuarios.",
+            tags={"Usuarios"})
     public List<PersonaEquipoDTO> getUsuariosConEquipos() {
         List<Usuario> usuarios = usuarioService.findAllEquipos();
         return usuariosEquipoMapper.toDTOList(usuarios);
     }
 
     @DeleteMapping("/{idPersona}/titulo/{idTitulo}")
+    @Operation(summary = "Eliminar un título de usuarios", description = "Permite eliminar titulo de usuario.",
+            tags={"Usuarios"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminarTituloDeUsuario(
             @PathVariable Long idPersona,

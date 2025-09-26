@@ -110,7 +110,6 @@ public class CuadroTurnoController {
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar cuadro de turnos", description = "Modifica los datos de un cuadro de turnos existente.",
             tags={"Cuadro de Turnos"})
-
     public ResponseEntity<?> actualizarCuadroTurno(@PathVariable Long id, @RequestBody CuadroTurnoDTO cuadroTurnoDTO) {
         try {
             CuadroTurnoDTO actualizado = cuadroTurnoService.actualizarCuadroTurno(id, cuadroTurnoDTO);
@@ -209,6 +208,8 @@ public class CuadroTurnoController {
      * Soporta múltiples procesos de atención
      */
     @PostMapping("/crear-total")
+    @Operation(summary = "Crear un cuadro de turno completo", description = "Crea un nuevo cuadro de turnos con su información completa.",
+            tags={"Cuadro de Turnos"})
     public ResponseEntity<ApiResponse> crearCuadroTurnoTotal(@RequestBody CuadroTurnoRequest request) {
         try {
             CuadroTurnoDTO cuadroTurno = cuadroTurnoService.crearCuadroTurnoTotal(request);
@@ -238,6 +239,8 @@ public class CuadroTurnoController {
      * @return Cuadro de turno actualizado
      */
     @PutMapping("/{id}/editar-total")
+    @Operation(summary = "Actualizar cuadro de turnos completo", description = "Modifica los datos de un cuadro de turnos existente con todos sus datos.",
+            tags={"Cuadro de Turnos"})
     public ResponseEntity<?> editarCuadroTurnoTotal(
             @PathVariable Long id,
             @Valid @RequestBody CuadroTurnoRequest request,
@@ -261,6 +264,8 @@ public class CuadroTurnoController {
     }
 
     @GetMapping("/{id}/procesos")
+    @Operation(summary = "Obtener procesos", description = "Obtiene los procesos relacionados con un cuadro de turno.",
+            tags={"Cuadro de Turnos"})
     public ResponseEntity<List<ProcesosDTO>> getProcesosFromCuadro(@PathVariable Long id) {
         List<ProcesosDTO> procesos = cuadroTurnoService.obtenerProcesosDesdeCuadroMultiproceso(id);
         return ResponseEntity.ok(procesos);

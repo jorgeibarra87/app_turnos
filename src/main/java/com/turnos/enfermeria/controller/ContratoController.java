@@ -454,6 +454,10 @@ public class ContratoController {
      * Endpoint para verificar si un número de contrato ya existe
      */
     @GetMapping("/verificar-numero/{numContrato}")
+    @Operation(
+            summary = "Verificar número de contrato",
+            description = "Verificar si existe un número de contrato.",
+            tags={"Contratos"})
     public ResponseEntity<Map<String, Boolean>> verificarNumeroContrato(@PathVariable String numContrato) {
         try {
             boolean existe = contratoService.existeNumeroContrato(numContrato);
