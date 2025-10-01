@@ -22,64 +22,9 @@ import org.springframework.context.annotation.Configuration;
                         url = "https://hospitalsanjose.gov.co/",
                         email = "jorgeibarra87@gmail.com"
                 )
-        ),
-        servers = {
-                @Server(
-                        description = "DEV SERVER",
-                        url = "http://localhost:8080"
-                )
-        }
-//        security = {
-//                @SecurityRequirement(name = "basicAuth"),
-//                @SecurityRequirement(name = "bearerAuth")
-//        }
+        )
 )
-//@SecurityScheme(
-//        name = "basicAuth",
-//        type = SecuritySchemeType.HTTP,
-//        scheme = "basic",
-//        description = "Autenticación básica con usuario y contraseña"
-//)
-//@SecurityScheme(
-//        name = "bearerAuth",
-//        type = SecuritySchemeType.HTTP,
-//        scheme = "bearer",
-//        bearerFormat = "JWT",
-//        description = "Autenticación con JWT token"
-//)
+
 public class SwaggerConfig {
 
-//    @Bean
-//    public GroupedOpenApi allApi() {
-//        return GroupedOpenApi.builder()
-//                .group("all")
-//                .pathsToMatch("/**") // Captura todos los endpoints
-//                .build();
-//    }
-//    @Bean
-//    public GroupedOpenApi bloquesServicioApi() {
-//        return GroupedOpenApi.builder()
-//                .group("bloques-servicio")
-//                .displayName("📅 Bloques de Servicio")
-//                .pathsToMatch("/bloqueServicio/**")
-//                .build();
-//    }
-//
-//    @Bean
-//    public GroupedOpenApi turnosApi() {
-//        return GroupedOpenApi.builder()
-//                .group("turnos")
-//                .displayName("⏰ Gestión de Turnos")
-//                .pathsToMatch("/turnos/**")
-//                .build();
-//    }
-//
-//    @Bean
-//    public GroupedOpenApi usuariosApi() {
-//        return GroupedOpenApi.builder()
-//                .group("usuarios")
-//                .displayName("👤 Administración de Usuarios")
-//                .pathsToMatch("/usuarios/**", "/auth/**")
-//                .build();
-//    }
 }
