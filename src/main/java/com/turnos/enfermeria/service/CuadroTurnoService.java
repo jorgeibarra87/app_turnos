@@ -450,7 +450,10 @@ public class CuadroTurnoService {
             // Procesar procesos de atención para multiproceso
             if ("multiproceso".equalsIgnoreCase(request.getCategoria()) &&
                     request.getIdsProcesosAtencion() != null && !request.getIdsProcesosAtencion().isEmpty()) {
+                System.out.println("🔄 Procesando procesos de atención para multiproceso...");
+                System.out.println("📝 IDs de procesos base recibidos: " + request.getIdsProcesosAtencion());
                 procesarProcesosAtencionParaCreacion(request.getIdsProcesosAtencion(), savedCuadro);
+                System.out.println("✅ Procesos de atención creados exitosamente");
             }
 
             // Registrar cambio en historial
@@ -567,6 +570,23 @@ public class CuadroTurnoService {
             }
 
             CuadroTurno cuadroActualizado = cuadroTurnoRepository.saveAndFlush(cuadroExistente);
+            if ("multiproceso".equalsIgnoreCase(request.getCategoria())) {
+                System.out.println("🔄 Actualizando procesos de atención para cuadro multiproceso...");
+
+                // Eliminar procesos de atención existentes
+                try {
+                    procesosAtencionRepository.deleteByCuadroTurnoId(cuadroActualizado.getIdCuadroTurno());
+                    System.out.println("🗑️ Procesos de atención anteriores eliminados");
+                } catch (Exception e) {
+                    System.err.println("⚠️ Error al eliminar procesos anteriores: " + e.getMessage());
+                }
+
+                // Crear nuevos procesos de atención
+                if (request.getIdsProcesosAtencion() != null && !request.getIdsProcesosAtencion().isEmpty()) {
+                    procesarProcesosAtencionParaCreacion(request.getIdsProcesosAtencion(), cuadroActualizado);
+                    System.out.println("✅ Nuevos procesos de atención creados");
+                }
+            }
 
             // Hacer operaciones de historial ASÍNCRONAS
             CompletableFuture.runAsync(() -> {
@@ -658,19 +678,80 @@ public class CuadroTurnoService {
     }
 
     // Método auxiliar para procesar procesos de atención en creación
+//    private void procesarProcesosAtencionParaCreacion(List<Long> idsProcesoBase, CuadroTurno cuadro) {
+//        for (Long idProcesoBase : idsProcesoBase) {
+//            Procesos procesoBase = procesosRepository.findById(idProcesoBase)
+//                    .orElseThrow(() -> new EntityNotFoundException("Proceso base no encontrado con ID: " + idProcesoBase));
+//
+//            ProcesosAtencion nuevoProcesoAtencion = new ProcesosAtencion();
+//            nuevoProcesoAtencion.setProcesos(procesoBase);
+//            nuevoProcesoAtencion.setDetalle(procesoBase.getNombre());
+//            nuevoProcesoAtencion.setCuadroTurno(cuadro);
+//
+//            procesosAtencionRepository.save(nuevoProcesoAtencion);
+//            cambiosCuadroTurnoService.registrarCambioProcesosAtencion(nuevoProcesoAtencion, "CREACION");
+//        }
+//    }
     private void procesarProcesosAtencionParaCreacion(List<Long> idsProcesoBase, CuadroTurno cuadro) {
+        System.out.println("📋 === PROCESANDO PROCESOS DE ATENCIÓN ===");
+        System.out.println("🔢 Cantidad de procesos base a procesar: " + idsProcesoBase.size());
+        System.out.println("🆔 Cuadro ID: " + cuadro.getIdCuadroTurno());
+        System.out.println("📝 IDs de procesos base: " + idsProcesoBase);
+
         for (Long idProcesoBase : idsProcesoBase) {
-            Procesos procesoBase = procesosRepository.findById(idProcesoBase)
-                    .orElseThrow(() -> new EntityNotFoundException("Proceso base no encontrado con ID: " + idProcesoBase));
+            try {
+                System.out.println("🔍 Procesando proceso base con ID: " + idProcesoBase);
 
-            ProcesosAtencion nuevoProcesoAtencion = new ProcesosAtencion();
-            nuevoProcesoAtencion.setProcesos(procesoBase);
-            nuevoProcesoAtencion.setDetalle(procesoBase.getNombre());
-            nuevoProcesoAtencion.setCuadroTurno(cuadro);
+                // 1. Buscar el proceso base en la tabla 'procesos'
+                Optional<Procesos> procesoOpt = procesosRepository.findById(idProcesoBase);
+                if (!procesoOpt.isPresent()) {
+                    System.err.println("❌ Proceso base no encontrado con ID: " + idProcesoBase);
+                    continue; // Continuar con el siguiente en lugar de fallar todo
+                }
 
-            procesosAtencionRepository.save(nuevoProcesoAtencion);
-            cambiosCuadroTurnoService.registrarCambioProcesosAtencion(nuevoProcesoAtencion, "CREACION");
+                Procesos procesoBase = procesoOpt.get();
+                System.out.println("✅ Proceso base encontrado: " + procesoBase.getNombre());
+
+                // 2. Verificar si ya existe un proceso_atencion para este cuadro y proceso
+                boolean yaExiste = procesosAtencionRepository.existsByCuadroTurnoIdCuadroTurnoAndProcesosIdProceso(
+                        cuadro.getIdCuadroTurno(),
+                        idProcesoBase
+                );
+
+                if (yaExiste) {
+                    System.out.println("⚠️ Ya existe un proceso de atención para este cuadro y proceso, omitiendo...");
+                    continue;
+                }
+
+                // 3. Crear nuevo registro en 'procesos_atencion'
+                ProcesosAtencion nuevoProcesoAtencion = new ProcesosAtencion();
+                nuevoProcesoAtencion.setProcesos(procesoBase);                    // FK a 'procesos'
+                nuevoProcesoAtencion.setCuadroTurno(cuadro);                     // FK a 'cuadro_turno'
+                nuevoProcesoAtencion.setDetalle(procesoBase.getNombre());        // Descripción
+                nuevoProcesoAtencion.setEstado(true);                           // Estado activo
+
+                // 4. Guardar en base de datos
+                ProcesosAtencion saved = procesosAtencionRepository.save(nuevoProcesoAtencion);
+                System.out.println("💾 Proceso de atención creado:");
+                System.out.println("   - ID: " + saved.getIdProcesoAtencion());
+                System.out.println("   - Proceso: " + saved.getProcesos().getNombre());
+                System.out.println("   - Cuadro: " + saved.getCuadroTurno().getNombre());
+
+                // 5. Registrar cambio en historial (si tienes este servicio)
+                try {
+                    cambiosCuadroTurnoService.registrarCambioProcesosAtencion(saved, "CREACION");
+                } catch (Exception e) {
+                    System.err.println("⚠️ Error al registrar cambio en historial: " + e.getMessage());
+                }
+
+            } catch (Exception e) {
+                System.err.println("❌ Error procesando proceso con ID " + idProcesoBase + ": " + e.getMessage());
+                e.printStackTrace();
+                // Continuar con el siguiente proceso en lugar de fallar completamente
+            }
         }
+
+        System.out.println("🎉 Procesamiento de procesos de atención completado");
     }
 
     // Método para obtener vista previa del nombre (opcional, para el frontend)

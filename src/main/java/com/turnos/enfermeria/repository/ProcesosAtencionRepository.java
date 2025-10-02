@@ -23,4 +23,12 @@ public interface ProcesosAtencionRepository extends JpaRepository<ProcesosAtenci
     List<ProcesosAtencion> findByCuadroTurnoId(@Param("cuadroTurnoId") Long cuadroTurnoId);
 
     List<ProcesosAtencion> findByCuadroTurno_IdCuadroTurno(Long idCuadroTurno);
+    // Verificar si ya existe la combinación cuadro-proceso
+    boolean existsByCuadroTurnoIdCuadroTurnoAndProcesosIdProceso(Long idCuadroTurno, Long idProceso);
+
+    // Eliminar por cuadro (para ediciones)
+    void deleteByCuadroTurnoIdCuadroTurno(Long idCuadroTurno);
+
+    // Buscar procesos de atención por cuadro
+    List<ProcesosAtencion> findByCuadroTurnoIdCuadroTurno(Long idCuadroTurno);
 }

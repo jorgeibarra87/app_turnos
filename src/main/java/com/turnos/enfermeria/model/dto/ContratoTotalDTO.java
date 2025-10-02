@@ -16,7 +16,7 @@ public class ContratoTotalDTO {
     private String contratista;
     private LocalDate fechaInicio;
     private LocalDate fechaTerminacion;
-    private String anio;
+    private Integer anio;
     private String observaciones;
     private Boolean estado = true;
 

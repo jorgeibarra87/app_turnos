@@ -47,7 +47,7 @@ public class Contrato {
     private LocalDate fechaTerminacion;
 
     @Column(name = "anio")
-    private String anio;
+    private Integer anio;
 
     @Column(name = "estado")
     private Boolean estado;
