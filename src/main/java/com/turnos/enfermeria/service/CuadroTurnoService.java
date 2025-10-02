@@ -430,10 +430,13 @@ public class CuadroTurnoService {
             cuadroTurno.setEstado(request.getEstado() != null ? request.getEstado() : true);
             cuadroTurno.setEquipos(equipo);
 
+            // AGREGAR OBSERVACIONES
+            cuadroTurno.setObservaciones(request.getObservaciones());
+            // Configurar según categoría
             configurarCuadroSegunCategoria(cuadroTurno, request, macroprocesos, procesos,
                     servicio, seccionesServicio, subseccionesServicio, equipo);
 
-            // El nombre se genera automáticamente en el backend
+            // Generar nombre y versión
             cuadroTurno.setNombre(generarNombreCuadroTurno(cuadroTurno));
             cuadroTurno.setVersion(generarNuevaVersion(null, cuadroTurno.getAnio(), cuadroTurno.getMes()));
             cuadroTurno.setEstadoCuadro("abierto");
@@ -454,7 +457,7 @@ public class CuadroTurnoService {
             CuadroTurnoDTO dtoParaCambio = modelMapper.map(savedCuadro, CuadroTurnoDTO.class);
             cambiosCuadroTurnoService.registrarCambioCuadroTurno(dtoParaCambio, "CREACION");
 
-            // 🔔 PUBLICAR EVENTO AUTOMÁTICAMENTE (CORREGIDO)
+            // 🔔 PUBLICAR EVENTO AUTOMÁTICAMENTE
             try {
                 CambioCuadroEvent evento = new CambioCuadroEvent(
                         savedCuadro.getIdCuadroTurno(),

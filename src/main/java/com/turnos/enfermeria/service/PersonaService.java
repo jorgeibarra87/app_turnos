@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
@@ -28,59 +29,80 @@ public class PersonaService {
     private final ModelMapper modelMapper;
     private final CambiosEquipoService cambiosEquipoService;
 
-    public PersonaDTO create(PersonaDTO personaDTO) {
-        Persona persona = modelMapper.map(personaDTO, Persona.class);
+//    public PersonaDTO create(PersonaDTO personaDTO) {
+//        Persona persona = modelMapper.map(personaDTO, Persona.class);
+//
+//        // Guardar persona
+//        Persona personaGuardada = personaRepo.save(persona);
+//
+//        // 👇 Crear y guardar también el Usuario
+//        Usuario usuario = new Usuario();
+//        usuario.setPersona(personaGuardada); // Relación uno a uno
+//        usuarioRepo.save(usuario);
+//
+//        return modelMapper.map(personaGuardada, PersonaDTO.class);
+//    }
 
-        // Guardar persona
+    public PersonaDTO create(PersonaDTO personaDTO) {
+        // Buscar si ya existe por documento
+        Optional<Persona> personaExistente = personaRepo.findByDocumento(personaDTO.getDocumento());
+
+        if (personaExistente.isPresent()) {
+            //Si existe, usar el método update
+            Long idPersonaExistente = personaExistente.get().getIdPersona();
+            return update(personaDTO, idPersonaExistente);
+        }
+
+        // Si no existe, crear nueva (código original)
+        Persona persona = modelMapper.map(personaDTO, Persona.class);
+        persona.setIdPersona(null); // Asegurar que sea null
+
         Persona personaGuardada = personaRepo.save(persona);
 
-        // 👇 Crear y guardar también el Usuario
+        // Crear usuario
         Usuario usuario = new Usuario();
-        usuario.setPersona(personaGuardada); // Relación uno a uno
+        usuario.setPersona(personaGuardada);
         usuarioRepo.save(usuario);
 
         return modelMapper.map(personaGuardada, PersonaDTO.class);
     }
 
+    @Transactional
     public PersonaDTO update(PersonaDTO detallePersonaDTO, Long id) {
+        // Obtener la entidad
         Persona personaExistente = personaRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Persona no encontrada"));
 
-        // Actualizar los campos si no son nulos
-        if (detallePersonaDTO.getIdPersona()!= null) {
-            personaExistente.setIdPersona(detallePersonaDTO.getIdPersona());
-        }
+        // Actualizar campos
         if (detallePersonaDTO.getFechaNacimiento() != null) {
             personaExistente.setFechaNacimiento(detallePersonaDTO.getFechaNacimiento());
         }
-        if (detallePersonaDTO.getApellidos()!= null) {
+        if (detallePersonaDTO.getApellidos() != null && !detallePersonaDTO.getApellidos().trim().isEmpty()) {
             personaExistente.setApellidos(detallePersonaDTO.getApellidos());
         }
-        if (detallePersonaDTO.getDocumento()!= null) {
+        if (detallePersonaDTO.getDocumento() != null && !detallePersonaDTO.getDocumento().trim().isEmpty()) {
             personaExistente.setDocumento(detallePersonaDTO.getDocumento());
         }
-        if (detallePersonaDTO.getEmail()!= null) {
+        if (detallePersonaDTO.getEmail() != null && !detallePersonaDTO.getEmail().trim().isEmpty()) {
             personaExistente.setEmail(detallePersonaDTO.getEmail());
         }
-        if (detallePersonaDTO.getNombreCompleto()!= null) {
+        if (detallePersonaDTO.getNombreCompleto() != null && !detallePersonaDTO.getNombreCompleto().trim().isEmpty()) {
             personaExistente.setNombreCompleto(detallePersonaDTO.getNombreCompleto());
         }
-        if (detallePersonaDTO.getNombres()!= null) {
+        if (detallePersonaDTO.getNombres() != null && !detallePersonaDTO.getNombres().trim().isEmpty()) {
             personaExistente.setNombres(detallePersonaDTO.getNombres());
         }
 
-        // Guardar persona
+        // Guardar
         Persona personaActualizada = personaRepo.save(personaExistente);
 
-        // 👇 Verificar si existe un usuario relacionado, sino crearlo
-        Usuario usuario = usuarioRepo.findById(id)
-                .orElseGet(() -> {
-                    Usuario nuevoUsuario = new Usuario();
-                    nuevoUsuario.setPersona(personaActualizada);
-                    return nuevoUsuario;
-                });
-        usuario.setPersona(personaActualizada);
-        usuarioRepo.save(usuario);
+        // Manejar usuario
+        Usuario usuario = usuarioRepo.findById(id).orElse(null);
+        if (usuario == null) {
+            usuario = new Usuario();
+            usuario.setPersona(personaActualizada);
+            usuarioRepo.save(usuario);
+        }
 
         return modelMapper.map(personaActualizada, PersonaDTO.class);
     }
